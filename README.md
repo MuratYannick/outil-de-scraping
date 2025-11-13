@@ -28,7 +28,7 @@ Projet de développement d'un outil de scraping autonome permettant de collecter
 - **Node.js** - Runtime JavaScript
 - **Express** - Framework web
 - **Sequelize** - ORM pour base de données
-- **Playwright/Puppeteer** - Moteur de scraping
+- **Playwright** - Moteur de scraping (préféré)
 - **Cheerio** - Parsing HTML
 
 ### Données
@@ -105,7 +105,7 @@ outil-de-scraping/
 
 ### Semaine 2 : 🕷️ Moteur de Scraping MVP
 
-- **J6** : Mise en place de Playwright/Puppeteer
+- **J6** : Mise en place de Playwright
 - **J7-J8** : Développement du scraper Pages Jaunes
 - **J9** : Intégration du scraper à l'API
 - **J10** : Sauvegarde des données & feedback

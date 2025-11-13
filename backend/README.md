@@ -14,7 +14,7 @@
 - **Express** 4.18.2
 - **Sequelize** (ORM) pour MySQL
 - **MySQL** base de données
-- **Playwright** + **Puppeteer** + **Cheerio** pour le scraping
+- **Playwright** + **Cheerio** pour le scraping
 
 ## Structure du projet
 
