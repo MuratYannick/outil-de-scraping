@@ -130,6 +130,9 @@ npm run db:setup
 # Synchroniser les modèles Sequelize avec la DB
 npm run db:migrate
 
+# Remplir la DB avec des données de test
+npm run db:seed
+
 # Supprimer toutes les tables (⚠️ ATTENTION : destructif)
 npm run db:drop
 
@@ -141,6 +144,7 @@ npm run db:reset
 
 - **`npm run db:setup`** : Crée la base de données si elle n'existe pas, puis exécute le script SQL d'initialisation et synchronise les modèles Sequelize
 - **`npm run db:migrate`** : Synchronise uniquement les modèles Sequelize avec la base de données existante
+- **`npm run db:seed`** : Remplit la base de données avec des données de test (6 prospects et 10 tags)
 - **`npm run db:drop`** : Supprime TOUTES les tables de la base de données (demande confirmation)
 - **`npm run db:reset`** : Supprime toutes les tables puis les recrée (utile pour le développement)
 
@@ -157,9 +161,18 @@ npm run db:reset
 # Option 2 : Supprimer puis recréer manuellement
 npm run db:drop
 npm run db:setup
+
+# Option 3 : Réinitialisation + données de test
+npm run db:reset && npm run db:seed
 ```
 
 **Note** : La commande `npm run db:drop` demande une confirmation avant de supprimer les tables pour éviter les suppressions accidentelles.
+
+### 📝 Données de test
+
+La commande `npm run db:seed` ajoute :
+- **10 tags** : Bâtiment, Restauration, Technologie, Commerce, Service, Industrie, Non-Contacté, Qualifié, En Négociation, Client
+- **6 prospects** : Entreprises fictives basées à Lyon avec coordonnées complètes, tags associés et différentes sources de scraping (Google Maps, Pages Jaunes, LinkedIn)
 
 ### Manuellement (MySQL)
 
