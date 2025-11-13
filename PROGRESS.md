@@ -4,9 +4,10 @@
 
 ## 🎯 Objectif Phase 1 (MVP)
 
-- Collecter 50 prospects initialement
-- Établir un flux récurrent de 10 prospects/semaine
-- Stocker et visualiser les données collectées
+- [x] Définir les objectifs du MVP
+  - Collecter 50 prospects initialement
+  - Établir un flux récurrent de 10 prospects/semaine
+  - Stocker et visualiser les données collectées
 
 **Durée prévue** : 4 semaines (20 jours de développement)
 
@@ -14,78 +15,148 @@
 
 ## 📅 Roadmap et Statut
 
-### Semaine 1 : 🏗️ Infrastructure Backend & DB
+### Semaine 1 : 🏗️ Infrastructure Backend & DB (🏗️ EN COURS)
 
-| Jour | Tâche | Statut |
-|------|-------|--------|
-| J1 | Initialisation du projet & Architecture | ✅ **EFFECTUÉE** |
-| J2-J3 | Configuration de la base de données | ✅ **EFFECTUÉE** |
-| J4 | API de gestion des données (CRUD) | ✅ **EFFECTUÉE** |
-| J5 | Initialisation du Frontend & connexion API | 🏗️ **EN COURS** |
+#### Jour 1 : Initialisation du projet & Architecture
+- [x] Créer le repository GitHub
+- [x] Initialiser la structure du projet (backend/frontend/docs)
+- [x] Valider la stack technique (Node.js 22.19.0, Express, Sequelize, MySQL, Vite, React)
+- [x] Configurer Git et .gitignore
 
-**Détail** :
-- ✅ Repository GitHub créé et initialisé
-- ✅ Stack technique validée (Node.js 22.19.0, Express, Sequelize, MySQL, Vite, React)
-- ✅ Modèles Sequelize implémentés (Prospect, Tag) avec associations
-- ✅ SQL init script créé (`init-db.sql`)
-- ✅ Scripts DB (`setup-db.js`, `migrate.js`) fonctionnels
-- ✅ Express app minimale avec routes `/health`, `/api/prospects`, `/api/tags`
-- ✅ Configuration MySQL et Sequelize complétée
-- 🏗️ Frontend skeleton avec Vite 7.x, React 18, Tailwind CSS v3
+#### Jour 2-3 : Configuration de la base de données
+- [x] Installer et configurer MySQL localement
+- [ ] Créer le schéma de base de données (prospects, tags, prospects_tags)
+- [ ] Créer les modèles Sequelize (Prospect, Tag)
+- [ ] Implémenter les associations N:M entre Prospect et Tag
+- [ ] Créer le script SQL d'initialisation (`init-db.sql`)
+- [ ] Créer les scripts de gestion DB (`setup-db.js`, `migrate.js`)
 
----
+#### Jour 4 : API de gestion des données (CRUD)
+- [x] Configurer Express app minimale
+- [ ] Créer la route `/health` pour vérification serveur
+- [ ] Créer les routes `/api/prospects` (CRUD)
+- [ ] Créer les routes `/api/tags` (CRUD)
+- [ ] Configurer la connexion MySQL avec Sequelize
+- [ ] Tester les endpoints API
 
-### Semaine 2 : 🕷️ Moteur de Scraping MVP
-
-| Jour | Tâche | Statut |
-|------|-------|--------|
-| J6 | Mise en place de Playwright | 📋 **À FAIRE** |
-| J7-J8 | Développement du scraper Pages Jaunes | 📋 **À FAIRE** |
-| J9 | Intégration du scraper à l'API | 📋 **À FAIRE** |
-| J10 | Sauvegarde des données & feedback | 📋 **À FAIRE** |
-
-**Détail** :
-- 📋 Service Playwright à implémenter
-- 📋 Scraper Pages Jaunes en développement
-- 📋 Routes API scraping à ajouter
-
----
-
-### Semaine 3 : 💻 Interface Utilisateur
-
-| Jour | Tâche | Statut |
-|------|-------|--------|
-| J11-J12 | Interface de lancement du scraping | 📋 **À FAIRE** |
-| J13 | Tableau de bord des prospects | 📋 **À FAIRE** |
-| J14 | Gestion des tags | 📋 **À FAIRE** |
-| J15 | Gestion des erreurs & logique proxy | 📋 **À FAIRE** |
-
-**Détail** :
-- 📋 Composants React à développer
-- 📋 Intégration frontend/backend
+#### Jour 5 : Initialisation du Frontend & connexion API
+- [x] Initialiser Vite 7.x avec React 18
+- [x] Configurer Tailwind CSS v3
+- [ ] Créer la structure de base (main.jsx, App.jsx)
+- [ ] Configurer PostCSS et autoprefixer
+- [x] Mettre à niveau Vite 5.x → 7.x (résoudre advisory esbuild)
+- [ ] Créer les composants de base React
+- [ ] Connecter le frontend à l'API backend
+- [ ] Tester la communication frontend/backend
 
 ---
 
-### Semaine 4 : 🌐 Scraping Dynamique & Déploiement
+### Semaine 2 : 🕷️ Moteur de Scraping MVP (📋 À FAIRE)
 
-| Jour | Tâche | Statut |
-|------|-------|--------|
-| J16-J18 | Scraper Google Maps/LinkedIn | 📋 **À FAIRE** |
-| J19 | Nettoyage et finalisation du code | 📋 **À FAIRE** |
-| J20 | Déploiement MVP & démo | 📋 **À FAIRE** |
+#### Jour 6 : Mise en place de Playwright
+- [ ] Installer Playwright et ses dépendances
+- [ ] Créer le service `playwrightService.js`
+- [ ] Implémenter les utilitaires de base (pool de contexts, retry, logging)
+- [ ] Configurer l'émulation de navigateur (User-Agent, viewport)
+- [ ] Tester le lancement basique de Playwright
 
-**Détail** :
-- 📋 Scrapers additionnels
-- 📋 Nettoyage et optimisations
+#### Jour 7-8 : Développement du scraper Pages Jaunes
+- [ ] Analyser la structure HTML de Pages Jaunes
+- [ ] Créer le scraper `pagesJaunesScraper.js`
+- [ ] Implémenter l'extraction des données (nom, adresse, téléphone, site web)
+- [ ] Ajouter la normalisation des données (format téléphone, emails)
+- [ ] Implémenter la gestion des erreurs et retry
+- [ ] Ajouter la logique anti-détection (delays, rotation proxies si disponible)
+- [ ] Tester le scraper avec plusieurs requêtes
+
+#### Jour 9 : Intégration du scraper à l'API
+- [ ] Créer les routes `/api/scraping/lancer` et `/api/scraping/status/:task_id`
+- [ ] Créer le controller de scraping
+- [ ] Implémenter la gestion des tâches asynchrones
+- [ ] Ajouter le feedback en temps réel (progression, nombre de prospects)
+- [ ] Tester l'intégration API ↔ Scraper
+
+#### Jour 10 : Sauvegarde des données & feedback
+- [ ] Implémenter la sauvegarde automatique des prospects en DB
+- [ ] Ajouter la détection et gestion des doublons
+- [ ] Créer le système de feedback utilisateur (notifications, logs)
+- [ ] Tester le flux complet : lancement → scraping → sauvegarde → feedback
+- [ ] Valider l'objectif de 50 prospects initiaux
+
+---
+
+### Semaine 3 : 💻 Interface Utilisateur (📋 À FAIRE)
+
+#### Jour 11-12 : Interface de lancement du scraping
+- [ ] Créer le composant formulaire de scraping (keyword, location, source)
+- [ ] Implémenter la validation des inputs côté client
+- [ ] Créer le composant d'affichage de progression en temps réel
+- [ ] Ajouter les notifications de succès/erreur
+- [ ] Styliser avec Tailwind CSS
+- [ ] Tester le lancement de scraping depuis l'interface
+
+#### Jour 13 : Tableau de bord des prospects
+- [ ] Créer le composant tableau de prospects
+- [ ] Implémenter la pagination
+- [ ] Ajouter les filtres (par tag, par source, par date)
+- [ ] Créer les composants de visualisation (cartes, statistiques)
+- [ ] Implémenter l'export des données (CSV, JSON)
+- [ ] Tester l'affichage de données volumineuses
+
+#### Jour 14 : Gestion des tags
+- [ ] Créer le composant de gestion des tags
+- [ ] Implémenter l'ajout/suppression de tags
+- [ ] Créer l'interface d'association prospect ↔ tag
+- [ ] Ajouter la recherche et filtrage par tags
+- [ ] Tester les opérations CRUD sur les tags
+
+#### Jour 15 : Gestion des erreurs & logique proxy
+- [ ] Implémenter la gestion globale des erreurs frontend
+- [ ] Créer les pages d'erreur (404, 500)
+- [ ] Ajouter la validation Joi côté backend
+- [ ] Implémenter la logique de rotation des proxies (si applicable)
+- [ ] Tester les scénarios d'erreur et la récupération
+
+---
+
+### Semaine 4 : 🌐 Scraping Dynamique & Déploiement (📋 À FAIRE)
+
+#### Jour 16-18 : Scraper Google Maps/LinkedIn
+- [ ] Analyser la structure de Google Maps
+- [ ] Créer le scraper `googleMapsScraper.js`
+- [ ] Tester et valider le scraper Google Maps
+- [ ] Analyser la structure de LinkedIn (si applicable)
+- [ ] Créer le scraper `linkedInScraper.js`
+- [ ] Implémenter les stratégies anti-détection spécifiques
+- [ ] Ajouter la géolocalisation et extraction de coordonnées
+- [ ] Tester les scrapers additionnels
+
+#### Jour 19 : Nettoyage et finalisation du code
+- [ ] Refactoring du code backend
+- [ ] Refactoring du code frontend
+- [ ] Ajouter les commentaires et documentation inline
+- [ ] Optimiser les performances (requêtes DB, chargement frontend)
+- [ ] Exécuter les linters (ESLint) et corriger les warnings
+- [ ] Vérifier la sécurité (npm audit, validation inputs)
+- [ ] Créer/mettre à jour les tests unitaires
+
+#### Jour 20 : Déploiement MVP & démo
+- [ ] Préparer l'environnement de production
+- [ ] Déployer la base de données (MySQL en prod)
+- [ ] Déployer le backend
+- [ ] Déployer le frontend
+- [ ] Configurer les variables d'environnement prod
+- [ ] Tester l'application en production
+- [ ] Préparer la démo et documentation utilisateur
+- [ ] Livrer le MVP au chef de projet
 
 ---
 
 ## 🔐 Problèmes Résolus
 
 ### Security
-
-- ✅ **npm audit (Backend)** : Suppression de Puppeteer, audit finalisé à 0 vulnérabilités
-- ✅ **npm audit (Frontend)** : Mise à jour de Vite 5.x → 7.x, résolution advisory esbuild (GHSA-67mh-4wv8-2f99), audit finalisé à 0 vulnérabilités
+- [x] **npm audit (Backend)** : Suppression de Puppeteer effectuée, seul Playwright est utilisé
+- [x] **npm audit (Frontend)** : Mise à jour de Vite 5.x → 7.x, résolution advisory esbuild (GHSA-67mh-4wv8-2f99), audit finalisé à 0 vulnérabilités
 
 ---
 
@@ -181,20 +252,23 @@ outil-de-scraping/
 
 ## 🚀 Prochaines Étapes (Priorité)
 
-1. **Semaine 2 — Moteur de Scraping** (à commencer immédiatement)
-   - Implémenter `backend/src/services/playwrightService.js`
-   - Créer un scraper exemple (Pages Jaunes)
-   - Ajouter routes API pour lancer le scraping
+### Semaine 2 — Moteur de Scraping (À commencer immédiatement)
+- [ ] Implémenter `backend/src/services/playwrightService.js`
+- [ ] Créer un scraper exemple (Pages Jaunes)
+- [ ] Ajouter routes API pour lancer le scraping
+- [ ] Tester le flux complet de scraping
 
-2. **Semaine 3 — Frontend**
-   - Développer composants React
-   - Intégrer l'API backend
-   - Afficher les prospects et permettre de lancer un scraping
+### Semaine 3 — Frontend
+- [ ] Développer composants React (Dashboard, Formulaire scraping, Liste prospects)
+- [ ] Intégrer l'API backend avec Axios
+- [ ] Afficher les prospects et permettre de lancer un scraping
+- [ ] Implémenter la gestion des tags
 
-3. **Sécurité & Qualité**
-   - Ajouter validation Joi sur les routes
-   - Tests unitaires (à définir avec le chef de projet)
-   - Gestion des erreurs améliorée
+### Sécurité & Qualité
+- [ ] Ajouter validation Joi sur les routes
+- [ ] Tests unitaires (à définir avec le chef de projet)
+- [ ] Gestion des erreurs améliorée
+- [ ] Configuration Helmet pour sécuriser les headers HTTP
 
 ---
 
