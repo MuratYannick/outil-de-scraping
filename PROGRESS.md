@@ -30,6 +30,8 @@
 - [x] Implémenter les associations N:M entre Prospect et Tag
 - [x] Créer le script SQL d'initialisation (`init-db.sql`)
 - [x] Créer les scripts de gestion DB (`setup-db.js`, `migrate.js`)
+- [x] Créer le script de suppression des tables (`drop-tables.js`)
+- [x] Créer le script de seed avec données de test (`seed-db.js`)
 
 #### Jour 4 : API de gestion des données (CRUD)
 - [x] Configurer Express app minimale
@@ -219,14 +221,20 @@ outil-de-scraping/
 │   │   │   ├── index.js
 │   │   │   ├── Prospect.js
 │   │   │   └── Tag.js
-│   │   ├── controllers/        # À implémenter
-│   │   ├── routes/             # À implémenter
+│   │   ├── controllers/
+│   │   │   ├── prospectController.js
+│   │   │   └── tagController.js
+│   │   ├── routes/
+│   │   │   ├── prospectRoutes.js
+│   │   │   └── tagRoutes.js
 │   │   ├── middlewares/        # À implémenter
 │   │   └── services/           # À implémenter (Playwright service)
 │   └── scripts/
 │       ├── init-db.sql
 │       ├── setup-db.js
-│       └── migrate.js
+│       ├── migrate.js
+│       ├── drop-tables.js
+│       └── seed-db.js
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.js
@@ -237,9 +245,12 @@ outil-de-scraping/
 │   └── src/
 │       ├── main.jsx            # Point d'entrée
 │       ├── App.jsx             # Composant principal
-│       ├── components/         # À implémenter
+│       ├── components/
+│       │   ├── Header.jsx
+│       │   └── ProspectList.jsx
 │       ├── pages/              # À implémenter
-│       ├── services/           # À implémenter
+│       ├── services/
+│       │   └── api.js          # Service API Axios
 │       └── styles/
 │           └── index.css       # Styles Tailwind
 ├── docs/
