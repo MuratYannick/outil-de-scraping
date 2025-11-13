@@ -5,9 +5,11 @@
   "type": "module",
   "main": "src/app.js",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "node --watch src/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "start": "node src/app.js",
+  "dev": "node --watch src/app.js",
+  "db:setup": "node scripts/setup-db.js",
+  "db:migrate": "node scripts/migrate.js",
+  "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "scraping",
