@@ -15,7 +15,7 @@
 
 ## 📅 Roadmap et Statut
 
-### Semaine 1 : 🏗️ Infrastructure Backend & DB (✅ COMPLÉTÉE à 75%)
+### Semaine 1 : 🏗️ Infrastructure Backend & DB (✅ COMPLÉTÉE à 100%)
 
 #### Jour 1 : Initialisation du projet & Architecture
 - [x] Créer le repository GitHub
@@ -43,12 +43,13 @@
 #### Jour 5 : Initialisation du Frontend & connexion API
 - [x] Initialiser Vite 7.x avec React 18
 - [x] Configurer Tailwind CSS v3
-- [ ] Créer la structure de base (main.jsx, App.jsx)
-- [ ] Configurer PostCSS et autoprefixer
+- [x] Créer la structure de base (main.jsx, App.jsx)
+- [x] Configurer PostCSS et autoprefixer
 - [x] Mettre à niveau Vite 5.x → 7.x (résoudre advisory esbuild)
-- [ ] Créer les composants de base React
-- [ ] Connecter le frontend à l'API backend
-- [ ] Tester la communication frontend/backend
+- [x] Créer le service API avec Axios (api.js)
+- [x] Créer les composants de base React (Header, ProspectList)
+- [x] Connecter le frontend à l'API backend
+- [x] Tester la communication frontend/backend
 
 ---
 
