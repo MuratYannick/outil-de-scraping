@@ -2,17 +2,22 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
-import { sequelize, Prospect, Tag } from "./models/index.js";
+import { sequelize } from "./models/index.js";
+import prospectRoutes from "./routes/prospectRoutes.js";
+import tagRoutes from "./routes/tagRoutes.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// ============================================================================
 // Middlewares
+// ============================================================================
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // ============================================================================
 // Routes de base
@@ -20,7 +25,11 @@ app.use(express.json());
 
 // Health check
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", message: "Backend is running" });
+  res.json({
+    status: "ok",
+    message: "Backend is running",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // API Info
@@ -29,114 +38,37 @@ app.get("/api", (req, res) => {
     name: "Outil de Scraping API",
     version: "1.0.0",
     environment: process.env.NODE_ENV || "development",
+    endpoints: {
+      health: "/health",
+      prospects: "/api/prospects",
+      tags: "/api/tags",
+    },
   });
 });
 
 // ============================================================================
-// Routes Prospects (temporaire)
+// API Routes
 // ============================================================================
-
-// GET /api/prospects - Récupérer tous les prospects
-app.get("/api/prospects", async (req, res) => {
-  try {
-    const { limit = 20, offset = 0, source } = req.query;
-
-    const where = source ? { source_scraping: source } : {};
-
-    const prospects = await Prospect.findAndCountAll({
-      where,
-      include: [
-        {
-          model: Tag,
-          as: "tags",
-          through: { attributes: [] },
-        },
-      ],
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-      order: [["date_ajout", "DESC"]],
-    });
-
-    res.json({
-      data: prospects.rows,
-      total: prospects.count,
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-    });
-  } catch (error) {
-    console.error("Error fetching prospects:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-// POST /api/prospects - Créer un prospect
-app.post("/api/prospects", async (req, res) => {
-  try {
-    const {
-      nom_entreprise,
-      nom_contact,
-      email,
-      telephone,
-      adresse,
-      url_site,
-      source_scraping,
-    } = req.body;
-
-    if (!nom_entreprise) {
-      return res.status(400).json({ error: "nom_entreprise is required" });
-    }
-
-    const prospect = await Prospect.create({
-      nom_entreprise,
-      nom_contact,
-      email,
-      telephone,
-      adresse,
-      url_site,
-      source_scraping: source_scraping || "Manual",
-    });
-
-    res.status(201).json(prospect);
-  } catch (error) {
-    console.error("Error creating prospect:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+app.use("/api/prospects", prospectRoutes);
+app.use("/api/tags", tagRoutes);
 
 // ============================================================================
-// Routes Tags (temporaire)
+// Error handling middleware
 // ============================================================================
-
-// GET /api/tags - Récupérer tous les tags
-app.get("/api/tags", async (req, res) => {
-  try {
-    const tags = await Tag.findAll({
-      order: [["nom", "ASC"]],
-    });
-
-    res.json({ data: tags });
-  } catch (error) {
-    console.error("Error fetching tags:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Not Found",
+    message: `Route ${req.method} ${req.path} not found`,
+  });
 });
 
-// POST /api/tags - Créer un tag
-app.post("/api/tags", async (req, res) => {
-  try {
-    const { nom } = req.body;
-
-    if (!nom) {
-      return res.status(400).json({ error: "nom is required" });
-    }
-
-    const tag = await Tag.create({ nom });
-
-    res.status(201).json(tag);
-  } catch (error) {
-    console.error("Error creating tag:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({
+    error: "Internal Server Error",
+    message: err.message,
+  });
 });
 
 // ============================================================================
@@ -157,6 +89,8 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`✓ Server running on http://localhost:${PORT}`);
       console.log(`  Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`  Health check: http://localhost:${PORT}/health`);
+      console.log(`  API info: http://localhost:${PORT}/api`);
     });
   } catch (error) {
     console.error("✗ Failed to start server:", error);

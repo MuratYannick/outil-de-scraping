@@ -15,7 +15,7 @@
 
 ## 📅 Roadmap et Statut
 
-### Semaine 1 : 🏗️ Infrastructure Backend & DB (🏗️ EN COURS)
+### Semaine 1 : 🏗️ Infrastructure Backend & DB (✅ COMPLÉTÉE à 75%)
 
 #### Jour 1 : Initialisation du projet & Architecture
 - [x] Créer le repository GitHub
@@ -34,10 +34,11 @@
 #### Jour 4 : API de gestion des données (CRUD)
 - [x] Configurer Express app minimale
 - [x] Configurer la connexion MySQL avec Sequelize
-- [ ] Créer la route `/health` pour vérification serveur
-- [ ] Créer les routes `/api/prospects` (CRUD)
-- [ ] Créer les routes `/api/tags` (CRUD)
-- [ ] Tester les endpoints API
+- [x] Créer la route `/health` pour vérification serveur
+- [x] Créer les controllers (prospectController.js, tagController.js)
+- [x] Créer les routes `/api/prospects` (GET, POST, PUT, DELETE + tags)
+- [x] Créer les routes `/api/tags` (GET, POST, PUT, DELETE)
+- [x] Tester les endpoints API
 
 #### Jour 5 : Initialisation du Frontend & connexion API
 - [x] Initialiser Vite 7.x avec React 18
