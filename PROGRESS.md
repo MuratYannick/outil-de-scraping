@@ -25,18 +25,18 @@
 
 #### Jour 2-3 : Configuration de la base de données
 - [x] Installer et configurer MySQL localement
-- [ ] Créer le schéma de base de données (prospects, tags, prospects_tags)
-- [ ] Créer les modèles Sequelize (Prospect, Tag)
-- [ ] Implémenter les associations N:M entre Prospect et Tag
-- [ ] Créer le script SQL d'initialisation (`init-db.sql`)
-- [ ] Créer les scripts de gestion DB (`setup-db.js`, `migrate.js`)
+- [x] Créer le schéma de base de données (prospects, tags, prospects_tags)
+- [x] Créer les modèles Sequelize (Prospect, Tag)
+- [x] Implémenter les associations N:M entre Prospect et Tag
+- [x] Créer le script SQL d'initialisation (`init-db.sql`)
+- [x] Créer les scripts de gestion DB (`setup-db.js`, `migrate.js`)
 
 #### Jour 4 : API de gestion des données (CRUD)
 - [x] Configurer Express app minimale
+- [x] Configurer la connexion MySQL avec Sequelize
 - [ ] Créer la route `/health` pour vérification serveur
 - [ ] Créer les routes `/api/prospects` (CRUD)
 - [ ] Créer les routes `/api/tags` (CRUD)
-- [ ] Configurer la connexion MySQL avec Sequelize
 - [ ] Tester les endpoints API
 
 #### Jour 5 : Initialisation du Frontend & connexion API
