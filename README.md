@@ -5,6 +5,7 @@ Projet de développement d'un outil de scraping autonome permettant de collecter
 ## 📋 Vue d'ensemble
 
 **Objectif Phase 1 (MVP)** : Livrer une application fonctionnelle permettant de :
+
 - Collecter 50 prospects initialement
 - Établir un flux récurrent de 10 prospects/semaine
 - Stocker et visualiser les données collectées
@@ -16,12 +17,14 @@ Projet de développement d'un outil de scraping autonome permettant de collecter
 ## 🛠️ Stack Technique
 
 ### Frontend
+
 - **Vite** - Build tool rapide
 - **React** - Interface utilisateur
 - **Tailwind CSS** - Styling
 - **Axios** - HTTP client
 
 ### Backend
+
 - **Node.js** - Runtime JavaScript
 - **Express** - Framework web
 - **Sequelize** - ORM pour base de données
@@ -29,9 +32,11 @@ Projet de développement d'un outil de scraping autonome permettant de collecter
 - **Cheerio** - Parsing HTML
 
 ### Données
+
 - **PostgreSQL** ou **MySQL** - Base de données relationnelle
 
 ### DevOps
+
 - **Docker** - Conteneurisation
 - **Git** - Contrôle de version
 
@@ -79,37 +84,41 @@ outil-de-scraping/
 
 ## 🎯 Fonctionnalités MVP
 
-| ID | Fonctionnalité | Statut |
-|:--:|---|:----:|
+|  ID  | Fonctionnalité               |   Statut   |
+| :--: | ---------------------------- | :--------: |
 | F-01 | Gestion des Prospects (CRUD) | 📋 À faire |
-| F-02 | Lancement du Scraping | 📋 À faire |
+| F-02 | Lancement du Scraping        | 📋 À faire |
 | F-03 | Extraction de Données Cibles | 📋 À faire |
-| F-04 | Gestion des Tags | 📋 À faire |
-| F-05 | Tableau de Bord | 📋 À faire |
+| F-04 | Gestion des Tags             | 📋 À faire |
+| F-05 | Tableau de Bord              | 📋 À faire |
 
 ---
 
 ## 📅 Roadmap Phase 1 (4 Semaines)
 
 ### Semaine 1 : 🏗️ Infrastructure Backend & DB
+
 - **J1** : Initialisation du projet & Architecture
 - **J2-J3** : Configuration de la base de données
 - **J4** : API de gestion des données (CRUD)
 - **J5** : Initialisation du Frontend & connexion API
 
 ### Semaine 2 : 🕷️ Moteur de Scraping MVP
+
 - **J6** : Mise en place de Playwright/Puppeteer
 - **J7-J8** : Développement du scraper Pages Jaunes
 - **J9** : Intégration du scraper à l'API
 - **J10** : Sauvegarde des données & feedback
 
 ### Semaine 3 : 💻 Interface Utilisateur
+
 - **J11-J12** : Interface de lancement du scraping
 - **J13** : Tableau de bord des prospects
 - **J14** : Gestion des tags
 - **J15** : Gestion des erreurs & logique proxy
 
 ### Semaine 4 : 🌐 Scraping Dynamique & Déploiement
+
 - **J16-J18** : Scraper Google Maps/LinkedIn
 - **J19** : Nettoyage et finalisation du code
 - **J20** : Déploiement MVP & démo
@@ -119,6 +128,7 @@ outil-de-scraping/
 ## 🚀 Démarrage Rapide
 
 ### Prérequis
+
 - Node.js >= 16.x
 - PostgreSQL ou MySQL
 - Git
@@ -127,12 +137,14 @@ outil-de-scraping/
 ### Installation Locale
 
 #### 1. Cloner le repository
+
 ```bash
 git clone <repository-url>
 cd outil-de-scraping
 ```
 
 #### 2. Configuration Backend
+
 ```bash
 cd backend
 npm install
@@ -142,6 +154,7 @@ npm run dev
 ```
 
 #### 3. Configuration Frontend
+
 ```bash
 cd ../frontend
 npm install
@@ -151,6 +164,7 @@ npm run dev
 L'application sera disponible sur `http://localhost:5173`
 
 ### Avec Docker
+
 ```bash
 docker-compose up -d
 ```

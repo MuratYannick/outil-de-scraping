@@ -134,6 +134,7 @@ docker-compose up -d
 ```
 
 Cela démarre :
+
 - PostgreSQL sur le port 5432
 - Backend Node.js sur le port 3001
 - Frontend Vite sur le port 5173
@@ -197,6 +198,7 @@ curl http://localhost:3001/api/prospects
 ### Frontend
 
 Ouvrir `http://localhost:5173` dans le navigateur et vérifier :
+
 - ✅ Page d'accueil chargée
 - ✅ Connexion API fonctionnelle
 - ✅ Tableau de bord visible
@@ -258,6 +260,7 @@ npm run lint         # Linter
 ## 🚀 Déploiement Production
 
 **À définir avec Charles** - Options possibles :
+
 - AWS (EC2, RDS)
 - Google Cloud
 - Serveur dédié OVH
@@ -266,4 +269,3 @@ npm run lint         # Linter
 ---
 
 **Questions ?** Contacter Yannick Murat : muratyannick.dev@gmail.com
-

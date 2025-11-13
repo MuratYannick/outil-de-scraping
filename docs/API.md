@@ -11,15 +11,18 @@ Le backend fournit une API RESTful pour la gestion des prospects et des scraping
 ### Prospects
 
 #### GET /api/prospects
+
 Récupérer la liste de tous les prospects.
 
 **Query Parameters:**
+
 - `limit` (optional, default: 20) - Nombre de résultats
 - `offset` (optional, default: 0) - Décalage pour pagination
 - `tag` (optional) - Filtrer par tag
 - `source` (optional) - Filtrer par source de scraping
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -43,9 +46,11 @@ Récupérer la liste de tous les prospects.
 ```
 
 #### POST /api/prospects
+
 Créer un nouveau prospect.
 
 **Body:**
+
 ```json
 {
   "nom_entreprise": "Nouvelle Entreprise",
@@ -59,12 +64,15 @@ Créer un nouveau prospect.
 ```
 
 #### GET /api/prospects/:id
+
 Récupérer un prospect spécifique.
 
 #### PUT /api/prospects/:id
+
 Mettre à jour un prospect.
 
 #### DELETE /api/prospects/:id
+
 Supprimer un prospect.
 
 ---
@@ -72,22 +80,26 @@ Supprimer un prospect.
 ### Tags
 
 #### GET /api/tags
+
 Récupérer tous les tags.
 
 **Response:**
+
 ```json
 {
   "data": [
-    {"id": 1, "nom": "Restauration"},
-    {"id": 2, "nom": "Bâtiment"}
+    { "id": 1, "nom": "Restauration" },
+    { "id": 2, "nom": "Bâtiment" }
   ]
 }
 ```
 
 #### POST /api/tags
+
 Créer un nouveau tag.
 
 **Body:**
+
 ```json
 {
   "nom": "Secteur Technologie"
@@ -95,9 +107,11 @@ Créer un nouveau tag.
 ```
 
 #### POST /api/prospects/:id/tags
+
 Associer un tag à un prospect.
 
 **Body:**
+
 ```json
 {
   "tag_id": 1
@@ -105,6 +119,7 @@ Associer un tag à un prospect.
 ```
 
 #### DELETE /api/prospects/:id/tags/:tag_id
+
 Retirer un tag d'un prospect.
 
 ---
@@ -112,9 +127,11 @@ Retirer un tag d'un prospect.
 ### Scraping
 
 #### POST /api/scraping/lancer
+
 Lancer une tâche de scraping.
 
 **Body:**
+
 ```json
 {
   "keyword": "plombier",
@@ -124,6 +141,7 @@ Lancer une tâche de scraping.
 ```
 
 **Response:**
+
 ```json
 {
   "task_id": "task_abc123",
@@ -133,9 +151,11 @@ Lancer une tâche de scraping.
 ```
 
 #### GET /api/scraping/status/:task_id
+
 Récupérer le statut d'une tâche de scraping.
 
 **Response:**
+
 ```json
 {
   "task_id": "task_abc123",
@@ -150,12 +170,11 @@ Récupérer le statut d'une tâche de scraping.
 
 ## Codes de Réponse
 
-| Code | Signification |
-|:----:|---|
-| 200 | OK - Succès |
-| 201 | Created - Ressource créée |
-| 400 | Bad Request - Requête invalide |
-| 401 | Unauthorized - Non authentifié |
-| 404 | Not Found - Ressource non trouvée |
-| 500 | Internal Server Error - Erreur serveur |
-
+| Code | Signification                          |
+| :--: | -------------------------------------- |
+| 200  | OK - Succès                            |
+| 201  | Created - Ressource créée              |
+| 400  | Bad Request - Requête invalide         |
+| 401  | Unauthorized - Non authentifié         |
+| 404  | Not Found - Ressource non trouvée      |
+| 500  | Internal Server Error - Erreur serveur |

@@ -101,7 +101,7 @@ prospects (1) ──── (N) prospects_tags ──── (N) tags
 
 ```sql
 INSERT INTO prospects (nom_entreprise, email, telephone, adresse, source_scraping)
-VALUES 
+VALUES
   ('Plomberie Martin', 'contact@plomberie-martin.fr', '04 78 12 34 56', '123 Rue de la Paix, 69000 Lyon', 'Google Maps'),
   ('Électricité Dubois', 'info@electricite-dubois.fr', '04 78 56 78 90', '456 Avenue des Champs, 69001 Lyon', 'Pages Jaunes');
 ```
@@ -110,7 +110,7 @@ VALUES
 
 ```sql
 INSERT INTO tags (nom)
-VALUES 
+VALUES
   ('Restauration'),
   ('Bâtiment'),
   ('Technologie'),
@@ -122,7 +122,7 @@ VALUES
 
 ```sql
 INSERT INTO prospects_tags (prospect_id, tag_id)
-VALUES 
+VALUES
   (1, 2),  -- Plomberie Martin + Bâtiment
   (1, 4);  -- Plomberie Martin + Non-Contacté
 ```
@@ -183,4 +183,3 @@ CREATE INDEX idx_prospects_tags_tag ON prospects_tags(tag_id);
     │ nom         │
     └─────────────┘
 ```
-
