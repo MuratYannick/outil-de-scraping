@@ -2,7 +2,9 @@
 
 ## Vue d'ensemble
 
-Le backend fournit une API RESTful pour la gestion des prospects et des scraping.
+Le backend fournit une API RESTful pour la gestion des prospects et le lancement de tâches de scraping.
+
+Remarque : la version initiale du MVP est prévue pour un fonctionnement local (localhost). Les endpoints décrits ci‑dessous sont exposés par le serveur Express démarré localement.
 
 ---
 

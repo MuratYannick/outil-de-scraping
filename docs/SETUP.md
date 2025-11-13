@@ -1,11 +1,12 @@
 # 🚀 Guide d'Installation et Configuration
 
-## Prérequis
+## Prérequis (livrable local)
 
-- **Node.js** >= 16.x ([Télécharger](https://nodejs.org/))
-- **PostgreSQL** >= 12 ou **MySQL** >= 8.0
+- **Node.js** 22.19.0 (runtime ciblé)
+- **MySQL** >= 8.0 (local)
 - **Git** >= 2.0
-- **Docker** (optionnel, pour le déploiement)
+
+> Remarque : la version initiale du MVP est prévue pour un fonctionnement local. Les instructions de conteneurisation / déploiement seront ajoutées ultérieurement selon les choix du chef de projet.
 
 ---
 
@@ -18,39 +19,32 @@ git clone https://github.com/your-username/outil-de-scraping.git
 cd outil-de-scraping
 ```
 
-### 2️⃣ Configuration Base de Données
+### 2️⃣ Configuration Base de Données (MySQL)
 
-#### PostgreSQL
-
-```bash
-# Créer une nouvelle base de données
-createdb outil_scraping
-
-# Créer un utilisateur (optionnel)
-createuser scraping_user
-```
-
-#### MySQL
+Pour un usage local nous utilisons MySQL. Exemple de création de base (ligne de commande) :
 
 ```bash
-# Créer une nouvelle base de données
-mysql -u root -p
-> CREATE DATABASE outil_scraping CHARACTER SET utf8mb4;
-> EXIT;
+# Connectez-vous et créez la base
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS outil_scraping CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
+
+Si vous préférez une interface graphique, créez la base `outil_scraping` via votre client MySQL habituel.
 
 ---
 
 ### 3️⃣ Configuration Backend
 
-```bash
+```powershell
 cd backend
 
 # Installer les dépendances
 npm install
 
-# Copier le fichier .env
-cp .env.example .env
+# Copier le fichier .env (PowerShell)
+Copy-Item .env.example .env
+
+# (ou sous Linux/macOS)
+# cp .env.example .env
 ```
 
 **Éditer `.env`:**
@@ -60,16 +54,13 @@ cp .env.example .env
 NODE_ENV=development
 PORT=3001
 
-# Database
-DB_DIALECT=postgres  # ou mysql
+# Database (MySQL)
+DB_DIALECT=mysql
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=3306
 DB_NAME=outil_scraping
-DB_USER=postgres
+DB_USER=root
 DB_PASSWORD=your_password
-
-# JWT (optionnel, pour authentification future)
-JWT_SECRET=your_secret_key
 
 # Scraping
 PLAYWRIGHT_HEADLESS=true
@@ -98,14 +89,17 @@ Le serveur écoutera sur `http://localhost:3001`
 
 ### 4️⃣ Configuration Frontend
 
-```bash
+```powershell
 cd ../frontend
 
 # Installer les dépendances
 npm install
 
-# Copier le fichier .env
-cp .env.example .env
+# Copier le fichier .env.local (PowerShell)
+Copy-Item .env.example .env.local
+
+# (ou sous Linux/macOS)
+# cp .env.example .env.local
 ```
 
 **Éditer `.env.local`:**
@@ -125,39 +119,6 @@ L'application sera disponible sur `http://localhost:5173`
 
 ---
 
-## 🐳 Installation avec Docker
-
-### 1️⃣ Lancer tous les services
-
-```bash
-docker-compose up -d
-```
-
-Cela démarre :
-
-- PostgreSQL sur le port 5432
-- Backend Node.js sur le port 3001
-- Frontend Vite sur le port 5173
-
-### 2️⃣ Vérifier les logs
-
-```bash
-# Backend
-docker-compose logs -f backend
-
-# Frontend
-docker-compose logs -f frontend
-
-# Base de données
-docker-compose logs -f postgres
-```
-
-### 3️⃣ Arrêter les services
-
-```bash
-docker-compose down
-```
-
 ---
 
 ## 📊 Initialiser la Base de Données
@@ -174,14 +135,11 @@ npm run db:migrate
 npm run db:seed
 ```
 
-### Manuellement
+### Manuellement (MySQL)
 
 ```bash
-# Se connecter à la base de données
-psql -U postgres -d outil_scraping
-
-# Exécuter les scripts SQL
-\i scripts/init-db.sql
+# Se connecter à MySQL et exécuter un script SQL
+mysql -u root -p outil_scraping < scripts/init-db.sql
 ```
 
 ---

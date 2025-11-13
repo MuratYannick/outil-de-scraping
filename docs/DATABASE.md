@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-Modèle de données relationnel utilisant PostgreSQL ou MySQL.
+Modèle de données relationnel ciblant **MySQL** (utilisation via Sequelize recommandée).
 
 ---
 
@@ -14,7 +14,7 @@ Stocke les données des prospects collectées lors du scraping.
 
 ```sql
 CREATE TABLE prospects (
-  id SERIAL PRIMARY KEY,
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   nom_entreprise VARCHAR(255) NOT NULL,
   nom_contact VARCHAR(255),
   email VARCHAR(255) UNIQUE,
@@ -22,15 +22,15 @@ CREATE TABLE prospects (
   adresse TEXT,
   url_site VARCHAR(255) UNIQUE,
   source_scraping VARCHAR(100) NOT NULL,
-  date_ajout TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  date_ajout DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  date_modification DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 **Colonnes:**
 | Colonne | Type | Contrainte | Description |
 |---------|------|-----------|-------------|
-| `id` | SERIAL | PK | Identifiant unique |
+| `id` | INT AUTO_INCREMENT | PK | Identifiant unique |
 | `nom_entreprise` | VARCHAR(255) | NOT NULL | Nom de l'entreprise |
 | `nom_contact` | VARCHAR(255) | - | Nom du contact |
 | `email` | VARCHAR(255) | UNIQUE | Email professionnel |
@@ -38,8 +38,8 @@ CREATE TABLE prospects (
 | `adresse` | TEXT | - | Adresse complète |
 | `url_site` | VARCHAR(255) | UNIQUE | URL du site web |
 | `source_scraping` | VARCHAR(100) | NOT NULL | Source (Google Maps, Pages Jaunes) |
-| `date_ajout` | TIMESTAMP | NOT NULL | Date d'ajout |
-| `date_modification` | TIMESTAMP | - | Dernière modification |
+| `date_ajout` | DATETIME | NOT NULL | Date d'ajout |
+| `date_modification` | DATETIME | - | Dernière modification |
 
 ---
 
@@ -49,9 +49,9 @@ Catégories/domaines d'activités pour classer les prospects.
 
 ```sql
 CREATE TABLE tags (
-  id SERIAL PRIMARY KEY,
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   nom VARCHAR(100) UNIQUE NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 **Colonnes:**
@@ -71,9 +71,9 @@ CREATE TABLE prospects_tags (
   prospect_id INT NOT NULL,
   tag_id INT NOT NULL,
   PRIMARY KEY (prospect_id, tag_id),
-  FOREIGN KEY (prospect_id) REFERENCES prospects(id) ON DELETE CASCADE,
-  FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
-);
+  CONSTRAINT fk_prospect FOREIGN KEY (prospect_id) REFERENCES prospects(id) ON DELETE CASCADE,
+  CONSTRAINT fk_tag FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 **Colonnes:**
