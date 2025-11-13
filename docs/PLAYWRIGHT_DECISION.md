@@ -15,12 +15,15 @@ Données à extraire : nom de l'entreprise, adresse, URL du site, email, télép
 ## Raisons principales
 
 1. Robustesse et fiabilité
+
    - Playwright offre un meilleur support multi-navigateurs (Chromium, Firefox, WebKit) et gère automatiquement des attentes (auto-wait) qui simplifient le code pour sites dynamiques.
 
 2. Fonctionnalités utiles pour nos cibles
+
    - Emulation de géolocalisation, contrôle fin des permissions, interception réseau et contextes isolés : utiles pour Google Maps et LinkedIn.
 
 3. Sécurité et dépendances
+
    - L'audit npm a montré des vulnérabilités transitives importantes liées à Puppeteer (packages `tar-fs`, `ws`, etc.). La suppression de Puppeteer élimine ces vulnérabilités.
 
 4. Maintenance et simplification

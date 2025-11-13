@@ -35,9 +35,46 @@ Projet de développement d'un outil de scraping autonome permettant de collecter
 
 - **PostgreSQL** ou **MySQL** - Base de données relationnelle
 
+````markdown
+# 🕷️ Outil de Scraping pour l'Enrichissement de Bases Clients
+
+Projet de développement d'un outil de scraping autonome permettant de collecter, stocker et visualiser des prospects à partir de différentes sources en ligne.
+
+## 📋 Vue d'ensemble
+
+**Objectif Phase 1 (MVP)** : Livrer une application fonctionnelle permettant de :
+
+- Collecter 50 prospects initialement
+- Établir un flux récurrent de 10 prospects/semaine
+- Stocker et visualiser les données collectées
+
+**Durée** : 4 semaines (20 jours de développement)
+
+---
+
+## 🛠️ Stack Technique
+
+### Frontend
+
+- **Vite** - Build tool rapide
+- **React** - Interface utilisateur
+- **Tailwind CSS** - Styling
+- **Axios** - HTTP client
+
+### Backend
+
+- **Node.js** - Runtime JavaScript
+- **Express** - Framework web
+- **Sequelize** - ORM pour base de données
+- **Playwright** - Moteur de scraping (préféré)
+- **Cheerio** - Parsing HTML
+
+### Données
+
+- **PostgreSQL** ou **MySQL** - Base de données relationnelle
+
 ### DevOps
 
-- **Docker** - Conteneurisation
 - **Git** - Contrôle de version
 
 ---
@@ -57,7 +94,6 @@ outil-de-scraping/
 │   │   └── app.js          # Point d'entrée
 │   ├── package.json
 │   ├── .env.example
-│   └── Dockerfile
 │
 ├── frontend/                # App React/Vite
 │   ├── src/
@@ -68,14 +104,12 @@ outil-de-scraping/
 │   │   └── App.jsx
 │   ├── package.json
 │   ├── vite.config.js
-│   └── Dockerfile
 │
 ├── docs/                    # Documentation
 │   ├── API.md              # Spécifications API
 │   ├── DATABASE.md         # Schéma base de données
 │   └── SETUP.md            # Guide d'installation
 │
-├── docker-compose.yml      # Orchestration des conteneurs
 ├── .gitignore
 └── README.md               # Ce fichier
 ```
@@ -132,7 +166,6 @@ outil-de-scraping/
 - Node.js >= 16.x
 - PostgreSQL ou MySQL
 - Git
-- Docker (optionnel)
 
 ### Installation Locale
 
@@ -162,12 +195,6 @@ npm run dev
 ```
 
 L'application sera disponible sur `http://localhost:5173`
-
-### Avec Docker
-
-```bash
-docker-compose up -d
-```
 
 ---
 
@@ -199,3 +226,4 @@ Propriétaire - Tous droits réservés
 ---
 
 **Dernière mise à jour** : 13 Novembre 2025
+````
