@@ -2,10 +2,6 @@
 
 ## Prérequis (livrable local)
 
-- **Node.js** 22.19.0 (runtime ciblé)
-- **MySQL** >= 8.0 (local)
-- **Git** >= 2.0
-
 > Remarque : la version initiale du MVP est prévue pour un fonctionnement local. Les instructions de conteneurisation / déploiement seront ajoutées ultérieurement selon les choix du chef de projet.
 
 ---
