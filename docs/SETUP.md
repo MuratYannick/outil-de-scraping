@@ -117,25 +117,55 @@ L'application sera disponible sur `http://localhost:5173`
 
 ---
 
-## 📊 Initialiser la Base de Données
+## 📊 Gestion de la Base de Données
 
-### Avec Sequelize (Backend)
+### Commandes disponibles (Backend)
 
 ```bash
 cd backend
 
-# Créer les tables
+# Initialiser la base de données (créer DB + tables)
+npm run db:setup
+
+# Synchroniser les modèles Sequelize avec la DB
 npm run db:migrate
 
-# Insérer des données de test (optionnel)
-npm run db:seed
+# Supprimer toutes les tables (⚠️ ATTENTION : destructif)
+npm run db:drop
+
+# Réinitialiser complètement la DB (drop + setup)
+npm run db:reset
 ```
+
+### Description des commandes
+
+- **`npm run db:setup`** : Crée la base de données si elle n'existe pas, puis exécute le script SQL d'initialisation et synchronise les modèles Sequelize
+- **`npm run db:migrate`** : Synchronise uniquement les modèles Sequelize avec la base de données existante
+- **`npm run db:drop`** : Supprime TOUTES les tables de la base de données (demande confirmation)
+- **`npm run db:reset`** : Supprime toutes les tables puis les recrée (utile pour le développement)
+
+### ⚠️ Réinitialisation pour les tests de développement
+
+Pendant le développement, si vous modifiez les modèles et voulez repartir de zéro :
+
+```bash
+cd backend
+
+# Option 1 : Réinitialisation complète (recommandé)
+npm run db:reset
+
+# Option 2 : Supprimer puis recréer manuellement
+npm run db:drop
+npm run db:setup
+```
+
+**Note** : La commande `npm run db:drop` demande une confirmation avant de supprimer les tables pour éviter les suppressions accidentelles.
 
 ### Manuellement (MySQL)
 
 ```bash
 # Se connecter à MySQL et exécuter un script SQL
-mysql -u root -p outil_scraping < scripts/init-db.sql
+mysql -u root -p outil_scraping_db < scripts/init-db.sql
 ```
 
 ---
