@@ -110,10 +110,16 @@ class PlaywrightService {
         this.currentProxy = this.proxyManager.getNextProxy();
         if (this.currentProxy) {
           contextConfig.proxy = {
-            server: this.currentProxy.server,
-            username: this.currentProxy.username,
-            password: this.currentProxy.password
+            server: this.currentProxy.server
           };
+
+          // Ajouter username/password seulement s'ils existent
+          if (this.currentProxy.username) {
+            contextConfig.proxy.username = this.currentProxy.username;
+          }
+          if (this.currentProxy.password) {
+            contextConfig.proxy.password = this.currentProxy.password;
+          }
         }
       }
 
