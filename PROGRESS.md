@@ -53,14 +53,14 @@
 
 ---
 
-### Semaine 2 : 🕷️ Moteur de Scraping MVP (📋 À FAIRE)
+### Semaine 2 : 🕷️ Moteur de Scraping MVP (🔄 EN COURS - 20%)
 
-#### Jour 6 : Mise en place de Playwright
-- [ ] Installer Playwright et ses dépendances
-- [ ] Créer le service `playwrightService.js`
-- [ ] Implémenter les utilitaires de base (pool de contexts, retry, logging)
-- [ ] Configurer l'émulation de navigateur (User-Agent, viewport)
-- [ ] Tester le lancement basique de Playwright
+#### Jour 6 : Mise en place de Playwright (✅ COMPLÉTÉ)
+- [x] Installer Playwright et ses dépendances
+- [x] Créer le service `playwrightService.js`
+- [x] Implémenter les utilitaires de base (pool de contexts, retry, logging)
+- [x] Configurer l'émulation de navigateur (User-Agent, viewport)
+- [x] Tester le lancement basique de Playwright
 
 #### Jour 7-8 : Développement du scraper Pages Jaunes
 - [ ] Analyser la structure HTML de Pages Jaunes
@@ -219,14 +219,22 @@ outil-de-scraping/
 │   │   │   ├── index.js
 │   │   │   ├── Prospect.js
 │   │   │   └── Tag.js
-│   │   ├── controllers/        # À implémenter
-│   │   ├── routes/             # À implémenter
+│   │   ├── controllers/
+│   │   │   ├── prospectController.js
+│   │   │   └── tagController.js
+│   │   ├── routes/
+│   │   │   ├── prospectRoutes.js
+│   │   │   └── tagRoutes.js
 │   │   ├── middlewares/        # À implémenter
-│   │   └── services/           # À implémenter (Playwright service)
+│   │   └── services/
+│   │       └── playwrightService.js
 │   └── scripts/
 │       ├── init-db.sql
 │       ├── setup-db.js
-│       └── migrate.js
+│       ├── migrate.js
+│       ├── drop-tables.js
+│       ├── seed-db.js
+│       └── test-playwright.js
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.js
@@ -237,16 +245,21 @@ outil-de-scraping/
 │   └── src/
 │       ├── main.jsx            # Point d'entrée
 │       ├── App.jsx             # Composant principal
-│       ├── components/         # À implémenter
+│       ├── components/
+│       │   ├── Header.jsx
+│       │   └── ProspectList.jsx
 │       ├── pages/              # À implémenter
-│       ├── services/           # À implémenter
+│       ├── services/
+│       │   └── api.js          # Service API Axios
 │       └── styles/
 │           └── index.css       # Styles Tailwind
 ├── docs/
 │   ├── API.md                  # Spécifications API
 │   ├── DATABASE.md             # Schéma base de données
 │   ├── SETUP.md                # Guide d'installation
-│   └── PLAYWRIGHT_DECISION.md  # Rationale du choix Playwright
+│   ├── PLAYWRIGHT_DECISION.md  # Rationale du choix Playwright
+│   ├── TESTS.md                # Documentation de tous les tests effectués
+│   └── TESTING_GUIDE.md        # Guide de lancement manuel des tests
 └── .gitignore
 ```
 
@@ -254,8 +267,9 @@ outil-de-scraping/
 
 ## 🚀 Prochaines Étapes (Priorité)
 
-### Semaine 2 — Moteur de Scraping (À commencer immédiatement)
-- [ ] Implémenter `backend/src/services/playwrightService.js`
+### Semaine 2 — Moteur de Scraping (EN COURS)
+- [x] Implémenter `backend/src/services/playwrightService.js`
+- [x] Tester le service Playwright
 - [ ] Créer un scraper exemple (Pages Jaunes)
 - [ ] Ajouter routes API pour lancer le scraping
 - [ ] Tester le flux complet de scraping
