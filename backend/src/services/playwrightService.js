@@ -1,5 +1,6 @@
 import { chromium } from "playwright";
 import { getProxyManager } from "./proxyManager.js";
+import { getStealthService } from "./stealthService.js";
 import { antiBotConfig } from "../config/antiBotConfig.js";
 
 /**
@@ -30,6 +31,7 @@ class PlaywrightService {
     this.isInitialized = false;
     this.proxyManager = null;
     this.currentProxy = null;
+    this.stealthService = null;
   }
 
   /**
@@ -49,6 +51,13 @@ class PlaywrightService {
         console.log("[PlaywrightService] Initialisation du gestionnaire de proxies...");
         this.proxyManager = getProxyManager();
         await this.proxyManager.initialize();
+      }
+
+      // Initialiser le service Stealth si activé
+      if (antiBotConfig.stealth.enabled) {
+        console.log("[PlaywrightService] Initialisation du service Stealth...");
+        this.stealthService = getStealthService();
+        await this.stealthService.initialize();
       }
 
       this.browser = await chromium.launch({
@@ -91,7 +100,7 @@ class PlaywrightService {
 
     try {
       // Configuration de base
-      const contextConfig = {
+      let contextConfig = {
         viewport: this.config.viewport,
         userAgent: this.config.userAgent,
         locale: "fr-FR",
@@ -104,6 +113,12 @@ class PlaywrightService {
         javaScriptEnabled: true,
         ...options
       };
+
+      // Enrichir avec Stealth si activé
+      if (this.stealthService) {
+        contextConfig = this.stealthService.enrichContextOptions(contextConfig);
+        console.log("[PlaywrightService] ✓ Configuration Stealth appliquée");
+      }
 
       // Ajouter le proxy si disponible
       if (this.proxyManager) {
@@ -125,21 +140,26 @@ class PlaywrightService {
 
       const context = await this.browser.newContext(contextConfig);
 
-      // Masquer les propriétés webdriver
-      await context.addInitScript(() => {
-        Object.defineProperty(navigator, "webdriver", {
-          get: () => undefined,
-        });
+      // Appliquer le masquage Stealth si activé
+      if (this.stealthService) {
+        await this.stealthService.applyStealthToContext(context);
+      } else {
+        // Masquage basique si Stealth non activé
+        await context.addInitScript(() => {
+          Object.defineProperty(navigator, "webdriver", {
+            get: () => undefined,
+          });
 
-        // Masquer Playwright/Chromium
-        Object.defineProperty(navigator, "plugins", {
-          get: () => [1, 2, 3, 4, 5],
-        });
+          // Masquer Playwright/Chromium
+          Object.defineProperty(navigator, "plugins", {
+            get: () => [1, 2, 3, 4, 5],
+          });
 
-        Object.defineProperty(navigator, "languages", {
-          get: () => ["fr-FR", "fr", "en-US", "en"],
+          Object.defineProperty(navigator, "languages", {
+            get: () => ["fr-FR", "fr", "en-US", "en"],
+          });
         });
-      });
+      }
 
       this.contexts.push(context);
       console.log(
