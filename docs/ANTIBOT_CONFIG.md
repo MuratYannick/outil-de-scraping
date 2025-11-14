@@ -321,18 +321,29 @@ Les logs affichent la stratégie utilisée :
 
 ## Tests
 
-### Test avec Proxies
+### Test de Rotation de Proxies (Validation Technique)
 
 ```bash
 cd backend
 
-# Activer les proxies dans .env
-# ANTIBOT_STRATEGY=proxies
-# PROXY_ENABLED=true
-
-# Lancer le test
-node scripts/test-pages-jaunes-scraper.js
+# Test de la rotation et de l'intégration Playwright
+node scripts/test-proxy-rotation.js
 ```
+
+**Résultat** : ✅ Tous les tests passent (rotation, intégration Playwright validée)
+
+### Test avec Proxies sur Pages Jaunes (Efficacité Réelle)
+
+```bash
+cd backend
+
+# Comparaison avec et sans proxies
+node scripts/test-pages-jaunes-with-proxy.js
+```
+
+**Résultat avec proxies GRATUITS** : ❌ Blocage persistant (0 prospects extraits)
+- Les proxies gratuits sont blacklistés par Pages Jaunes
+- **Recommandation** : Tester avec proxies RÉSIDENTIELS payants
 
 ### Test Sans Anti-Bot (Baseline)
 
@@ -390,12 +401,13 @@ node scripts/test-pages-jaunes-scraper.js
 
 ## Prochaines Étapes
 
-### Phase 1: Implémentation Proxies (✅ EN COURS)
+### Phase 1: Implémentation Proxies (✅ COMPLÉTÉE)
 - [x] Configuration antiBotConfig.js
 - [x] Service ProxyManager
 - [x] Intégration PlaywrightService
-- [ ] Tests avec proxies réels
-- [ ] Documentation complète
+- [x] Tests avec proxies gratuits (résultat: inefficaces)
+- [x] Documentation complète
+- [ ] Tests avec proxies payants (EN ATTENTE - nécessite credentials)
 
 ### Phase 2: CAPTCHA Solver (📋 À FAIRE)
 - [ ] Détection automatique CAPTCHA
