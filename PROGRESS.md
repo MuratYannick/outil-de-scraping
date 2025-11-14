@@ -98,17 +98,11 @@
   - [x] Canvas et WebGL fingerprinting masqués
   - [x] Intégration dans PlaywrightService
   - [x] Tests sur bot.sannysoft.com (93% détections masquées - 52/56 tests passés)
-  - [ ] **EN ATTENTE**: Tester l'efficacité sur Pages Jaunes réel
-  - [ ] Combiner avec proxies pour efficacité maximale (mode HYBRID)
-- [ ] **Option 4 : API officielle ou alternative**
-  - [ ] Rechercher une API officielle Pages Jaunes
-  - [ ] Identifier des sites alternatifs moins protégés (Yelp, Kompass, etc.)
-  - [ ] Créer un scraper alternatif si nécessaire
-  - [ ] Valider la qualité des données alternatives
+  - [x] Tests sur Pages Jaunes: ❌ Stealth seul insuffisant (protection trop avancée)
+  - [ ] **RECOMMANDÉ**: Combiner avec proxies ou CAPTCHA (mode HYBRID)
 - [ ] **Décision finale et implémentation**
-  - [ ] Évaluer les 4 options (coût, complexité, taux de succès)
-  - [ ] Choisir la solution avec le chef de projet
-  - [ ] Implémenter la solution choisie
+  - [ ] Choisir la solution avec le chef de projet (Proxies, CAPTCHA, ou HYBRID)
+  - [ ] Obtenir les credentials nécessaires (API keys ou proxies payants)
   - [ ] Tester et valider l'extraction de données réelles
 
 #### Jour 9 : Intégration du scraper à l'API
@@ -214,12 +208,12 @@
     - [ ] Tests CAPTCHA sur Pages Jaunes: En attente d'API key ($0.15-$3/1000 pages)
     - [x] Option 3 (Stealth Mode): ✅ Complétée et testée (93% détections masquées - GRATUIT)
     - [x] Tests Stealth: Validés sur bot.sannysoft.com (52/56 tests passés)
-    - [ ] Tests Stealth sur Pages Jaunes: À faire en combinaison avec proxies ou CAPTCHA
+    - [x] Tests Stealth sur Pages Jaunes: ❌ Insuffisant seul (protection trop avancée)
+    - [ ] Recommandation: Combiner en mode HYBRID avec proxies ou CAPTCHA
   - **Décisions requises** :
     - Budget pour proxies résidentiels payants ($75-$1000/mois)
-    - OU Budget pour CAPTCHA solver ($0.15-$3/1000 pages)
-    - OU Tester Option 3 Stealth seul (gratuit, efficacité à valider sur Pages Jaunes)
-    - OU Combiner plusieurs options en mode HYBRID (recommandé pour taux de succès maximal)
+    - OU Budget pour CAPTCHA solver ($0.15-$3/1000 pages) ⭐ RECOMMANDÉ
+    - OU Mode HYBRID (Proxies + Stealth + CAPTCHA) pour taux de succès maximal
 
 ---
 
@@ -355,12 +349,11 @@ outil-de-scraping/
 - 🔄 **BLOQUEUR EN COURS** : Résoudre le problème anti-bot de Pages Jaunes
   - [x] Option 1 (Proxies): Architecture complète + tests avec proxies gratuits (❌ inefficaces)
   - [x] Option 2 (CAPTCHA Solver): Architecture complète + tests de détection (✅ validés)
-  - [x] Option 3 (Stealth Mode): ✅ Architecture complète + tests (93% détections masquées)
+  - [x] Option 3 (Stealth Mode): Architecture complète + tests (✅ 93% sur bot.sannysoft, ❌ insuffisant sur Pages Jaunes)
   - [ ] **EN ATTENTE - DÉCISIONS**:
     - Option A: Proxies payants ($75-$1000/mois) + tester l'efficacité
-    - Option B: CAPTCHA solver API key ($0.15-$3/1000 pages) + tester sur Pages Jaunes
-    - Option C: Tester Stealth seul sur Pages Jaunes (gratuit, efficacité à valider)
-    - Option D: Mode HYBRID (combiner plusieurs options - recommandé)
+    - Option B: CAPTCHA solver API key ($0.15-$3/1000 pages) ⭐ RECOMMANDÉ
+    - Option C: Mode HYBRID (combiner Proxies + Stealth + CAPTCHA)
   - [ ] Valider l'extraction de données réelles avec la solution choisie
 - [ ] Ajouter routes API pour lancer le scraping
 - [ ] Tester le flux complet de scraping

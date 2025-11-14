@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import ProspectList from "./components/ProspectList";
+import AntiBotConfig from "./components/AntiBotConfig";
 import { getProspects, checkHealth } from "./services/api";
 
 export default function App() {
+  const [activeView, setActiveView] = useState('prospects'); // 'prospects' or 'config'
   const [prospects, setProspects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -100,33 +102,71 @@ export default function App() {
       <Header apiStatus={apiStatus} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Barre d'actions */}
-        <div className="mb-6 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">
-              Liste des Prospects
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {pagination.total > 0
-                ? `${pagination.total} prospect${pagination.total > 1 ? "s" : ""} au total`
-                : "Aucun prospect"}
-            </p>
-          </div>
-          <button
-            onClick={handleRefresh}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? "Chargement..." : "Actualiser"}
-          </button>
+        {/* Navigation Tabs */}
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="flex gap-8">
+            <button
+              onClick={() => setActiveView('prospects')}
+              className={`${
+                activeView === 'prospects'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              <span>📋</span>
+              Prospects
+            </button>
+            <button
+              onClick={() => setActiveView('config')}
+              className={`${
+                activeView === 'config'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              <span>🛡️</span>
+              Configuration Anti-Bot
+            </button>
+          </nav>
         </div>
 
-        {/* Liste des prospects */}
-        <ProspectList
-          prospects={prospects}
-          loading={loading}
-          error={error}
-        />
+        {/* Prospects View */}
+        {activeView === 'prospects' && (
+          <>
+            {/* Barre d'actions */}
+            <div className="mb-6 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Liste des Prospects
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {pagination.total > 0
+                    ? `${pagination.total} prospect${pagination.total > 1 ? "s" : ""} au total`
+                    : "Aucun prospect"}
+                </p>
+              </div>
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? "Chargement..." : "Actualiser"}
+              </button>
+            </div>
+
+            {/* Liste des prospects */}
+            <ProspectList
+              prospects={prospects}
+              loading={loading}
+              error={error}
+            />
+          </>
+        )}
+
+        {/* Anti-Bot Configuration View */}
+        {activeView === 'config' && (
+          <AntiBotConfig />
+        )}
 
         {/* Informations de debug en mode développement */}
         {import.meta.env.DEV && (
