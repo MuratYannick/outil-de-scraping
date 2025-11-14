@@ -409,11 +409,14 @@ node scripts/test-pages-jaunes-scraper.js
 - [x] Documentation complète
 - [ ] Tests avec proxies payants (EN ATTENTE - nécessite credentials)
 
-### Phase 2: CAPTCHA Solver (📋 À FAIRE)
-- [ ] Détection automatique CAPTCHA
-- [ ] Intégration API 2Captcha
-- [ ] Tests de résolution
-- [ ] Gestion des timeouts
+### Phase 2: CAPTCHA Solver (✅ COMPLÉTÉE)
+- [x] Service CaptchaSolverService avec support multi-providers
+- [x] Détection automatique CAPTCHA (reCAPTCHA v2/v3, hCaptcha, Image)
+- [x] Intégration API 2Captcha, Anti-Captcha, CapMonster
+- [x] Tests de résolution avec script dédié
+- [x] Gestion des timeouts et retry
+- [x] Documentation complète (CAPTCHA_SOLVER.md)
+- [ ] Intégration dans pagesJaunesScraper.js (À FAIRE)
 
 ### Phase 3: Stealth Avancé (📋 À FAIRE)
 - [ ] Profil navigateur persistant
