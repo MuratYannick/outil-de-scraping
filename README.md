@@ -192,4 +192,4 @@ Propriétaire - Tous droits réservés
 
 ---
 
-**Dernière mise à jour** : 13 Novembre 2025
+**Dernière mise à jour** : 14 Novembre 2025
