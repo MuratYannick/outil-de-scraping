@@ -53,7 +53,7 @@
 
 ---
 
-### Semaine 2 : 🕷️ Moteur de Scraping MVP (🔄 EN COURS - 50%)
+### Semaine 2 : 🕷️ Moteur de Scraping MVP (🔄 EN COURS - 75%)
 
 #### Jour 6 : Mise en place de Playwright (✅ COMPLÉTÉ)
 - [x] Installer Playwright et ses dépendances
@@ -73,7 +73,7 @@
 - [x] Créer scripts de debug et analyse (analyze, debug, test)
 - ⚠️ **Problème identifié** : Pages Jaunes détecte l'automatisation et affiche une page d'erreur
 
-#### Jour 8bis : Solutions de contournement anti-bot (🔄 EN COURS - 50%)
+#### Jour 8bis : Solutions de contournement anti-bot (🔄 EN COURS - 75%)
 - [x] **Option 1 : Proxies résidentiels** (Architecture complétée, en attente de credentials payants)
   - [x] Rechercher et évaluer des services de proxies (BrightData, Oxylabs, SmartProxy)
   - [x] Implémenter la rotation de proxies dans PlaywrightService
@@ -82,11 +82,14 @@
   - [ ] **EN ATTENTE**: Obtenir credentials pour proxies PAYANTS
   - [ ] Valider l'efficacité avec proxies résidentiels de qualité
   - [ ] Décider du budget avec le chef de projet ($75-$1000/mois)
-- [ ] **Option 2 : Résolution CAPTCHA**
-  - [ ] Intégrer un service de résolution CAPTCHA (2Captcha, Anti-Captcha)
-  - [ ] Implémenter la détection automatique de CAPTCHA
-  - [ ] Tester la résolution automatique
-  - [ ] Évaluer le taux de succès
+- [x] **Option 2 : Résolution CAPTCHA** (Architecture complétée, prête à tester)
+  - [x] Service CaptchaSolverService avec support 2Captcha, Anti-Captcha, CapMonster
+  - [x] Implémenter la détection automatique de CAPTCHA (reCAPTCHA v2/v3, hCaptcha, Image)
+  - [x] Créer script de test avec page Google reCAPTCHA demo
+  - [x] Documentation complète (CAPTCHA_SOLVER.md)
+  - [ ] **EN ATTENTE**: Obtenir API key 2Captcha/Anti-Captcha/CapMonster
+  - [ ] Intégrer dans pagesJaunesScraper.js
+  - [ ] Tester sur Pages Jaunes et évaluer le taux de succès
 - [ ] **Option 3 : Amélioration du masquage**
   - [ ] Utiliser un profil de navigateur persistant (cookies, localStorage)
   - [ ] Ajouter des en-têtes HTTP plus réalistes
@@ -201,9 +204,14 @@
     - [x] Option 1 (Proxies): Architecture complète avec support BrightData/Oxylabs/SmartProxy
     - [x] Tests avec proxies gratuits: ❌ Inefficaces (blacklistés par Pages Jaunes)
     - [ ] Tests avec proxies PAYANTS: En attente de credentials ($75-$1000/mois)
-    - [ ] Option 2 (CAPTCHA Solver): À implémenter si nécessaire
+    - [x] Option 2 (CAPTCHA Solver): Architecture complète avec support 2Captcha/Anti-Captcha/CapMonster
+    - [x] Tests CAPTCHA: Détection validée sur page démo Google reCAPTCHA
+    - [ ] Tests CAPTCHA sur Pages Jaunes: En attente d'API key ($0.15-$3/1000 pages)
     - [ ] Option 3 (Stealth): À implémenter en parallèle
-  - **Décision requise** : Budget pour proxies résidentiels payants ou alternative
+  - **Décisions requises** :
+    - Budget pour proxies résidentiels payants ($75-$1000/mois)
+    - OU Budget pour CAPTCHA solver ($0.15-$3/1000 pages)
+    - OU Implémenter Option 3 (Stealth - gratuit)
 
 ---
 
@@ -273,7 +281,8 @@ outil-de-scraping/
 │   │   ├── middlewares/        # À implémenter
 │   │   └── services/
 │   │       ├── playwrightService.js
-│   │       ├── proxyManager.js  # NEW: Gestion de rotation des proxies
+│   │       ├── proxyManager.js            # NEW: Gestion de rotation des proxies
+│   │       ├── captchaSolverService.js    # NEW: Résolution automatique CAPTCHA
 │   │       └── scrapers/
 │   │           └── pagesJaunesScraper.js
 │   │   └── config/
@@ -290,7 +299,8 @@ outil-de-scraping/
 │       ├── debug-pages-jaunes.js
 │       ├── test-pages-jaunes-scraper.js
 │       ├── test-proxy-rotation.js         # NEW: Test rotation proxies (8 tests)
-│       └── test-pages-jaunes-with-proxy.js # NEW: Test comparatif avec/sans proxy
+│       ├── test-pages-jaunes-with-proxy.js # NEW: Test comparatif avec/sans proxy
+│       └── test-captcha-solver.js         # NEW: Test détection et résolution CAPTCHA
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.js
@@ -317,7 +327,8 @@ outil-de-scraping/
 │   ├── TESTS.md                # Documentation de tous les tests effectués
 │   ├── TESTING_GUIDE.md        # Guide de lancement manuel des tests
 │   ├── ANTIBOT_CONFIG.md       # NEW: Guide configuration stratégies anti-bot
-│   └── PROXY_TEST_RESULTS.md   # NEW: Résultats tests proxies + recommandations
+│   ├── PROXY_TEST_RESULTS.md   # NEW: Résultats tests proxies + recommandations
+│   └── CAPTCHA_SOLVER.md       # NEW: Guide CAPTCHA solver (2Captcha, Anti-Captcha, CapMonster)
 └── .gitignore
 ```
 
@@ -325,17 +336,20 @@ outil-de-scraping/
 
 ## 🚀 Prochaines Étapes (Priorité)
 
-### Semaine 2 — Moteur de Scraping (EN COURS - 50%)
+### Semaine 2 — Moteur de Scraping (EN COURS - 75%)
 - [x] Implémenter `backend/src/services/playwrightService.js`
 - [x] Tester le service Playwright (10 tests passés)
 - [x] Créer un scraper Pages Jaunes avec architecture robuste
 - [x] Implémenter normalisation des données (téléphone FR, email, URL)
 - 🔄 **BLOQUEUR EN COURS** : Résoudre le problème anti-bot de Pages Jaunes
-  - [x] Option 1: Architecture proxy complète (BrightData/Oxylabs/SmartProxy)
-  - [x] Tests avec proxies gratuits: ❌ Inefficaces (blacklistés)
-  - [ ] **EN ATTENTE**: Décision budget proxies payants ($75-$1000/mois)
-  - [ ] Alternative: Implémenter Option 3 (Stealth) en parallèle
-  - [ ] Valider l'extraction de données réelles
+  - [x] Option 1 (Proxies): Architecture complète + tests avec proxies gratuits (❌ inefficaces)
+  - [x] Option 2 (CAPTCHA Solver): Architecture complète + tests de détection (✅ validés)
+  - [ ] **EN ATTENTE - DÉCISIONS**:
+    - Option A: Proxies payants ($75-$1000/mois) + tester l'efficacité
+    - Option B: CAPTCHA solver API key ($0.15-$3/1000 pages) + tester sur Pages Jaunes
+    - Option C: Implémenter Option 3 (Stealth - gratuit) en parallèle
+    - Option D: Mode HYBRID (combiner plusieurs options)
+  - [ ] Valider l'extraction de données réelles avec la solution choisie
 - [ ] Ajouter routes API pour lancer le scraping
 - [ ] Tester le flux complet de scraping
 
