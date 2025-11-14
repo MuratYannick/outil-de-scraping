@@ -260,6 +260,91 @@ node scripts/test-playwright.js
 
 ---
 
+### 4. Tests Scraping Pages Jaunes
+
+#### Test du Scraper Pages Jaunes
+
+```bash
+cd backend
+node scripts/test-pages-jaunes-scraper.js
+```
+
+**Description** :
+- Teste le scraper avec 2 recherches différentes
+- Test 1: "plombier" à "Lyon" (1 page, 10 résultats max)
+- Test 2: "restaurant" à "Paris" (2 pages, 20 résultats max)
+
+**Résultat attendu** :
+```
+🧪 Test du Scraper Pages Jaunes
+
+════════════════════════════════════════════════════════════════════════════════
+📋 TEST 1: Recherche 'plombier' à 'Lyon' (1 page)
+════════════════════════════════════════════════════════════════════════════════
+
+[PagesJaunesScraper] Démarrage du scraping: "plombier" à "Lyon"
+[PagesJaunesScraper] Max pages: 1, Max résultats: 10
+...
+[PagesJaunesScraper] ✅ Scraping terminé: X prospects récupérés
+
+📊 RÉSULTATS TEST 1:
+{
+  "success": true,
+  "prospects": [...],
+  "total": X,
+  "pages_scraped": 1
+}
+
+✅ TEST 1 PASSÉ
+   - X prospects extraits
+   - 1 page(s) scrapée(s)
+```
+
+**⚠️ État actuel** : Bloqué par anti-bot de Pages Jaunes
+- Le site détecte l'automatisation et affiche une page d'erreur
+- Les fonctionnalités du scraper sont implémentées mais non testables avec Pages Jaunes
+- Solutions: Proxies, CAPTCHA solving, ou utiliser un autre site de test
+
+#### Script de Debug Pages Jaunes
+
+```bash
+cd backend
+node scripts/debug-pages-jaunes.js
+```
+
+**Description** :
+- Analyse la structure HTML de Pages Jaunes
+- Teste différents sélecteurs CSS
+- Prend un screenshot de la page chargée
+- Détecte la présence de CAPTCHA
+
+**Résultat attendu** :
+```
+🔍 Debug Pages Jaunes - Analyse de la structure HTML
+
+Navigation vers: https://www.pagesjaunes.fr/...
+
+📸 Prise de screenshot...
+✓ Screenshot sauvegardé: backend/scripts/pages-jaunes-debug.png
+
+🔍 Test des sélecteurs:
+  .bi-product                              → X éléments trouvés
+  [class*="result-item"]                   → X éléments trouvés
+  ...
+
+📋 Classes CSS présentes sur la page:
+...
+
+✅ Analyse terminée
+```
+
+**Vérifications** :
+- Screenshot créé dans `backend/scripts/pages-jaunes-debug.png`
+- Liste des sélecteurs testés affichée
+- Classes CSS de la page listées
+
+---
+
 ## 🎨 Tests Frontend
 
 ### 1. Test Connexion Frontend-Backend
