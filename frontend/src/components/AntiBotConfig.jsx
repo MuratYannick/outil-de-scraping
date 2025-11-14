@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getAntiBotConfig, saveAntiBotConfig, testAntiBotConfig } from '../services/api';
 
 export default function AntiBotConfig() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -23,7 +24,30 @@ export default function AntiBotConfig() {
   });
 
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [testResults, setTestResults] = useState(null);
+
+  // Charger la configuration au montage du composant
+  useEffect(() => {
+    loadConfig();
+  }, []);
+
+  const loadConfig = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getAntiBotConfig();
+      if (response.success) {
+        setConfig(response.data);
+      }
+    } catch (err) {
+      console.error('Erreur chargement config:', err);
+      setError('Impossible de charger la configuration');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const strategies = [
     { id: 'none', name: 'Aucune Protection', cost: 'Gratuit', efficacy: 'Bloqué', icon: '⚠️' },
@@ -68,24 +92,57 @@ export default function AntiBotConfig() {
     setConfig(newConfig);
   };
 
-  const handleSave = () => {
-    // TODO: Save to backend API
-    console.log('Saving config:', config);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    try {
+      setError(null);
+      const response = await saveAntiBotConfig(config);
+      if (response.success) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+        console.log('Configuration sauvegardée:', response.message);
+      }
+    } catch (err) {
+      console.error('Erreur sauvegarde:', err);
+      setError('Erreur lors de la sauvegarde de la configuration');
+    }
   };
 
   const handleTest = async () => {
-    // TODO: Call backend test endpoint
-    setTestResults({ loading: true });
-    setTimeout(() => {
+    try {
+      setTestResults({ loading: true });
+      setError(null);
+
+      const response = await testAntiBotConfig();
+
+      if (response.success) {
+        setTestResults({
+          success: response.data.testSuccess,
+          blocked: response.data.blocked,
+          message: response.data.message,
+          prospectsExtracted: response.data.prospectsExtracted,
+          prospects: response.data.prospects,
+          metadata: response.data.metadata
+        });
+      }
+    } catch (err) {
+      console.error('Erreur test:', err);
       setTestResults({
-        success: true,
-        message: 'Test en cours de développement...',
+        success: false,
+        blocked: true,
+        message: `Erreur lors du test: ${err.message}`,
         prospectsExtracted: 0
       });
-    }, 1000);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-8 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Chargement de la configuration...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-md">
@@ -95,6 +152,11 @@ export default function AntiBotConfig() {
         <p className="text-sm text-gray-600 mt-1">
           Configurez les stratégies de contournement pour Pages Jaunes
         </p>
+        {error && (
+          <div className="mt-3 bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-800">
+            {error}
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
