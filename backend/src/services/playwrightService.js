@@ -1,4 +1,6 @@
 import { chromium } from "playwright";
+import { getProxyManager } from "./proxyManager.js";
+import { antiBotConfig } from "../config/antiBotConfig.js";
 
 /**
  * Service de gestion de Playwright pour le scraping
@@ -26,6 +28,8 @@ class PlaywrightService {
     this.browser = null;
     this.contexts = [];
     this.isInitialized = false;
+    this.proxyManager = null;
+    this.currentProxy = null;
   }
 
   /**
@@ -39,6 +43,14 @@ class PlaywrightService {
 
     try {
       console.log("[PlaywrightService] Initialisation du browser...");
+
+      // Initialiser le gestionnaire de proxies si activé
+      if (antiBotConfig.proxies.enabled) {
+        console.log("[PlaywrightService] Initialisation du gestionnaire de proxies...");
+        this.proxyManager = getProxyManager();
+        await this.proxyManager.initialize();
+      }
+
       this.browser = await chromium.launch({
         headless: this.config.headless,
         args: [
@@ -61,8 +73,9 @@ class PlaywrightService {
 
   /**
    * Crée un nouveau browser context avec la configuration anti-détection
+   * @param {Object} options - Options additionnelles pour le context
    */
-  async createContext() {
+  async createContext(options = {}) {
     if (!this.isInitialized) {
       await this.initialize();
     }
@@ -77,7 +90,8 @@ class PlaywrightService {
     }
 
     try {
-      const context = await this.browser.newContext({
+      // Configuration de base
+      const contextConfig = {
         viewport: this.config.viewport,
         userAgent: this.config.userAgent,
         locale: "fr-FR",
@@ -88,7 +102,22 @@ class PlaywrightService {
         },
         // Désactiver les indicateurs d'automatisation
         javaScriptEnabled: true,
-      });
+        ...options
+      };
+
+      // Ajouter le proxy si disponible
+      if (this.proxyManager) {
+        this.currentProxy = this.proxyManager.getNextProxy();
+        if (this.currentProxy) {
+          contextConfig.proxy = {
+            server: this.currentProxy.server,
+            username: this.currentProxy.username,
+            password: this.currentProxy.password
+          };
+        }
+      }
+
+      const context = await this.browser.newContext(contextConfig);
 
       // Masquer les propriétés webdriver
       await context.addInitScript(() => {
