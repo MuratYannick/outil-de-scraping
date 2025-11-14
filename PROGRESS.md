@@ -1,6 +1,6 @@
 # 📊 Progression du Projet Outil de Scraping
 
-**Dernière mise à jour** : 13 novembre 2025
+**Dernière mise à jour** : 14 novembre 2025
 
 ## 🎯 Objectif Phase 1 (MVP)
 
@@ -53,7 +53,7 @@
 
 ---
 
-### Semaine 2 : 🕷️ Moteur de Scraping MVP (🔄 EN COURS - 20%)
+### Semaine 2 : 🕷️ Moteur de Scraping MVP (🔄 EN COURS - 40%)
 
 #### Jour 6 : Mise en place de Playwright (✅ COMPLÉTÉ)
 - [x] Installer Playwright et ses dépendances
@@ -62,14 +62,43 @@
 - [x] Configurer l'émulation de navigateur (User-Agent, viewport)
 - [x] Tester le lancement basique de Playwright
 
-#### Jour 7-8 : Développement du scraper Pages Jaunes
-- [ ] Analyser la structure HTML de Pages Jaunes
-- [ ] Créer le scraper `pagesJaunesScraper.js`
-- [ ] Implémenter l'extraction des données (nom, adresse, téléphone, site web)
-- [ ] Ajouter la normalisation des données (format téléphone, emails)
-- [ ] Implémenter la gestion des erreurs et retry
-- [ ] Ajouter la logique anti-détection (delays, rotation proxies si disponible)
-- [ ] Tester le scraper avec plusieurs requêtes
+#### Jour 7-8 : Développement du scraper Pages Jaunes (✅ COMPLÉTÉ - ⚠️ Bloqué anti-bot)
+- [x] Analyser la structure HTML de Pages Jaunes
+- [x] Créer le scraper `pagesJaunesScraper.js`
+- [x] Implémenter l'extraction des données (nom, adresse, téléphone, site web)
+- [x] Ajouter la normalisation des données (format téléphone, emails)
+- [x] Implémenter la gestion des erreurs et retry
+- [x] Ajouter la logique anti-détection (delays, rotation proxies si disponible)
+- [x] Tester le scraper avec plusieurs requêtes
+- [x] Créer scripts de debug et analyse (analyze, debug, test)
+- ⚠️ **Problème identifié** : Pages Jaunes détecte l'automatisation et affiche une page d'erreur
+
+#### Jour 8bis : Solutions de contournement anti-bot (📋 À FAIRE - PRIORITAIRE)
+- [ ] **Option 1 : Proxies résidentiels**
+  - [ ] Rechercher et évaluer des services de proxies (BrightData, Oxylabs, SmartProxy)
+  - [ ] Implémenter la rotation de proxies dans PlaywrightService
+  - [ ] Tester avec différents proxies
+  - [ ] Valider le coût vs bénéfice
+- [ ] **Option 2 : Résolution CAPTCHA**
+  - [ ] Intégrer un service de résolution CAPTCHA (2Captcha, Anti-Captcha)
+  - [ ] Implémenter la détection automatique de CAPTCHA
+  - [ ] Tester la résolution automatique
+  - [ ] Évaluer le taux de succès
+- [ ] **Option 3 : Amélioration du masquage**
+  - [ ] Utiliser un profil de navigateur persistant (cookies, localStorage)
+  - [ ] Ajouter des en-têtes HTTP plus réalistes
+  - [ ] Implémenter des patterns de comportement humain (scroll, mouvements souris)
+  - [ ] Tester avec stealth plugins Playwright
+- [ ] **Option 4 : API officielle ou alternative**
+  - [ ] Rechercher une API officielle Pages Jaunes
+  - [ ] Identifier des sites alternatifs moins protégés (Yelp, Kompass, etc.)
+  - [ ] Créer un scraper alternatif si nécessaire
+  - [ ] Valider la qualité des données alternatives
+- [ ] **Décision finale et implémentation**
+  - [ ] Évaluer les 4 options (coût, complexité, taux de succès)
+  - [ ] Choisir la solution avec le chef de projet
+  - [ ] Implémenter la solution choisie
+  - [ ] Tester et valider l'extraction de données réelles
 
 #### Jour 9 : Intégration du scraper à l'API
 - [ ] Créer les routes `/api/scraping/lancer` et `/api/scraping/status/:task_id`
@@ -154,11 +183,18 @@
 
 ---
 
-## 🔐 Problèmes Résolus
+## 🔐 Problèmes Résolus & En Cours
 
 ### Security
 - [x] **npm audit (Backend)** : Suppression de Puppeteer effectuée, seul Playwright est utilisé
 - [x] **npm audit (Frontend)** : Mise à jour de Vite 5.x → 7.x, résolution advisory esbuild (GHSA-67mh-4wv8-2f99), audit finalisé à 0 vulnérabilités
+
+### Scraping
+- ⚠️ **Anti-bot Pages Jaunes** : Le site détecte l'automatisation Playwright et affiche une page d'erreur temporaire
+  - **Symptômes** : Page `page-temporaire` avec classes CSS `error-name`, `no-response`
+  - **Impact** : Impossible d'extraire des données réelles de Pages Jaunes
+  - **Solutions en cours d'évaluation** : Proxies, CAPTCHA solving, masquage amélioré, ou site alternatif
+  - **Architecture du scraper** : ✅ Validée et fonctionnelle (normalisation, pagination, anti-détection)
 
 ---
 
@@ -227,14 +263,19 @@ outil-de-scraping/
 │   │   │   └── tagRoutes.js
 │   │   ├── middlewares/        # À implémenter
 │   │   └── services/
-│   │       └── playwrightService.js
+│   │       ├── playwrightService.js
+│   │       └── scrapers/
+│   │           └── pagesJaunesScraper.js
 │   └── scripts/
 │       ├── init-db.sql
 │       ├── setup-db.js
 │       ├── migrate.js
 │       ├── drop-tables.js
 │       ├── seed-db.js
-│       └── test-playwright.js
+│       ├── test-playwright.js
+│       ├── analyze-pages-jaunes.js
+│       ├── debug-pages-jaunes.js
+│       └── test-pages-jaunes-scraper.js
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.js
@@ -267,10 +308,15 @@ outil-de-scraping/
 
 ## 🚀 Prochaines Étapes (Priorité)
 
-### Semaine 2 — Moteur de Scraping (EN COURS)
+### Semaine 2 — Moteur de Scraping (EN COURS - 40%)
 - [x] Implémenter `backend/src/services/playwrightService.js`
-- [x] Tester le service Playwright
-- [ ] Créer un scraper exemple (Pages Jaunes)
+- [x] Tester le service Playwright (10 tests passés)
+- [x] Créer un scraper Pages Jaunes avec architecture robuste
+- [x] Implémenter normalisation des données (téléphone FR, email, URL)
+- ⚠️ **BLOQUEUR** : Résoudre le problème anti-bot de Pages Jaunes
+  - [ ] Évaluer les 4 options de contournement (voir Jour 8bis)
+  - [ ] Choisir et implémenter la solution avec le chef de projet
+  - [ ] Valider l'extraction de données réelles
 - [ ] Ajouter routes API pour lancer le scraping
 - [ ] Tester le flux complet de scraping
 
@@ -314,4 +360,4 @@ outil-de-scraping/
 
 ---
 
-**Dernière mise à jour** : 13 novembre 2025
+**Dernière mise à jour** : 14 novembre 2025
