@@ -53,7 +53,7 @@
 
 ---
 
-### Semaine 2 : 🕷️ Moteur de Scraping MVP (🔄 EN COURS - 40%)
+### Semaine 2 : 🕷️ Moteur de Scraping MVP (🔄 EN COURS - 50%)
 
 #### Jour 6 : Mise en place de Playwright (✅ COMPLÉTÉ)
 - [x] Installer Playwright et ses dépendances
@@ -73,12 +73,15 @@
 - [x] Créer scripts de debug et analyse (analyze, debug, test)
 - ⚠️ **Problème identifié** : Pages Jaunes détecte l'automatisation et affiche une page d'erreur
 
-#### Jour 8bis : Solutions de contournement anti-bot (📋 À FAIRE - PRIORITAIRE)
-- [ ] **Option 1 : Proxies résidentiels**
-  - [ ] Rechercher et évaluer des services de proxies (BrightData, Oxylabs, SmartProxy)
-  - [ ] Implémenter la rotation de proxies dans PlaywrightService
-  - [ ] Tester avec différents proxies
-  - [ ] Valider le coût vs bénéfice
+#### Jour 8bis : Solutions de contournement anti-bot (🔄 EN COURS - 50%)
+- [x] **Option 1 : Proxies résidentiels** (Architecture complétée, en attente de credentials payants)
+  - [x] Rechercher et évaluer des services de proxies (BrightData, Oxylabs, SmartProxy)
+  - [x] Implémenter la rotation de proxies dans PlaywrightService
+  - [x] Tester avec proxies gratuits (résultat: inefficaces, blacklistés)
+  - [x] Créer script de test comparatif (avec/sans proxy)
+  - [ ] **EN ATTENTE**: Obtenir credentials pour proxies PAYANTS
+  - [ ] Valider l'efficacité avec proxies résidentiels de qualité
+  - [ ] Décider du budget avec le chef de projet ($75-$1000/mois)
 - [ ] **Option 2 : Résolution CAPTCHA**
   - [ ] Intégrer un service de résolution CAPTCHA (2Captcha, Anti-Captcha)
   - [ ] Implémenter la détection automatique de CAPTCHA
@@ -193,8 +196,14 @@
 - ⚠️ **Anti-bot Pages Jaunes** : Le site détecte l'automatisation Playwright et affiche une page d'erreur temporaire
   - **Symptômes** : Page `page-temporaire` avec classes CSS `error-name`, `no-response`
   - **Impact** : Impossible d'extraire des données réelles de Pages Jaunes
-  - **Solutions en cours d'évaluation** : Proxies, CAPTCHA solving, masquage amélioré, ou site alternatif
   - **Architecture du scraper** : ✅ Validée et fonctionnelle (normalisation, pagination, anti-détection)
+  - **Solutions implémentées** :
+    - [x] Option 1 (Proxies): Architecture complète avec support BrightData/Oxylabs/SmartProxy
+    - [x] Tests avec proxies gratuits: ❌ Inefficaces (blacklistés par Pages Jaunes)
+    - [ ] Tests avec proxies PAYANTS: En attente de credentials ($75-$1000/mois)
+    - [ ] Option 2 (CAPTCHA Solver): À implémenter si nécessaire
+    - [ ] Option 3 (Stealth): À implémenter en parallèle
+  - **Décision requise** : Budget pour proxies résidentiels payants ou alternative
 
 ---
 
@@ -264,8 +273,12 @@ outil-de-scraping/
 │   │   ├── middlewares/        # À implémenter
 │   │   └── services/
 │   │       ├── playwrightService.js
+│   │       ├── proxyManager.js  # NEW: Gestion de rotation des proxies
 │   │       └── scrapers/
 │   │           └── pagesJaunesScraper.js
+│   │   └── config/
+│   │       ├── database.js
+│   │       └── antiBotConfig.js  # NEW: Configuration stratégies anti-bot
 │   └── scripts/
 │       ├── init-db.sql
 │       ├── setup-db.js
@@ -275,7 +288,9 @@ outil-de-scraping/
 │       ├── test-playwright.js
 │       ├── analyze-pages-jaunes.js
 │       ├── debug-pages-jaunes.js
-│       └── test-pages-jaunes-scraper.js
+│       ├── test-pages-jaunes-scraper.js
+│       ├── test-proxy-rotation.js         # NEW: Test rotation proxies (8 tests)
+│       └── test-pages-jaunes-with-proxy.js # NEW: Test comparatif avec/sans proxy
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.js
@@ -300,7 +315,9 @@ outil-de-scraping/
 │   ├── SETUP.md                # Guide d'installation
 │   ├── PLAYWRIGHT_DECISION.md  # Rationale du choix Playwright
 │   ├── TESTS.md                # Documentation de tous les tests effectués
-│   └── TESTING_GUIDE.md        # Guide de lancement manuel des tests
+│   ├── TESTING_GUIDE.md        # Guide de lancement manuel des tests
+│   ├── ANTIBOT_CONFIG.md       # NEW: Guide configuration stratégies anti-bot
+│   └── PROXY_TEST_RESULTS.md   # NEW: Résultats tests proxies + recommandations
 └── .gitignore
 ```
 
@@ -308,14 +325,16 @@ outil-de-scraping/
 
 ## 🚀 Prochaines Étapes (Priorité)
 
-### Semaine 2 — Moteur de Scraping (EN COURS - 40%)
+### Semaine 2 — Moteur de Scraping (EN COURS - 50%)
 - [x] Implémenter `backend/src/services/playwrightService.js`
 - [x] Tester le service Playwright (10 tests passés)
 - [x] Créer un scraper Pages Jaunes avec architecture robuste
 - [x] Implémenter normalisation des données (téléphone FR, email, URL)
-- ⚠️ **BLOQUEUR** : Résoudre le problème anti-bot de Pages Jaunes
-  - [ ] Évaluer les 4 options de contournement (voir Jour 8bis)
-  - [ ] Choisir et implémenter la solution avec le chef de projet
+- 🔄 **BLOQUEUR EN COURS** : Résoudre le problème anti-bot de Pages Jaunes
+  - [x] Option 1: Architecture proxy complète (BrightData/Oxylabs/SmartProxy)
+  - [x] Tests avec proxies gratuits: ❌ Inefficaces (blacklistés)
+  - [ ] **EN ATTENTE**: Décision budget proxies payants ($75-$1000/mois)
+  - [ ] Alternative: Implémenter Option 3 (Stealth) en parallèle
   - [ ] Valider l'extraction de données réelles
 - [ ] Ajouter routes API pour lancer le scraping
 - [ ] Tester le flux complet de scraping
