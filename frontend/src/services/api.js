@@ -170,6 +170,47 @@ export const deleteTag = async (id) => {
 };
 
 // ============================================================================
+// Services Anti-Bot Configuration
+// ============================================================================
+
+/**
+ * Récupérer la configuration anti-bot actuelle
+ * @returns {Promise}
+ */
+export const getAntiBotConfig = async () => {
+  const response = await api.get("/antibot/config");
+  return response.data;
+};
+
+/**
+ * Sauvegarder la configuration anti-bot
+ * @param {Object} config - Configuration à sauvegarder
+ * @returns {Promise}
+ */
+export const saveAntiBotConfig = async (config) => {
+  const response = await api.put("/antibot/config", config);
+  return response.data;
+};
+
+/**
+ * Tester la configuration anti-bot actuelle
+ * @returns {Promise}
+ */
+export const testAntiBotConfig = async () => {
+  const response = await api.post("/antibot/test");
+  return response.data;
+};
+
+/**
+ * Récupérer le statut des stratégies anti-bot
+ * @returns {Promise}
+ */
+export const getAntiBotStatus = async () => {
+  const response = await api.get("/antibot/status");
+  return response.data;
+};
+
+// ============================================================================
 // Services Health & Info
 // ============================================================================
 

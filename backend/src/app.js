@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { sequelize } from "./models/index.js";
 import prospectRoutes from "./routes/prospectRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
+import antiBotConfigRoutes from "./routes/antiBotConfigRoutes.js";
 
 dotenv.config();
 
@@ -42,6 +43,7 @@ app.get("/api", (req, res) => {
       health: "/health",
       prospects: "/api/prospects",
       tags: "/api/tags",
+      antiBotConfig: "/api/antibot",
     },
   });
 });
@@ -51,6 +53,7 @@ app.get("/api", (req, res) => {
 // ============================================================================
 app.use("/api/prospects", prospectRoutes);
 app.use("/api/tags", tagRoutes);
+app.use("/api/antibot", antiBotConfigRoutes);
 
 // ============================================================================
 // Error handling middleware

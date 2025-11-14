@@ -21,7 +21,7 @@ Ce document explique comment configurer et utiliser les différentes stratégies
 
 ## Vue d'ensemble
 
-Le système anti-bot permet de contourner les protections mises en place par les sites web pour détecter et bloquer le scraping automatisé. Il offre **4 stratégies configurables** qui peuvent être activées individuellement ou combinées.
+Le système anti-bot permet de contourner les protections mises en place par les sites web pour détecter et bloquer le scraping automatisé. Il offre **3 stratégies configurables** qui peuvent être activées individuellement ou combinées.
 
 ### Problème Initial
 
@@ -42,13 +42,13 @@ Un système modulaire permettant de :
 
 ## Stratégies Disponibles
 
-| Stratégie | Description | Complexité | Coût | Efficacité |
-|-----------|-------------|------------|------|------------|
-| **NONE** | Aucune protection (mode test) | ⭐ | Gratuit | ❌ |
-| **PROXIES** | Rotation de proxies résidentiels | ⭐⭐ | 💰💰 | ✅✅✅ |
-| **CAPTCHA_SOLVER** | Résolution automatique CAPTCHA | ⭐⭐⭐ | 💰 | ✅✅ |
-| **STEALTH** | Masquage navigateur avancé | ⭐⭐ | Gratuit | ✅ |
-| **HYBRID** | Combinaison de stratégies | ⭐⭐⭐⭐ | 💰💰 | ✅✅✅✅ |
+| Stratégie | Description | Complexité | Coût | Efficacité Pages Jaunes |
+|-----------|-------------|------------|------|------------------------|
+| **NONE** | Aucune protection (mode test) | ⭐ | Gratuit | ❌ Bloqué |
+| **PROXIES** | Rotation de proxies résidentiels | ⭐⭐ | 💰💰 ($75-$1000/mois) | ✅✅✅ À tester |
+| **CAPTCHA_SOLVER** | Résolution automatique CAPTCHA + Stealth | ⭐⭐⭐ | 💰 ($0.15-$3/1000p) | ✅✅ À tester ⭐ |
+| **STEALTH** | Masquage navigateur avancé | ⭐⭐ | Gratuit | ❌ Insuffisant seul |
+| **HYBRID** | Proxies + Stealth + CAPTCHA | ⭐⭐⭐⭐ | 💰💰 | ✅✅✅✅ Maximum |
 
 ---
 
@@ -418,11 +418,15 @@ node scripts/test-pages-jaunes-scraper.js
 - [x] Documentation complète (CAPTCHA_SOLVER.md)
 - [ ] Intégration dans pagesJaunesScraper.js (À FAIRE)
 
-### Phase 3: Stealth Avancé (📋 À FAIRE)
-- [ ] Profil navigateur persistant
-- [ ] Headers HTTP dynamiques
-- [ ] Comportements humains (scroll, mouse)
-- [ ] Tests d'efficacité
+### Phase 3: Stealth Avancé (✅ COMPLÉTÉE)
+- [x] Service StealthService avec masquage avancé (14 indicateurs)
+- [x] Profil navigateur persistant (cookies, localStorage)
+- [x] Headers HTTP dynamiques et réalistes (sec-ch-ua, etc.)
+- [x] Comportements humains (scroll aléatoire, delays, mouvements souris)
+- [x] User-Agents et viewports aléatoires
+- [x] Canvas et WebGL fingerprinting masqués
+- [x] Intégration dans PlaywrightService
+- [x] Tests d'efficacité (93% des détections masquées)
 
 ### Phase 4: Mode Hybride (📋 À FAIRE)
 - [ ] Logique de fallback automatique
