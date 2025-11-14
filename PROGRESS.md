@@ -53,7 +53,7 @@
 
 ---
 
-### Semaine 2 : 🕷️ Moteur de Scraping MVP (🔄 EN COURS - 75%)
+### Semaine 2 : 🕷️ Moteur de Scraping MVP (🔄 EN COURS - 90%)
 
 #### Jour 6 : Mise en place de Playwright (✅ COMPLÉTÉ)
 - [x] Installer Playwright et ses dépendances
@@ -73,7 +73,7 @@
 - [x] Créer scripts de debug et analyse (analyze, debug, test)
 - ⚠️ **Problème identifié** : Pages Jaunes détecte l'automatisation et affiche une page d'erreur
 
-#### Jour 8bis : Solutions de contournement anti-bot (🔄 EN COURS - 75%)
+#### Jour 8bis : Solutions de contournement anti-bot (🔄 EN COURS - 90%)
 - [x] **Option 1 : Proxies résidentiels** (Architecture complétée, en attente de credentials payants)
   - [x] Rechercher et évaluer des services de proxies (BrightData, Oxylabs, SmartProxy)
   - [x] Implémenter la rotation de proxies dans PlaywrightService
@@ -90,11 +90,16 @@
   - [ ] **EN ATTENTE**: Obtenir API key 2Captcha/Anti-Captcha/CapMonster
   - [ ] Intégrer dans pagesJaunesScraper.js
   - [ ] Tester sur Pages Jaunes et évaluer le taux de succès
-- [ ] **Option 3 : Amélioration du masquage**
-  - [ ] Utiliser un profil de navigateur persistant (cookies, localStorage)
-  - [ ] Ajouter des en-têtes HTTP plus réalistes
-  - [ ] Implémenter des patterns de comportement humain (scroll, mouvements souris)
-  - [ ] Tester avec stealth plugins Playwright
+- [x] **Option 3 : Stealth Mode** (Architecture complétée et testée - GRATUIT)
+  - [x] Service StealthService avec masquage de 14 indicateurs d'automatisation
+  - [x] Profil de navigateur persistant (cookies, localStorage)
+  - [x] Headers HTTP réalistes et dynamiques (sec-ch-ua, User-Agent aléatoire)
+  - [x] Patterns de comportement humain (scroll aléatoire, delays, mouvements souris)
+  - [x] Canvas et WebGL fingerprinting masqués
+  - [x] Intégration dans PlaywrightService
+  - [x] Tests sur bot.sannysoft.com (93% détections masquées - 52/56 tests passés)
+  - [ ] **EN ATTENTE**: Tester l'efficacité sur Pages Jaunes réel
+  - [ ] Combiner avec proxies pour efficacité maximale (mode HYBRID)
 - [ ] **Option 4 : API officielle ou alternative**
   - [ ] Rechercher une API officielle Pages Jaunes
   - [ ] Identifier des sites alternatifs moins protégés (Yelp, Kompass, etc.)
@@ -207,11 +212,14 @@
     - [x] Option 2 (CAPTCHA Solver): Architecture complète avec support 2Captcha/Anti-Captcha/CapMonster
     - [x] Tests CAPTCHA: Détection validée sur page démo Google reCAPTCHA
     - [ ] Tests CAPTCHA sur Pages Jaunes: En attente d'API key ($0.15-$3/1000 pages)
-    - [ ] Option 3 (Stealth): À implémenter en parallèle
+    - [x] Option 3 (Stealth Mode): ✅ Complétée et testée (93% détections masquées - GRATUIT)
+    - [x] Tests Stealth: Validés sur bot.sannysoft.com (52/56 tests passés)
+    - [ ] Tests Stealth sur Pages Jaunes: À faire en combinaison avec proxies ou CAPTCHA
   - **Décisions requises** :
     - Budget pour proxies résidentiels payants ($75-$1000/mois)
     - OU Budget pour CAPTCHA solver ($0.15-$3/1000 pages)
-    - OU Implémenter Option 3 (Stealth - gratuit)
+    - OU Tester Option 3 Stealth seul (gratuit, efficacité à valider sur Pages Jaunes)
+    - OU Combiner plusieurs options en mode HYBRID (recommandé pour taux de succès maximal)
 
 ---
 
@@ -283,6 +291,7 @@ outil-de-scraping/
 │   │       ├── playwrightService.js
 │   │       ├── proxyManager.js            # NEW: Gestion de rotation des proxies
 │   │       ├── captchaSolverService.js    # NEW: Résolution automatique CAPTCHA
+│   │       ├── stealthService.js          # NEW: Masquage avancé (14 techniques)
 │   │       └── scrapers/
 │   │           └── pagesJaunesScraper.js
 │   │   └── config/
@@ -300,7 +309,8 @@ outil-de-scraping/
 │       ├── test-pages-jaunes-scraper.js
 │       ├── test-proxy-rotation.js         # NEW: Test rotation proxies (8 tests)
 │       ├── test-pages-jaunes-with-proxy.js # NEW: Test comparatif avec/sans proxy
-│       └── test-captcha-solver.js         # NEW: Test détection et résolution CAPTCHA
+│       ├── test-captcha-solver.js         # NEW: Test détection et résolution CAPTCHA
+│       └── test-stealth-mode.js           # NEW: Test masquage Stealth (bot.sannysoft.com)
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.js
@@ -328,7 +338,8 @@ outil-de-scraping/
 │   ├── TESTING_GUIDE.md        # Guide de lancement manuel des tests
 │   ├── ANTIBOT_CONFIG.md       # NEW: Guide configuration stratégies anti-bot
 │   ├── PROXY_TEST_RESULTS.md   # NEW: Résultats tests proxies + recommandations
-│   └── CAPTCHA_SOLVER.md       # NEW: Guide CAPTCHA solver (2Captcha, Anti-Captcha, CapMonster)
+│   ├── CAPTCHA_SOLVER.md       # NEW: Guide CAPTCHA solver (2Captcha, Anti-Captcha, CapMonster)
+│   └── DECISION_ANTI_BOT.md    # NEW: Guide de décision pour chef de projet
 └── .gitignore
 ```
 
@@ -336,7 +347,7 @@ outil-de-scraping/
 
 ## 🚀 Prochaines Étapes (Priorité)
 
-### Semaine 2 — Moteur de Scraping (EN COURS - 75%)
+### Semaine 2 — Moteur de Scraping (EN COURS - 90%)
 - [x] Implémenter `backend/src/services/playwrightService.js`
 - [x] Tester le service Playwright (10 tests passés)
 - [x] Créer un scraper Pages Jaunes avec architecture robuste
@@ -344,11 +355,12 @@ outil-de-scraping/
 - 🔄 **BLOQUEUR EN COURS** : Résoudre le problème anti-bot de Pages Jaunes
   - [x] Option 1 (Proxies): Architecture complète + tests avec proxies gratuits (❌ inefficaces)
   - [x] Option 2 (CAPTCHA Solver): Architecture complète + tests de détection (✅ validés)
+  - [x] Option 3 (Stealth Mode): ✅ Architecture complète + tests (93% détections masquées)
   - [ ] **EN ATTENTE - DÉCISIONS**:
     - Option A: Proxies payants ($75-$1000/mois) + tester l'efficacité
     - Option B: CAPTCHA solver API key ($0.15-$3/1000 pages) + tester sur Pages Jaunes
-    - Option C: Implémenter Option 3 (Stealth - gratuit) en parallèle
-    - Option D: Mode HYBRID (combiner plusieurs options)
+    - Option C: Tester Stealth seul sur Pages Jaunes (gratuit, efficacité à valider)
+    - Option D: Mode HYBRID (combiner plusieurs options - recommandé)
   - [ ] Valider l'extraction de données réelles avec la solution choisie
 - [ ] Ajouter routes API pour lancer le scraping
 - [ ] Tester le flux complet de scraping
