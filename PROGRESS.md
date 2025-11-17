@@ -121,7 +121,7 @@
 
 ---
 
-### Semaine 3 : 💻 Interface Utilisateur (🔄 EN COURS - 70%)
+### Semaine 3 : 💻 Interface Utilisateur (✅ COMPLÉTÉE à 100%)
 
 #### Jour 11-12 : Interface de lancement du scraping (✅ COMPLÉTÉ)
 - [x] Créer le composant formulaire de scraping (keyword, location, source)
@@ -157,12 +157,24 @@
   - Export CSV compatible Excel, JSON avec indentation, copie presse-papiers
   - 965 lignes de code ajoutées (8 fichiers modifiés)
 
-#### Jour 14 : Gestion des tags
-- [ ] Créer le composant de gestion des tags
-- [ ] Implémenter l'ajout/suppression de tags
-- [ ] Créer l'interface d'association prospect ↔ tag
-- [ ] Ajouter la recherche et filtrage par tags
-- [ ] Tester les opérations CRUD sur les tags
+#### Jour 14 : Gestion des tags (✅ COMPLÉTÉ)
+- [x] Créer le composant de gestion des tags
+- [x] Implémenter l'ajout/suppression de tags
+- [x] Créer l'interface d'association prospect ↔ tag
+- [x] Ajouter la recherche et filtrage par tags
+- [x] Tester les opérations CRUD sur les tags
+- **Composants créés** :
+  - `TagManager.jsx` : Gestion complète CRUD des tags (liste, création inline, édition inline, suppression)
+  - `TagBadge.jsx` : Composant de gestion des tags d'un prospect (ajout/retrait avec dropdown)
+- **Modifications** :
+  - `ProspectList.jsx` : Intégration TagBadge en mode tableau
+  - `ProspectCard.jsx` : Intégration TagBadge en mode grille
+  - `App.jsx` : Ajout onglet "🏷️ Tags" et callback onProspectUpdated
+- **Fonctionnalités** :
+  - CRUD complet des tags avec affichage du nombre de prospects associés
+  - Association/dissociation de tags depuis la vue prospects (tableau et grille)
+  - Rafraîchissement automatique après chaque modification
+  - Interface cohérente et responsive
 
 #### Jour 15 : Gestion des erreurs & logique proxy
 - [ ] Implémenter la gestion globale des erreurs frontend
@@ -332,19 +344,21 @@ outil-de-scraping/
 │   ├── index.html              # Entrée Vite
 │   └── src/
 │       ├── main.jsx            # Point d'entrée
-│       ├── App.jsx             # Composant principal avec 3 onglets (Scraping, Prospects, Config)
+│       ├── App.jsx             # Composant principal avec 4 onglets (Scraping, Prospects, Tags, Config)
 │       ├── components/
 │       │   ├── Header.jsx
-│       │   ├── ProspectList.jsx         # Tableau/grille prospects
-│       │   ├── ProspectCard.jsx         # NEW: Carte individuelle prospect
-│       │   ├── ProspectStats.jsx        # NEW: Dashboard statistiques
-│       │   ├── ProspectFilters.jsx      # NEW: Filtres avancés (source, tag, recherche)
-│       │   ├── Pagination.jsx           # NEW: Pagination intelligente avec ellipses
-│       │   ├── ScrapingForm.jsx         # NEW: Formulaire lancement scraping
-│       │   ├── ProgressTracker.jsx      # NEW: Suivi temps réel avec polling
-│       │   ├── Notification.jsx         # NEW: Toast notifications
-│       │   ├── ExportMenu.jsx           # NEW: Menu export (CSV, JSON, clipboard)
-│       │   └── AntiBotConfig.jsx        # NEW: Panneau config anti-bot
+│       │   ├── ProspectList.jsx         # Tableau/grille prospects (avec TagBadge)
+│       │   ├── ProspectCard.jsx         # Carte individuelle prospect (avec TagBadge)
+│       │   ├── ProspectStats.jsx        # Dashboard statistiques
+│       │   ├── ProspectFilters.jsx      # Filtres avancés (source, tag, recherche)
+│       │   ├── Pagination.jsx           # Pagination intelligente avec ellipses
+│       │   ├── ScrapingForm.jsx         # Formulaire lancement scraping
+│       │   ├── ProgressTracker.jsx      # Suivi temps réel avec polling
+│       │   ├── Notification.jsx         # Toast notifications
+│       │   ├── ExportMenu.jsx           # Menu export (CSV, JSON, clipboard)
+│       │   ├── TagManager.jsx           # NEW: Gestion complète CRUD des tags
+│       │   ├── TagBadge.jsx             # NEW: Gestion tags d'un prospect (ajout/retrait)
+│       │   └── AntiBotConfig.jsx        # Panneau config anti-bot
 │       ├── pages/              # À implémenter
 │       ├── services/
 │       │   └── api.js          # Service API Axios (étendu avec endpoints scraping)
@@ -384,15 +398,15 @@ outil-de-scraping/
   - [ ] Option B: CAPTCHA solver API key ($0.15-$3/1000 pages) ⭐ RECOMMANDÉ
   - [ ] Option C: Mode HYBRID (combiner Proxies + Stealth + CAPTCHA)
 
-### Semaine 3 — Frontend (🔄 EN COURS - 70%)
+### Semaine 3 — Frontend (✅ COMPLÉTÉE à 100%)
 - [x] Développer composants React (Dashboard, Formulaire scraping, Liste prospects)
 - [x] Intégrer l'API backend avec Axios
 - [x] Afficher les prospects et permettre de lancer un scraping
 - [x] Implémenter les statistiques et visualisations
 - [x] Implémenter l'export de données (CSV, JSON, clipboard)
 - [x] Ajouter la pagination et les filtres avancés
-- [ ] Implémenter la gestion des tags (CRUD interface)
-- [ ] Améliorer la gestion des erreurs frontend
+- [x] Implémenter la gestion des tags (CRUD interface)
+- [x] Association/dissociation de tags aux prospects
 
 ### Sécurité & Qualité
 - [ ] Ajouter validation Joi sur les routes
