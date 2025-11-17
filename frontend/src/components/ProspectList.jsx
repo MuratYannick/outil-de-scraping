@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
+import ProspectCard from "./ProspectCard";
 
 /**
  * Composant pour afficher la liste des prospects
+ * Supporte deux modes d'affichage : tableau et grille
  */
-export default function ProspectList({ prospects, loading, error }) {
+export default function ProspectList({ prospects, loading, error, viewMode = 'table' }) {
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -30,6 +32,18 @@ export default function ProspectList({ prospects, loading, error }) {
     );
   }
 
+  // Mode grille (cartes)
+  if (viewMode === 'grid') {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {prospects.map((prospect) => (
+          <ProspectCard key={prospect.id} prospect={prospect} />
+        ))}
+      </div>
+    );
+  }
+
+  // Mode tableau (par défaut)
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">

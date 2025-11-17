@@ -5,6 +5,10 @@ import AntiBotConfig from "./components/AntiBotConfig";
 import ScrapingForm from "./components/ScrapingForm";
 import ProgressTracker from "./components/ProgressTracker";
 import Notification from "./components/Notification";
+import ProspectStats from "./components/ProspectStats";
+import ProspectFilters from "./components/ProspectFilters";
+import Pagination from "./components/Pagination";
+import ExportMenu from "./components/ExportMenu";
 import { getProspects, checkHealth } from "./services/api";
 
 export default function App() {
@@ -22,6 +26,14 @@ export default function App() {
   // État pour le scraping
   const [currentTaskId, setCurrentTaskId] = useState(null);
   const [notification, setNotification] = useState(null);
+
+  // État pour les filtres et l'affichage
+  const [filters, setFilters] = useState({
+    source: '',
+    tag: '',
+    search: '',
+  });
+  const [viewMode, setViewMode] = useState('table'); // 'table' ou 'grid'
 
   // Vérifier le statut de l'API au chargement
   useEffect(() => {
@@ -44,24 +56,30 @@ export default function App() {
     checkApiStatus();
   }, []);
 
-  // Charger les prospects au chargement
+  // Charger les prospects au chargement et quand les filtres/pagination changent
   useEffect(() => {
     const loadProspects = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const data = await getProspects({
+        const params = {
           limit: pagination.limit,
           offset: pagination.offset,
-        });
+        };
+
+        // Ajouter les filtres s'ils sont définis
+        if (filters.source) params.source = filters.source;
+        if (filters.tag) params.tag = filters.tag;
+        // Note: le filtre "search" nécessiterait une modification backend pour rechercher dans plusieurs champs
+
+        const data = await getProspects(params);
 
         setProspects(data.data || []);
-        setPagination({
+        setPagination(prev => ({
+          ...prev,
           total: data.total || 0,
-          limit: data.limit || 20,
-          offset: data.offset || 0,
-        });
+        }));
       } catch (err) {
         console.error("Erreur lors du chargement des prospects:", err);
         setError(
@@ -74,7 +92,7 @@ export default function App() {
     };
 
     loadProspects();
-  }, [pagination.limit, pagination.offset]);
+  }, [pagination.limit, pagination.offset, filters.source, filters.tag]);
 
   // Fonction pour recharger les prospects
   const handleRefresh = async () => {
@@ -82,17 +100,22 @@ export default function App() {
     setError(null);
 
     try {
-      const data = await getProspects({
+      const params = {
         limit: pagination.limit,
         offset: 0,
-      });
+      };
+
+      if (filters.source) params.source = filters.source;
+      if (filters.tag) params.tag = filters.tag;
+
+      const data = await getProspects(params);
 
       setProspects(data.data || []);
-      setPagination({
+      setPagination(prev => ({
+        ...prev,
         total: data.total || 0,
-        limit: data.limit || 20,
         offset: 0,
-      });
+      }));
     } catch (err) {
       console.error("Erreur lors du rechargement:", err);
       setError(
@@ -102,6 +125,26 @@ export default function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Gérer le changement de filtres
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    // Réinitialiser à la première page quand on change les filtres
+    setPagination(prev => ({
+      ...prev,
+      offset: 0,
+    }));
+  };
+
+  // Gérer le changement de page
+  const handlePageChange = (newOffset) => {
+    setPagination(prev => ({
+      ...prev,
+      offset: newOffset,
+    }));
+    // Scroll vers le haut
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Gérer le lancement d'un scraping
@@ -229,8 +272,14 @@ export default function App() {
         {/* Prospects View */}
         {activeView === 'prospects' && (
           <>
+            {/* Statistiques */}
+            <ProspectStats />
+
+            {/* Filtres */}
+            <ProspectFilters onFilterChange={handleFilterChange} />
+
             {/* Barre d'actions */}
-            <div className="mb-6 flex justify-between items-center">
+            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">
                   Liste des Prospects
@@ -241,13 +290,48 @@ export default function App() {
                     : "Aucun prospect"}
                 </p>
               </div>
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? "Chargement..." : "Actualiser"}
-              </button>
+
+              <div className="flex gap-2">
+                {/* Toggle vue tableau/grille */}
+                <div className="inline-flex rounded-md shadow-sm" role="group">
+                  <button
+                    onClick={() => setViewMode('table')}
+                    className={`px-4 py-2 text-sm font-medium border ${
+                      viewMode === 'table'
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    } rounded-l-md transition-colors`}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`px-4 py-2 text-sm font-medium border ${
+                      viewMode === 'grid'
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    } rounded-r-md transition-colors`}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Menu Export */}
+                <ExportMenu prospects={prospects} />
+
+                {/* Bouton actualiser */}
+                <button
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? "Chargement..." : "Actualiser"}
+                </button>
+              </div>
             </div>
 
             {/* Liste des prospects */}
@@ -255,7 +339,18 @@ export default function App() {
               prospects={prospects}
               loading={loading}
               error={error}
+              viewMode={viewMode}
             />
+
+            {/* Pagination */}
+            {!loading && !error && (
+              <Pagination
+                total={pagination.total}
+                limit={pagination.limit}
+                offset={pagination.offset}
+                onPageChange={handlePageChange}
+              />
+            )}
           </>
         )}
 

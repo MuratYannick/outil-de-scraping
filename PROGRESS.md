@@ -121,23 +121,41 @@
 
 ---
 
-### Semaine 3 : 💻 Interface Utilisateur (📋 À FAIRE)
+### Semaine 3 : 💻 Interface Utilisateur (🔄 EN COURS - 70%)
 
-#### Jour 11-12 : Interface de lancement du scraping
-- [ ] Créer le composant formulaire de scraping (keyword, location, source)
-- [ ] Implémenter la validation des inputs côté client
-- [ ] Créer le composant d'affichage de progression en temps réel
-- [ ] Ajouter les notifications de succès/erreur
-- [ ] Styliser avec Tailwind CSS
-- [ ] Tester le lancement de scraping depuis l'interface
+#### Jour 11-12 : Interface de lancement du scraping (✅ COMPLÉTÉ)
+- [x] Créer le composant formulaire de scraping (keyword, location, source)
+- [x] Implémenter la validation des inputs côté client
+- [x] Créer le composant d'affichage de progression en temps réel
+- [x] Ajouter les notifications de succès/erreur
+- [x] Styliser avec Tailwind CSS
+- [x] Tester le lancement de scraping depuis l'interface
+- **Composants créés** :
+  - `ScrapingForm.jsx` : Formulaire de lancement avec validation client
+  - `ProgressTracker.jsx` : Suivi en temps réel avec polling (2s), barre de progression, métriques
+  - `Notification.jsx` : Toast notifications (success/error/warning/info) avec auto-close
+  - Service API étendu avec 5 endpoints scraping (lancer, status, cancel, tasks, stats)
+- **Résultat** : Interface fonctionnelle avec 3 onglets (Scraping, Prospects, Config Anti-Bot)
 
-#### Jour 13 : Tableau de bord des prospects
-- [ ] Créer le composant tableau de prospects
-- [ ] Implémenter la pagination
-- [ ] Ajouter les filtres (par tag, par source, par date)
-- [ ] Créer les composants de visualisation (cartes, statistiques)
-- [ ] Implémenter l'export des données (CSV, JSON)
-- [ ] Tester l'affichage de données volumineuses
+#### Jour 13 : Tableau de bord des prospects (✅ COMPLÉTÉ)
+- [x] Créer le composant tableau de prospects
+- [x] Implémenter la pagination
+- [x] Ajouter les filtres (par tag, par source, par date)
+- [x] Créer les composants de visualisation (cartes, statistiques)
+- [x] Implémenter l'export des données (CSV, JSON)
+- [x] Tester l'affichage de données volumineuses
+- **Composants créés** :
+  - `ProspectStats.jsx` : Dashboard avec 4 cartes statistiques, graphiques par source, top tags
+  - `ProspectFilters.jsx` : Système de filtrage (recherche, source, tag) avec panneau pliable
+  - `Pagination.jsx` : Pagination intelligente avec ellipses (ex: "1 ... 4 5 6 ... 10")
+  - `ProspectCard.jsx` : Vue carte individuelle avec icônes et tags
+  - `ExportMenu.jsx` : Menu dropdown d'export multi-format
+  - `export.js` : Utilitaires d'export (CSV avec UTF-8 BOM, JSON formaté, clipboard)
+- **Fonctionnalités** :
+  - Toggle vue tableau/grille responsive (1/2/3 colonnes)
+  - Filtres connectés à l'API avec reset pagination automatique
+  - Export CSV compatible Excel, JSON avec indentation, copie presse-papiers
+  - 965 lignes de code ajoutées (8 fichiers modifiés)
 
 #### Jour 14 : Gestion des tags
 - [ ] Créer le composant de gestion des tags
@@ -314,15 +332,26 @@ outil-de-scraping/
 │   ├── index.html              # Entrée Vite
 │   └── src/
 │       ├── main.jsx            # Point d'entrée
-│       ├── App.jsx             # Composant principal
+│       ├── App.jsx             # Composant principal avec 3 onglets (Scraping, Prospects, Config)
 │       ├── components/
 │       │   ├── Header.jsx
-│       │   └── ProspectList.jsx
+│       │   ├── ProspectList.jsx         # Tableau/grille prospects
+│       │   ├── ProspectCard.jsx         # NEW: Carte individuelle prospect
+│       │   ├── ProspectStats.jsx        # NEW: Dashboard statistiques
+│       │   ├── ProspectFilters.jsx      # NEW: Filtres avancés (source, tag, recherche)
+│       │   ├── Pagination.jsx           # NEW: Pagination intelligente avec ellipses
+│       │   ├── ScrapingForm.jsx         # NEW: Formulaire lancement scraping
+│       │   ├── ProgressTracker.jsx      # NEW: Suivi temps réel avec polling
+│       │   ├── Notification.jsx         # NEW: Toast notifications
+│       │   ├── ExportMenu.jsx           # NEW: Menu export (CSV, JSON, clipboard)
+│       │   └── AntiBotConfig.jsx        # NEW: Panneau config anti-bot
 │       ├── pages/              # À implémenter
 │       ├── services/
-│       │   └── api.js          # Service API Axios
+│       │   └── api.js          # Service API Axios (étendu avec endpoints scraping)
+│       ├── utils/
+│       │   └── export.js       # NEW: Utilitaires export (CSV, JSON, clipboard)
 │       └── styles/
-│           └── index.css       # Styles Tailwind
+│           └── index.css       # Styles Tailwind (+ animations slide-in)
 ├── docs/
 │   ├── API.md                  # Spécifications API
 │   ├── DATABASE.md             # Schéma base de données
@@ -355,11 +384,15 @@ outil-de-scraping/
   - [ ] Option B: CAPTCHA solver API key ($0.15-$3/1000 pages) ⭐ RECOMMANDÉ
   - [ ] Option C: Mode HYBRID (combiner Proxies + Stealth + CAPTCHA)
 
-### Semaine 3 — Frontend
-- [ ] Développer composants React (Dashboard, Formulaire scraping, Liste prospects)
-- [ ] Intégrer l'API backend avec Axios
-- [ ] Afficher les prospects et permettre de lancer un scraping
-- [ ] Implémenter la gestion des tags
+### Semaine 3 — Frontend (🔄 EN COURS - 70%)
+- [x] Développer composants React (Dashboard, Formulaire scraping, Liste prospects)
+- [x] Intégrer l'API backend avec Axios
+- [x] Afficher les prospects et permettre de lancer un scraping
+- [x] Implémenter les statistiques et visualisations
+- [x] Implémenter l'export de données (CSV, JSON, clipboard)
+- [x] Ajouter la pagination et les filtres avancés
+- [ ] Implémenter la gestion des tags (CRUD interface)
+- [ ] Améliorer la gestion des erreurs frontend
 
 ### Sécurité & Qualité
 - [ ] Ajouter validation Joi sur les routes
