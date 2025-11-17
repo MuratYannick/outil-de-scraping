@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import ProspectList from "./components/ProspectList";
 import AntiBotConfig from "./components/AntiBotConfig";
+import ScrapingForm from "./components/ScrapingForm";
+import ProgressTracker from "./components/ProgressTracker";
+import Notification from "./components/Notification";
 import { getProspects, checkHealth } from "./services/api";
 
 export default function App() {
-  const [activeView, setActiveView] = useState('prospects'); // 'prospects' or 'config'
+  const [activeView, setActiveView] = useState('scraping'); // 'prospects', 'scraping', or 'config'
   const [prospects, setProspects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,6 +18,10 @@ export default function App() {
     limit: 20,
     offset: 0,
   });
+
+  // État pour le scraping
+  const [currentTaskId, setCurrentTaskId] = useState(null);
+  const [notification, setNotification] = useState(null);
 
   // Vérifier le statut de l'API au chargement
   useEffect(() => {
@@ -97,6 +104,36 @@ export default function App() {
     }
   };
 
+  // Gérer le lancement d'un scraping
+  const handleScrapingStarted = (result) => {
+    console.log('[App] Scraping lancé:', result);
+    setCurrentTaskId(result.task_id);
+    setNotification({
+      type: 'success',
+      message: `Scraping lancé avec succès ! (ID: ${result.task_id.slice(0, 8)}...)`,
+    });
+  };
+
+  // Gérer la completion d'un scraping
+  const handleScrapingComplete = (task) => {
+    console.log('[App] Scraping terminé:', task);
+    setNotification({
+      type: 'success',
+      message: `Scraping terminé ! ${task.results.total} prospect(s) récupéré(s).`,
+    });
+    // Recharger les prospects
+    handleRefresh();
+  };
+
+  // Gérer l'échec d'un scraping
+  const handleScrapingError = (error) => {
+    console.error('[App] Erreur scraping:', error);
+    setNotification({
+      type: 'error',
+      message: error.error || 'Erreur lors du scraping',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header apiStatus={apiStatus} />
@@ -105,6 +142,17 @@ export default function App() {
         {/* Navigation Tabs */}
         <div className="mb-6 border-b border-gray-200">
           <nav className="flex gap-8">
+            <button
+              onClick={() => setActiveView('scraping')}
+              className={`${
+                activeView === 'scraping'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              <span>🕷️</span>
+              Scraping
+            </button>
             <button
               onClick={() => setActiveView('prospects')}
               className={`${
@@ -115,6 +163,11 @@ export default function App() {
             >
               <span>📋</span>
               Prospects
+              {pagination.total > 0 && (
+                <span className="ml-1 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-xs">
+                  {pagination.total}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setActiveView('config')}
@@ -129,6 +182,49 @@ export default function App() {
             </button>
           </nav>
         </div>
+
+        {/* Scraping View */}
+        {activeView === 'scraping' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Formulaire de lancement */}
+            <div>
+              <ScrapingForm onScrapingStarted={handleScrapingStarted} />
+            </div>
+
+            {/* Suivi de progression */}
+            <div>
+              {currentTaskId ? (
+                <ProgressTracker
+                  taskId={currentTaskId}
+                  onComplete={handleScrapingComplete}
+                  onError={handleScrapingError}
+                />
+              ) : (
+                <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Aucune tâche en cours
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Lancez un scraping pour voir la progression ici
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Prospects View */}
         {activeView === 'prospects' && (
@@ -166,6 +262,15 @@ export default function App() {
         {/* Anti-Bot Configuration View */}
         {activeView === 'config' && (
           <AntiBotConfig />
+        )}
+
+        {/* Notification */}
+        {notification && (
+          <Notification
+            type={notification.type}
+            message={notification.message}
+            onClose={() => setNotification(null)}
+          />
         )}
 
         {/* Informations de debug en mode développement */}
