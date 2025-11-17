@@ -211,6 +211,59 @@ export const getAntiBotStatus = async () => {
 };
 
 // ============================================================================
+// Services Scraping
+// ============================================================================
+
+/**
+ * Lancer une tâche de scraping
+ * @param {Object} scrapingParams - Paramètres { keyword, location, source?, maxPages?, maxResults? }
+ * @returns {Promise}
+ */
+export const lancerScraping = async (scrapingParams) => {
+  const response = await api.post("/scraping/lancer", scrapingParams);
+  return response.data;
+};
+
+/**
+ * Récupérer le statut d'une tâche de scraping
+ * @param {string} taskId - ID de la tâche
+ * @returns {Promise}
+ */
+export const getScrapingStatus = async (taskId) => {
+  const response = await api.get(`/scraping/status/${taskId}`);
+  return response.data;
+};
+
+/**
+ * Annuler une tâche de scraping
+ * @param {string} taskId - ID de la tâche
+ * @returns {Promise}
+ */
+export const cancelScraping = async (taskId) => {
+  const response = await api.post(`/scraping/cancel/${taskId}`);
+  return response.data;
+};
+
+/**
+ * Récupérer toutes les tâches de scraping
+ * @param {Object} params - Paramètres { status?, limit? }
+ * @returns {Promise}
+ */
+export const getScrapingTasks = async (params = {}) => {
+  const response = await api.get("/scraping/tasks", { params });
+  return response.data;
+};
+
+/**
+ * Récupérer les statistiques du gestionnaire de tâches
+ * @returns {Promise}
+ */
+export const getScrapingStats = async () => {
+  const response = await api.get("/scraping/stats");
+  return response.data;
+};
+
+// ============================================================================
 // Services Health & Info
 // ============================================================================
 
