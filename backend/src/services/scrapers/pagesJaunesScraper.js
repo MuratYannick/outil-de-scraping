@@ -262,7 +262,8 @@ class PagesJaunesScraper {
   async scrape(quoiqui, ou, options = {}) {
     const {
       maxPages = 1,
-      maxResults = 50
+      maxResults = 50,
+      onProgress = null // Callback pour le feedback en temps réel
     } = options;
 
     console.log(`[PagesJaunesScraper] Démarrage du scraping: "${quoiqui}" à "${ou}"`);
@@ -286,6 +287,16 @@ class PagesJaunesScraper {
 
         console.log(`[PagesJaunesScraper] ${prospects.length} prospects extraits de la page ${pageNum}`);
         console.log(`[PagesJaunesScraper] Total cumulé: ${allProspects.length} prospects`);
+
+        // Callback de progression
+        if (onProgress) {
+          const progress = Math.round((pageNum / maxPages) * 100);
+          onProgress(progress, {
+            prospects: allProspects.slice(0, maxResults),
+            pages_scraped: pageNum,
+            errors: [],
+          });
+        }
 
         // Arrêter si on a atteint le maximum
         if (allProspects.length >= maxResults) {
@@ -328,3 +339,4 @@ class PagesJaunesScraper {
 }
 
 export default PagesJaunesScraper;
+export { PagesJaunesScraper };

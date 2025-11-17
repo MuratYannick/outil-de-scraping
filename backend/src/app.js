@@ -6,6 +6,7 @@ import { sequelize } from "./models/index.js";
 import prospectRoutes from "./routes/prospectRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import antiBotConfigRoutes from "./routes/antiBotConfigRoutes.js";
+import scrapingRoutes from "./routes/scrapingRoutes.js";
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.get("/api", (req, res) => {
       prospects: "/api/prospects",
       tags: "/api/tags",
       antiBotConfig: "/api/antibot",
+      scraping: "/api/scraping",
     },
   });
 });
@@ -54,6 +56,7 @@ app.get("/api", (req, res) => {
 app.use("/api/prospects", prospectRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/antibot", antiBotConfigRoutes);
+app.use("/api/scraping", scrapingRoutes);
 
 // ============================================================================
 // Error handling middleware
