@@ -1,9 +1,10 @@
 import React from 'react';
+import TagBadge from './TagBadge';
 
 /**
  * Composant carte pour afficher un prospect (vue grille)
  */
-export default function ProspectCard({ prospect }) {
+export default function ProspectCard({ prospect, onProspectUpdated }) {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
       {/* Header */}
@@ -73,18 +74,9 @@ export default function ProspectCard({ prospect }) {
       </div>
 
       {/* Tags */}
-      {prospect.tags && prospect.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-4">
-          {prospect.tags.map((tag) => (
-            <span
-              key={tag.id}
-              className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
-            >
-              {tag.nom}
-            </span>
-          ))}
-        </div>
-      )}
+      <div className="mb-4">
+        <TagBadge prospect={prospect} onTagsUpdated={onProspectUpdated} />
+      </div>
 
       {/* Footer - Date */}
       <div className="text-xs text-gray-400 pt-4 border-t border-gray-100">

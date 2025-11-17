@@ -9,10 +9,11 @@ import ProspectStats from "./components/ProspectStats";
 import ProspectFilters from "./components/ProspectFilters";
 import Pagination from "./components/Pagination";
 import ExportMenu from "./components/ExportMenu";
+import TagManager from "./components/TagManager";
 import { getProspects, checkHealth } from "./services/api";
 
 export default function App() {
-  const [activeView, setActiveView] = useState('scraping'); // 'prospects', 'scraping', or 'config'
+  const [activeView, setActiveView] = useState('scraping'); // 'prospects', 'scraping', 'config', or 'tags'
   const [prospects, setProspects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -213,6 +214,17 @@ export default function App() {
               )}
             </button>
             <button
+              onClick={() => setActiveView('tags')}
+              className={`${
+                activeView === 'tags'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              <span>🏷️</span>
+              Tags
+            </button>
+            <button
               onClick={() => setActiveView('config')}
               className={`${
                 activeView === 'config'
@@ -340,6 +352,7 @@ export default function App() {
               loading={loading}
               error={error}
               viewMode={viewMode}
+              onProspectUpdated={handleRefresh}
             />
 
             {/* Pagination */}
@@ -352,6 +365,11 @@ export default function App() {
               />
             )}
           </>
+        )}
+
+        {/* Tags Management View */}
+        {activeView === 'tags' && (
+          <TagManager />
         )}
 
         {/* Anti-Bot Configuration View */}

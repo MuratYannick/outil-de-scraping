@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import ProspectCard from "./ProspectCard";
+import TagBadge from "./TagBadge";
 
 /**
  * Composant pour afficher la liste des prospects
  * Supporte deux modes d'affichage : tableau et grille
  */
-export default function ProspectList({ prospects, loading, error, viewMode = 'table' }) {
+export default function ProspectList({ prospects, loading, error, viewMode = 'table', onProspectUpdated }) {
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -37,7 +38,7 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {prospects.map((prospect) => (
-          <ProspectCard key={prospect.id} prospect={prospect} />
+          <ProspectCard key={prospect.id} prospect={prospect} onProspectUpdated={onProspectUpdated} />
         ))}
       </div>
     );
@@ -101,21 +102,8 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
                   {prospect.source_scraping}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex flex-wrap gap-1">
-                  {prospect.tags && prospect.tags.length > 0 ? (
-                    prospect.tags.map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
-                      >
-                        {tag.nom}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-gray-400">Aucun tag</span>
-                  )}
-                </div>
+              <td className="px-6 py-4">
+                <TagBadge prospect={prospect} onTagsUpdated={onProspectUpdated} />
               </td>
             </tr>
           ))}
