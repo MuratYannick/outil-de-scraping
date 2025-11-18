@@ -6,6 +6,13 @@ import {
   updateTag,
   deleteTag,
 } from "../controllers/tagController.js";
+import validate from "../middlewares/validate.js";
+import {
+  createTagSchema,
+  updateTagSchema,
+  getTagByIdSchema,
+  deleteTagSchema,
+} from "../validators/tagValidators.js";
 
 const router = express.Router();
 
@@ -19,24 +26,24 @@ router.get("/", getAllTags);
  * @route   GET /api/tags/:id
  * @desc    Récupérer un tag par ID avec ses prospects
  */
-router.get("/:id", getTagById);
+router.get("/:id", validate(getTagByIdSchema), getTagById);
 
 /**
  * @route   POST /api/tags
  * @desc    Créer un nouveau tag
  */
-router.post("/", createTag);
+router.post("/", validate(createTagSchema), createTag);
 
 /**
  * @route   PUT /api/tags/:id
  * @desc    Mettre à jour un tag
  */
-router.put("/:id", updateTag);
+router.put("/:id", validate(updateTagSchema), updateTag);
 
 /**
  * @route   DELETE /api/tags/:id
  * @desc    Supprimer un tag
  */
-router.delete("/:id", deleteTag);
+router.delete("/:id", validate(deleteTagSchema), deleteTag);
 
 export default router;

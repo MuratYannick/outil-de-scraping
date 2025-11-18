@@ -1,6 +1,6 @@
 # 📊 Progression du Projet Outil de Scraping
 
-**Dernière mise à jour** : 17 novembre 2025
+**Dernière mise à jour** : 18 novembre 2025
 
 ## 🎯 Objectif Phase 1 (MVP)
 
@@ -121,7 +121,7 @@
 
 ---
 
-### Semaine 3 : 💻 Interface Utilisateur (✅ COMPLÉTÉE à 100%)
+### Semaine 3 : 💻 Interface Utilisateur (✅ COMPLÉTÉE à 100% - Jour 15 terminé le 18 novembre 2025)
 
 #### Jour 11-12 : Interface de lancement du scraping (✅ COMPLÉTÉ)
 - [x] Créer le composant formulaire de scraping (keyword, location, source)
@@ -176,12 +176,36 @@
   - Rafraîchissement automatique après chaque modification
   - Interface cohérente et responsive
 
-#### Jour 15 : Gestion des erreurs & logique proxy
-- [ ] Implémenter la gestion globale des erreurs frontend
-- [ ] Créer les pages d'erreur (404, 500)
-- [ ] Ajouter la validation Joi côté backend
-- [ ] Implémenter la logique de rotation des proxies (si applicable)
-- [ ] Tester les scénarios d'erreur et la récupération
+#### Jour 15 : Gestion des erreurs & logique proxy (✅ COMPLÉTÉ)
+- [x] Implémenter la gestion globale des erreurs frontend (ErrorBoundary)
+- [x] Créer les pages d'erreur (404, 500)
+- [x] Ajouter la validation Joi côté backend
+- [x] Implémenter la logique de rotation des proxies (test de validité amélioré)
+- [x] Tester les scénarios d'erreur et la récupération (14/14 tests passés)
+- **Composants créés** :
+  - Backend :
+    - `middlewares/validate.js` : Middleware de validation Joi
+    - `middlewares/errorHandler.js` : Gestionnaire d'erreur centralisé
+    - `validators/prospectValidators.js` : Schémas validation prospects
+    - `validators/tagValidators.js` : Schémas validation tags
+    - `validators/scrapingValidators.js` : Schémas validation scraping
+    - `scripts/test-validation.js` : Suite de tests automatisés (14 tests)
+    - Amélioration de `proxyManager.js` : Test réel de proxies avec httpbin.org
+  - Frontend :
+    - `components/ErrorBoundary.jsx` : Composant de gestion d'erreur React
+    - `pages/NotFound.jsx` : Page 404 avec navigation
+    - `pages/ServerError.jsx` : Page 500 avec refresh
+    - `main.jsx` : Intégration React Router + ErrorBoundary
+    - Amélioration de `services/api.js` : Intercepteur avec messages user-friendly
+- **Fonctionnalités** :
+  - Validation automatique de tous les paramètres (body, query, params)
+  - Messages d'erreur personnalisés en français
+  - Gestion des erreurs Sequelize (validation, unique, FK)
+  - Format de réponse d'erreur standardisé
+  - Pages d'erreur responsive avec design cohérent
+  - ErrorBoundary avec stack trace en mode dev
+  - Distinction correcte des codes HTTP (400, 404, 409, 500)
+- **Tests** : 14/14 passés (validation, erreurs, routes)
 
 ---
 
@@ -442,4 +466,4 @@ outil-de-scraping/
 
 ---
 
-**Dernière mise à jour** : 17 novembre 2025
+**Dernière mise à jour** : 18 novembre 2025

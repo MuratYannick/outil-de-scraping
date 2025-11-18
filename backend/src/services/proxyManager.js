@@ -200,9 +200,39 @@ class ProxyManager {
    * @private
    */
   async _testProxy(proxy) {
-    // TODO: Implémenter le test réel avec une requête HTTP simple
-    // Pour l'instant, on considère tous les proxies comme valides
-    return true;
+    const axios = (await import('axios')).default;
+
+    try {
+      const proxyConfig = {
+        host: new URL(proxy.server).hostname,
+        port: parseInt(new URL(proxy.server).port),
+      };
+
+      if (proxy.username && proxy.password) {
+        proxyConfig.auth = {
+          username: proxy.username,
+          password: proxy.password,
+        };
+      }
+
+      // Test avec une requête HTTP simple vers un site de test
+      const response = await axios.get('http://httpbin.org/ip', {
+        proxy: proxyConfig,
+        timeout: this.config.custom.timeout || 10000,
+        validateStatus: (status) => status === 200,
+      });
+
+      // Vérifier qu'on a reçu une réponse avec une IP
+      if (response.data && response.data.origin) {
+        console.log(`[ProxyManager] ✓ Proxy valide: ${proxy.server} (IP: ${response.data.origin})`);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.warn(`[ProxyManager] ❌ Test proxy échoué: ${proxy.server} - ${error.message}`);
+      return false;
+    }
   }
 
   /**

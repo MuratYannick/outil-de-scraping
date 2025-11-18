@@ -23,18 +23,67 @@ if (import.meta.env.DEV) {
       return Promise.reject(error);
     }
   );
-
-  api.interceptors.response.use(
-    (response) => {
-      console.log(`[API Response] ${response.config.url}`, response.data);
-      return response;
-    },
-    (error) => {
-      console.error("[API Response Error]", error.response || error);
-      return Promise.reject(error);
-    }
-  );
 }
+
+// Intercepteur de réponse pour la gestion centralisée des erreurs
+api.interceptors.response.use(
+  (response) => {
+    if (import.meta.env.DEV) {
+      console.log(`[API Response] ${response.config.url}`, response.data);
+    }
+    return response;
+  },
+  (error) => {
+    // Log l'erreur en mode dev
+    if (import.meta.env.DEV) {
+      console.error("[API Response Error]", error.response || error);
+    }
+
+    // Pas de réponse du serveur (problème réseau, serveur éteint, etc.)
+    if (!error.response) {
+      const networkError = new Error(
+        "Impossible de joindre le serveur. Vérifiez votre connexion internet et que le serveur backend est démarré."
+      );
+      networkError.code = "NETWORK_ERROR";
+      return Promise.reject(networkError);
+    }
+
+    // Enrichir l'erreur avec des messages utilisateur-friendly
+    const { status, data } = error.response;
+
+    switch (status) {
+      case 400:
+        error.userMessage = data.message || "Les données fournies sont invalides";
+        break;
+      case 401:
+        error.userMessage = data.message || "Vous devez être authentifié pour accéder à cette ressource";
+        break;
+      case 403:
+        error.userMessage = data.message || "Vous n'avez pas les permissions nécessaires";
+        break;
+      case 404:
+        error.userMessage = data.message || "La ressource demandée n'existe pas";
+        break;
+      case 409:
+        error.userMessage = data.message || "Cette ressource existe déjà";
+        break;
+      case 422:
+        error.userMessage = data.message || "Les données ne peuvent pas être traitées";
+        break;
+      case 500:
+      case 502:
+      case 503:
+        error.userMessage = "Une erreur serveur est survenue. Veuillez réessayer plus tard.";
+        // Optionnel : rediriger vers la page d'erreur 500
+        // window.location.href = '/error/500';
+        break;
+      default:
+        error.userMessage = data.message || "Une erreur inattendue est survenue";
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 // ============================================================================
 // Services Prospects
