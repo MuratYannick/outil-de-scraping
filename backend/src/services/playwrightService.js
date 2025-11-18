@@ -3,6 +3,7 @@ import { getProxyManager } from "./proxyManager.js";
 import { getStealthService } from "./stealthService.js";
 import { getSessionManager } from "./sessionManager.js";
 import { getRateLimiter, RATE_LIMIT_PATTERNS } from "./rateLimiter.js";
+import { getHumanBehavior } from "./humanBehavior.js";
 import { antiBotConfig, enableHybridMode, isStrategyActive, ANTIBOT_STRATEGIES } from "../config/antiBotConfig.js";
 
 /**
@@ -36,6 +37,7 @@ class PlaywrightService {
     this.stealthService = null;
     this.sessionManager = null;
     this.rateLimiter = null;
+    this.humanBehavior = null;
   }
 
   /**
@@ -84,6 +86,11 @@ class PlaywrightService {
       console.log(`[PlaywrightService] ⏱️ Initialisation du RateLimiter (${rateLimitPattern})...`);
       this.rateLimiter = getRateLimiter(rateLimitPattern);
       console.log("[PlaywrightService] ✓ RateLimiter prêt");
+
+      // Initialiser le HumanBehavior (toujours actif)
+      console.log("[PlaywrightService] 🤖 Initialisation du HumanBehavior...");
+      this.humanBehavior = getHumanBehavior();
+      console.log("[PlaywrightService] ✓ HumanBehavior prêt");
 
       this.browser = await chromium.launch({
         headless: this.config.headless,
@@ -135,16 +142,29 @@ class PlaywrightService {
     }
 
     try {
+      // Utiliser HumanBehavior pour User-Agent cohérent
+      let userAgent = this.config.userAgent;
+      let viewport = this.config.viewport;
+      let extraHTTPHeaders = {
+        "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
+      };
+
+      if (this.humanBehavior) {
+        const ua = this.humanBehavior.selectUserAgent();
+        userAgent = ua.userAgent;
+        viewport = this.humanBehavior.getConsistentViewport();
+        extraHTTPHeaders = this.humanBehavior.getConsistentHeaders();
+        console.log("[PlaywrightService] ✓ User-Agent cohérent généré");
+      }
+
       // Configuration de base
       let contextConfig = {
-        viewport: this.config.viewport,
-        userAgent: this.config.userAgent,
+        viewport,
+        userAgent,
         locale: "fr-FR",
         timezoneId: "Europe/Paris",
         permissions: [],
-        extraHTTPHeaders: {
-          "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
-        },
+        extraHTTPHeaders,
         // Désactiver les indicateurs d'automatisation
         javaScriptEnabled: true,
         ...options
@@ -363,6 +383,94 @@ class PlaywrightService {
   }
 
   /**
+   * ========================================
+   * MÉTHODES HUMANIZATION (via HumanBehavior)
+   * ========================================
+   */
+
+  /**
+   * Déplace la souris de manière naturelle avec courbe de Bézier
+   * @param {Page} page - Page Playwright
+   * @param {Object} from - Point de départ {x, y}
+   * @param {Object} to - Point d'arrivée {x, y}
+   * @param {Object} options - Options de mouvement
+   */
+  async moveMouseNaturally(page, from, to, options = {}) {
+    if (!this.humanBehavior) {
+      console.log('[PlaywrightService] ⚠️ HumanBehavior non disponible, skip mouse movement');
+      return false;
+    }
+
+    return await this.humanBehavior.moveMouseNaturally(page, from, to, options);
+  }
+
+  /**
+   * Survol d'un élément avant de cliquer (comportement naturel)
+   * @param {Page} page - Page Playwright
+   * @param {ElementHandle|string} element - Element ou sélecteur
+   * @param {Object} options - Options
+   */
+  async hoverBeforeClick(page, element, options = {}) {
+    if (!this.humanBehavior) {
+      console.log('[PlaywrightService] ⚠️ HumanBehavior non disponible, skip hover');
+      return false;
+    }
+
+    return await this.humanBehavior.hoverBeforeClick(page, element, options);
+  }
+
+  /**
+   * Scroll progressif avec accélération/décélération
+   * @param {Page} page - Page Playwright
+   * @param {number} distance - Distance à scroller (px)
+   * @param {Object} options - Options de scroll
+   */
+  async scrollSmoothly(page, distance, options = {}) {
+    if (!this.humanBehavior) {
+      console.log('[PlaywrightService] ⚠️ HumanBehavior non disponible, fallback scroll simple');
+      await page.evaluate((dist) => window.scrollBy(0, dist), distance);
+      return false;
+    }
+
+    return await this.humanBehavior.scrollSmoothly(page, distance, options);
+  }
+
+  /**
+   * Scroll jusqu'à un élément de manière progressive
+   * @param {Page} page - Page Playwright
+   * @param {string} selector - Sélecteur de l'élément
+   * @param {Object} options - Options
+   */
+  async scrollToElement(page, selector, options = {}) {
+    if (!this.humanBehavior) {
+      console.log('[PlaywrightService] ⚠️ HumanBehavior non disponible, fallback scrollIntoView');
+      await page.evaluate((sel) => {
+        document.querySelector(sel)?.scrollIntoView({ behavior: 'smooth' });
+      }, selector);
+      return false;
+    }
+
+    return await this.humanBehavior.scrollToElement(page, selector, options);
+  }
+
+  /**
+   * Frappe texte de manière humaine avec erreurs occasionnelles
+   * @param {Page} page - Page Playwright
+   * @param {string} selector - Sélecteur du champ
+   * @param {string} text - Texte à taper
+   * @param {Object} options - Options de frappe
+   */
+  async typeHumanLike(page, selector, text, options = {}) {
+    if (!this.humanBehavior) {
+      console.log('[PlaywrightService] ⚠️ HumanBehavior non disponible, fallback type simple');
+      await page.type(selector, text, { delay: 100 });
+      return false;
+    }
+
+    return await this.humanBehavior.typeHumanLike(page, selector, text, options);
+  }
+
+  /**
    * Ferme un context spécifique
    * @param {BrowserContext} context - Context à fermer
    */
@@ -424,7 +532,8 @@ class PlaywrightService {
         stealth: !!this.stealthService,
         proxies: !!this.proxyManager,
         sessionManager: !!this.sessionManager,
-        rateLimiter: !!this.rateLimiter
+        rateLimiter: !!this.rateLimiter,
+        humanBehavior: !!this.humanBehavior
       }
     };
 
