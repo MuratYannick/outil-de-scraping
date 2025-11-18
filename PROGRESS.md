@@ -1,6 +1,6 @@
 # 📊 Progression du Projet Outil de Scraping
 
-**Dernière mise à jour** : 18 novembre 2025
+**Dernière mise à jour** : 18 novembre 2025 (Jour 16: Google Maps Dual-Strategy complété + Plan d'action Optimisation Playwright)
 
 ## 🎯 Objectif Phase 1 (MVP)
 
@@ -209,17 +209,117 @@
 
 ---
 
-### Semaine 4 : 🌐 Scraping Dynamique & Déploiement (📋 À FAIRE)
+### Semaine 4 : 🌐 Scraping Dynamique & Déploiement (🔄 EN COURS)
 
-#### Jour 16-18 : Scraper Google Maps/LinkedIn
-- [ ] Analyser la structure de Google Maps
-- [ ] Créer le scraper `googleMapsScraper.js`
-- [ ] Tester et valider le scraper Google Maps
-- [ ] Analyser la structure de LinkedIn (si applicable)
-- [ ] Créer le scraper `linkedInScraper.js`
-- [ ] Implémenter les stratégies anti-détection spécifiques
-- [ ] Ajouter la géolocalisation et extraction de coordonnées
-- [ ] Tester les scrapers additionnels
+#### Jour 16 : Google Maps - Système Dual-Strategy (✅ COMPLÉTÉ le 18 novembre 2025)
+- [x] Analyser la structure de Google Maps et l'API Google Places
+- [x] Créer un système flexible permettant à l'utilisateur de choisir entre 2 stratégies
+- [x] **Backend - Service Google Maps** :
+  - [x] Créer `googleMapsService.js` avec pattern Strategy (381 lignes)
+  - [x] Implémenter stratégie 1: Scraper Playwright (gratuit, risque de blocage)
+  - [x] Implémenter stratégie 2: API Google Places (payant, fiable)
+  - [x] Ajouter formatage téléphone international
+  - [x] Ajouter support géolocalisation (latitude/longitude)
+  - [x] Implémenter système de pagination pour API Places
+  - [x] Créer routes de configuration `/api/google-maps/*` (GET config, PUT strategy, POST test)
+- [x] **Frontend - Panneau de configuration** :
+  - [x] Créer `GoogleMapsConfig.jsx` (352 lignes)
+  - [x] Interface de sélection stratégie (radio buttons)
+  - [x] Afficher pros/cons pour chaque méthode
+  - [x] Indicateur de statut API key
+  - [x] Bouton de test avec affichage résultats
+  - [x] Ajouter onglet "🗺️ Google Maps" dans App.jsx
+- [x] **Intégration & Tests** :
+  - [x] Intégrer GoogleMapsService dans scrapingController.js
+  - [x] Détecter automatiquement source "Google Maps" et router vers bon service
+  - [x] Tester changement de stratégie (scraper ↔ api) ✅
+  - [x] Tester lancement scraping Google Maps ✅
+  - [x] Configurer variables d'environnement (.env)
+- **Résultat** : Système flexible donnant le choix à l'utilisateur entre:
+  - 🆓 Scraper Playwright (gratuit, extraction basique: nom + adresse)
+  - 💰 API Google Places (payant ~$20/1000, extraction complète: nom + adresse + téléphone + site + coordonnées)
+- **Fichiers modifiés** : 7 fichiers, +840 lignes, -13 lignes
+- **Pull Request** : #15 (feature/google-maps-scraper)
+
+#### Jour 17-18 : Optimisation Scraper Playwright (📋 À FAIRE)
+
+**Objectif** : Maximiser le taux de succès du scraper Playwright pour Google Maps et Pages Jaunes en implémentant des techniques avancées de contournement anti-bot.
+
+**Phase 1 : Quick Wins (1-2h)** ⚡
+- [ ] **Mode HYBRID** : Combiner Stealth + Proxies + CAPTCHA pour taux de succès maximal
+  - [ ] Mettre à jour `antiBotConfig.js` pour supporter mode "hybrid"
+  - [ ] Modifier `playwrightService.js` pour activer toutes les stratégies simultanément
+- [ ] **Rate Limiting Amélioré** :
+  - [ ] Implémenter délais variables entre requêtes (2-8 secondes aléatoires)
+  - [ ] Ajouter pattern "burst" réaliste (5 requêtes rapides, puis pause longue)
+  - [ ] Créer module `rateLimiter.js` avec patterns humains
+- [ ] **Gestion de Session** :
+  - [ ] Sauvegarder cookies entre sessions (fichier JSON)
+  - [ ] Réutiliser profil de navigateur persistant
+  - [ ] Implémenter "warm-up" de session (charger page d'accueil avant recherche)
+
+**Phase 2 : Comportement Humain Réaliste (3-4h)** 🎭
+- [ ] **Mouvements de Souris** :
+  - [ ] Créer module `humanBehavior.js`
+  - [ ] Implémenter courbes de Bézier pour mouvements naturels
+  - [ ] Ajouter micro-mouvements aléatoires pendant navigation
+  - [ ] Simuler survol d'éléments avant clic
+- [ ] **Scroll Intelligent** :
+  - [ ] Remplacer `scrollIntoView()` par scroll progressif
+  - [ ] Implémenter vitesse de scroll variable (accélération/décélération)
+  - [ ] Ajouter pauses aléatoires pendant scroll
+  - [ ] Simuler scroll "overshoot" et correction
+- [ ] **Frappe Clavier** :
+  - [ ] Implémenter typing avec délais variables entre touches (50-200ms)
+  - [ ] Ajouter erreurs de frappe occasionnelles + correction
+  - [ ] Simuler événements keydown/keypress/keyup complets
+- [ ] **User-Agent Rotation** :
+  - [ ] Créer pool de User-Agents réalistes (Windows/Mac/Linux, Chrome/Firefox/Edge)
+  - [ ] Rotation aléatoire pour chaque session
+  - [ ] Vérifier cohérence UA avec viewport et platform
+
+**Phase 3 : Extraction Google Maps Améliorée (2-3h)** 🗺️
+- [ ] **Clic pour Détails** :
+  - [ ] Simuler clic sur chaque résultat pour ouvrir panneau latéral
+  - [ ] Extraire téléphone, site web, horaires depuis panneau détails
+  - [ ] Ajouter délai réaliste entre consultations (2-5s)
+- [ ] **Infinite Scroll** :
+  - [ ] Implémenter détection de fin de liste
+  - [ ] Scroll progressif jusqu'à atteindre maxResults
+  - [ ] Gérer lazy loading des résultats (attendre chargement)
+- [ ] **Extraction Coordonnées** :
+  - [ ] Extraire latitude/longitude depuis URL ou attributs data-*
+  - [ ] Parser coordonnées depuis panneau latéral
+  - [ ] Fallback vers geocoding si non disponible
+- [ ] **Gestion d'Erreurs** :
+  - [ ] Détecter message "Aucun résultat"
+  - [ ] Gérer timeout si page ne charge pas
+  - [ ] Retry intelligent avec backoff exponentiel
+
+**Phase 4 : Tests & Tuning (1-2h)** 🧪
+- [ ] **Tests Comparatifs** :
+  - [ ] Créer script `test-optimized-scraper.js`
+  - [ ] Comparer taux de succès: mode BASIC vs STEALTH vs HYBRID
+  - [ ] Mesurer temps moyen par prospect
+  - [ ] Tester avec 10 recherches différentes
+- [ ] **Tests avec Proxies** :
+  - [ ] Tester avec BrightData/Oxylabs (si credentials disponibles)
+  - [ ] Mesurer amélioration taux de succès
+  - [ ] Identifier proxies blacklistés
+- [ ] **Tuning Paramètres** :
+  - [ ] Ajuster délais entre actions (trouver sweet spot)
+  - [ ] Optimiser timeout de navigation
+  - [ ] Ajuster retry count et backoff
+- [ ] **Documentation** :
+  - [ ] Créer `docs/PLAYWRIGHT_OPTIMIZATION.md`
+  - [ ] Documenter résultats tests avant/après
+  - [ ] Ajouter recommandations selon use case
+
+**Métriques de Succès** :
+- Taux de réussite > 80% sur Google Maps
+- Taux de réussite > 70% sur Pages Jaunes
+- Temps moyen < 10s par prospect
+- Aucun CAPTCHA détecté pendant 100 requêtes consécutives (mode HYBRID)
 
 #### Jour 19 : Nettoyage et finalisation du code
 - [ ] Refactoring du code backend
@@ -466,4 +566,4 @@ outil-de-scraping/
 
 ---
 
-**Dernière mise à jour** : 18 novembre 2025
+**Dernière mise à jour** : 18 novembre 2025 (Jour 16: Google Maps Dual-Strategy complété + Plan d'action Optimisation Playwright)
