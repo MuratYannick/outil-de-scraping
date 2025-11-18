@@ -1,5 +1,6 @@
 import taskManager from '../services/taskManager.js';
 import { PagesJaunesScraper } from '../services/scrapers/pagesJaunesScraper.js';
+import { getGoogleMapsService } from '../services/googleMapsService.js';
 import { Prospect, Tag } from '../models/index.js';
 import { Op } from 'sequelize';
 
@@ -30,7 +31,7 @@ export const lancerScraping = async (req, res) => {
     });
 
     // Lancer le scraping de manière asynchrone
-    scrapeAsync(task.id, keyword, location, { maxPages, maxResults });
+    scrapeAsync(task.id, keyword, location, { maxPages, maxResults, source });
 
     // Retourner immédiatement l'ID de la tâche
     res.status(202).json({
@@ -66,21 +67,38 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
     // Mettre à jour le statut à "in_progress"
     taskManager.updateTaskStatus(taskId, 'in_progress');
 
-    // Créer une instance du scraper
-    const scraper = new PagesJaunesScraper();
+    const { source = 'Pages Jaunes', maxPages = 1, maxResults = 10 } = options;
+    let prospects = [];
 
-    // Lancer le scraping avec callbacks de progression
-    const result = await scraper.scrape(keyword, location, {
-      maxPages: options.maxPages || 1,
-      maxResults: options.maxResults || 10,
-      onProgress: (progress, data) => {
-        // Mettre à jour la progression de la tâche
-        taskManager.updateTaskProgress(taskId, progress, data);
-      },
-    });
+    // Choisir le scraper approprié selon la source
+    if (source === 'Google Maps') {
+      // Utiliser le service Google Maps (scraper ou API selon config)
+      const googleMapsService = getGoogleMapsService();
+
+      prospects = await googleMapsService.search(
+        { keyword, location, maxResults },
+        (progress, message) => {
+          taskManager.updateTaskProgress(taskId, progress, { message });
+        }
+      );
+
+    } else {
+      // Pages Jaunes (par défaut)
+      const scraper = new PagesJaunesScraper();
+
+      const result = await scraper.scrape(keyword, location, {
+        maxPages,
+        maxResults,
+        onProgress: (progress, data) => {
+          taskManager.updateTaskProgress(taskId, progress, data);
+        },
+      });
+
+      prospects = result.prospects;
+    }
 
     // Sauvegarder les prospects en base de données
-    const savedProspects = await saveProspects(result.prospects, keyword);
+    const savedProspects = await saveProspects(prospects, keyword);
 
     // Marquer la tâche comme terminée
     taskManager.completeTask(taskId, {

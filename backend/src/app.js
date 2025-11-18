@@ -7,6 +7,7 @@ import prospectRoutes from "./routes/prospectRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import antiBotConfigRoutes from "./routes/antiBotConfigRoutes.js";
 import scrapingRoutes from "./routes/scrapingRoutes.js";
+import googleMapsConfigRoutes from "./routes/googleMapsConfigRoutes.js";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.js";
 
 dotenv.config();
@@ -58,6 +59,7 @@ app.use("/api/prospects", prospectRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/antibot", antiBotConfigRoutes);
 app.use("/api/scraping", scrapingRoutes);
+app.use("/api/google-maps", googleMapsConfigRoutes);
 
 // ============================================================================
 // Error handling middleware
