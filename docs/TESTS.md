@@ -1,6 +1,6 @@
 # 🧪 Documentation des Tests - Outil de Scraping
 
-**Dernière mise à jour** : 14 novembre 2025
+**Dernière mise à jour** : 18 novembre 2025
 
 Ce document centralise tous les tests effectués sur le projet, leurs résultats et les commandes pour les relancer.
 
@@ -205,6 +205,79 @@ npm run db:reset && npm run db:seed
 
 ---
 
+### Validation et Gestion d'Erreur
+
+#### Test 15: Validation Joi et Gestionnaire d'Erreur
+
+**Date** : 18 novembre 2025
+**Statut** : ✅ PASSÉ (14/14 tests)
+**Fichiers testés** :
+- `backend/src/middlewares/validate.js`
+- `backend/src/middlewares/errorHandler.js`
+- `backend/src/validators/*`
+
+**Tests effectués** :
+
+**Validation Prospects** :
+1. ✅ Création prospect avec données valides
+2. ✅ Création sans nom_entreprise (échec attendu - 400)
+3. ✅ Création avec email invalide (échec attendu - 400)
+4. ✅ GET avec limite > 100 (échec attendu - 400)
+5. ✅ GET prospect avec ID non numérique (échec attendu - 400)
+
+**Validation Tags** :
+6. ✅ Création tag avec données valides
+7. ✅ Création sans nom (échec attendu - 400)
+8. ✅ GET tag avec ID non numérique (échec attendu - 400)
+
+**Validation Scraping** :
+9. ✅ Lancement scraping avec données valides
+10. ✅ Lancement sans keyword (échec attendu - 400)
+11. ✅ Lancement avec maxPages > 10 (échec attendu - 400)
+12. ✅ GET status avec task_id non-UUID (échec attendu - 400)
+
+**Gestionnaire d'Erreur** :
+13. ✅ Route inexistante renvoie 404 avec format correct
+14. ✅ Ressource inexistante renvoie 404
+
+**Commande de test** :
+```bash
+# Démarrer le serveur
+cd backend && npm run dev
+
+# Dans un autre terminal
+cd backend
+node scripts/test-validation.js
+```
+
+**Résultats** :
+- ✅ 14/14 tests passés
+- ✅ Validation Joi fonctionnelle sur toutes les routes
+- ✅ Messages d'erreur en français et user-friendly
+- ✅ Gestion des erreurs Sequelize (validation, contraintes, FK)
+- ✅ Format de réponse d'erreur standardisé :
+  ```json
+  {
+    "error": "Validation Error",
+    "message": "Les données fournies sont invalides",
+    "details": { ... }
+  }
+  ```
+- ✅ Distinction correcte entre erreurs 400, 404, 409, 500
+- ✅ Mode développement affiche la stack trace
+- ✅ Mode production masque les détails sensibles
+
+**Fonctionnalités validées** :
+- Validation automatique des paramètres (body, query, params)
+- Messages d'erreur personnalisés en français
+- Gestion centralisée des erreurs
+- ErrorBoundary React (frontend)
+- Pages d'erreur 404 et 500 (frontend)
+- Intercepteur Axios avec messages user-friendly
+- Rotation de proxies avec test de validité
+
+---
+
 ### Service Playwright
 
 #### Test 6: Service Playwright Complet
@@ -396,16 +469,18 @@ cd frontend && npm run dev
 |-----------|--------------|---------------|------------------|
 | API CRUD | 12 | 0 | 100% |
 | Base de Données | 5 | 0 | 100% |
+| Validation & Gestion d'Erreur | 14 | 0 | 100% |
 | Service Playwright | 10 | 0 | 100% |
 | Scraping Pages Jaunes | 8 | 1 | 89% (bloqué anti-bot) |
 | Frontend | 6 | 0 | 100% |
 | Intégration | 5 | 0 | 100% |
-| **TOTAL** | **46** | **1** | **98%** |
+| **TOTAL** | **60** | **1** | **98%** |
 
 ### Couverture par Composant
 
 - ✅ **API Backend** : Routes, Controllers, Validation - 100%
 - ✅ **Base de Données** : Setup, Migration, Seed, Reset - 100%
+- ✅ **Validation & Gestion d'Erreur** : Joi, ErrorHandler, ErrorBoundary, Pages erreur - 100%
 - ✅ **Service Playwright** : Initialisation, Navigation, Anti-détection - 100%
 - ⚠️ **Scraping Pages Jaunes** : Architecture OK, extraction bloquée (anti-bot) - 89%
 - ✅ **Frontend** : Composants React, API Service, État - 100%
@@ -474,4 +549,4 @@ cd frontend && npm audit
 
 **Pour lancer tous les tests** : Voir [TESTING_GUIDE.md](./TESTING_GUIDE.md)
 
-**Dernière mise à jour** : 14 novembre 2025
+**Dernière mise à jour** : 18 novembre 2025

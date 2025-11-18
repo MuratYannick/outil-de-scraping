@@ -7,6 +7,7 @@ import prospectRoutes from "./routes/prospectRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import antiBotConfigRoutes from "./routes/antiBotConfigRoutes.js";
 import scrapingRoutes from "./routes/scrapingRoutes.js";
+import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.js";
 
 dotenv.config();
 
@@ -61,21 +62,12 @@ app.use("/api/scraping", scrapingRoutes);
 // ============================================================================
 // Error handling middleware
 // ============================================================================
-app.use((req, res) => {
-  res.status(404).json({
-    error: "Not Found",
-    message: `Route ${req.method} ${req.path} not found`,
-  });
-});
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({
-    error: "Internal Server Error",
-    message: err.message,
-  });
-});
+// 404 - Route non trouvée (doit être après toutes les routes)
+app.use(notFoundHandler);
+
+// Gestionnaire d'erreur global (doit être en dernier)
+app.use(errorHandler);
 
 // ============================================================================
 // Initialisation et démarrage

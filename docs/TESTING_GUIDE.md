@@ -200,7 +200,82 @@ curl http://localhost:3001/api/health
 
 ---
 
-### 3. Tests Service Playwright
+### 3. Tests de Validation et Gestion d'Erreur
+
+#### Test Automatisé de Validation Joi
+
+Ce test vérifie que toutes les routes valident correctement leurs entrées avec Joi et retournent des erreurs appropriées.
+
+```bash
+# Terminal 1: Démarrer le serveur
+cd backend
+npm run dev
+
+# Terminal 2: Lancer les tests de validation
+cd backend
+node scripts/test-validation.js
+```
+
+**Résultat attendu** :
+```
+╔═══════════════════════════════════════════════════════╗
+║      Tests de Validation et Gestion d'Erreur         ║
+╚═══════════════════════════════════════════════════════╝
+
+⏳ Vérification du serveur...
+✅ Serveur accessible
+
+═══════════════════════════════════════
+  Tests de Validation - Prospects
+═══════════════════════════════════════
+
+🧪 Test: Création prospect avec données valides
+✅ PASSÉ
+
+🧪 Test: Création prospect sans nom_entreprise (doit échouer)
+✅ PASSÉ
+
+... (14 tests au total)
+
+═══════════════════════════════════════
+  Résumé des Tests
+═══════════════════════════════════════
+✅ Tests passés: 14
+❌ Tests échoués: 0
+📊 Total: 14
+
+🎉 Tous les tests sont passés !
+```
+
+**Tests couverts** :
+- Validation des paramètres de requête (body, query, params)
+- Erreurs 400 pour données invalides
+- Erreurs 404 pour ressources inexistantes
+- Format de réponse d'erreur standardisé
+- Messages d'erreur en français
+
+---
+
+#### Test Manuel des Pages d'Erreur (Frontend)
+
+```bash
+# Démarrer le frontend
+cd frontend
+npm run dev
+```
+
+Ouvrir dans le navigateur :
+- **Page 404** : http://localhost:5173/page-inexistante
+- **Page 500** : http://localhost:5173/error/500
+
+**Résultat attendu** :
+- Page 404 affichée avec design approprié
+- Page 500 affichée avec message d'erreur serveur
+- Boutons "Retour à l'accueil" fonctionnels
+
+---
+
+### 4. Tests Service Playwright
 
 #### Test Complet du Service
 
@@ -260,7 +335,7 @@ node scripts/test-playwright.js
 
 ---
 
-### 4. Tests Scraping Pages Jaunes
+### 5. Tests Scraping Pages Jaunes
 
 #### Test du Scraper Pages Jaunes
 
