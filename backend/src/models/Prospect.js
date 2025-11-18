@@ -49,6 +49,21 @@ export default (sequelize) => {
         allowNull: false,
         defaultValue: "Manual",
       },
+      latitude: {
+        type: DataTypes.DECIMAL(10, 7),
+        allowNull: true,
+        comment: "Latitude GPS (Google Maps)",
+      },
+      longitude: {
+        type: DataTypes.DECIMAL(10, 7),
+        allowNull: true,
+        comment: "Longitude GPS (Google Maps)",
+      },
+      note: {
+        type: DataTypes.DECIMAL(2, 1),
+        allowNull: true,
+        comment: "Note/avis (ex: 4.5/5)",
+      },
       date_ajout: {
         type: DataTypes.DATE,
         allowNull: false,
