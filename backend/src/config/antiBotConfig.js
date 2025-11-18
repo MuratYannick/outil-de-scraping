@@ -171,13 +171,15 @@ export const antiBotConfig = {
 
   // Configuration hybride (combine plusieurs stratégies)
   hybrid: {
-    enabled: false,
+    enabled: process.env.ANTIBOT_STRATEGY === 'hybrid',
     strategies: [
-      ANTIBOT_STRATEGIES.PROXIES,
-      ANTIBOT_STRATEGIES.STEALTH
+      ANTIBOT_STRATEGIES.STEALTH,    // Toujours activer Stealth en premier
+      ANTIBOT_STRATEGIES.PROXIES     // Puis les proxies si disponibles
     ],
     // Si un CAPTCHA est détecté, passer automatiquement au solver
-    fallbackToCaptchaSolver: true
+    fallbackToCaptchaSolver: true,
+    // Active automatiquement les sous-stratégies
+    autoEnableSubStrategies: true
   },
 
   // Logging et monitoring
@@ -278,6 +280,60 @@ export function validateStrategyConfig(strategy) {
     valid: errors.length === 0,
     errors
   };
+}
+
+/**
+ * Active automatiquement les sous-stratégies si le mode HYBRID est actif
+ * @returns {boolean} True si le mode HYBRID est actif
+ */
+export function enableHybridMode() {
+  const isHybrid = antiBotConfig.activeStrategy === ANTIBOT_STRATEGIES.HYBRID;
+
+  if (isHybrid && antiBotConfig.hybrid.autoEnableSubStrategies) {
+    // Activer Stealth (toujours gratuit)
+    if (antiBotConfig.hybrid.strategies.includes(ANTIBOT_STRATEGIES.STEALTH)) {
+      antiBotConfig.stealth.enabled = true;
+      console.log('[AntiBotConfig] ✓ Stealth mode activé (HYBRID)');
+    }
+
+    // Activer Proxies si configurés
+    if (antiBotConfig.hybrid.strategies.includes(ANTIBOT_STRATEGIES.PROXIES) &&
+        antiBotConfig.proxies.provider) {
+      antiBotConfig.proxies.enabled = true;
+      console.log('[AntiBotConfig] ✓ Proxies activés (HYBRID)');
+    }
+
+    // Activer CAPTCHA solver si configuré et demandé en fallback
+    if (antiBotConfig.hybrid.fallbackToCaptchaSolver &&
+        antiBotConfig.captchaSolver.provider) {
+      antiBotConfig.captchaSolver.enabled = true;
+      console.log('[AntiBotConfig] ✓ CAPTCHA Solver activé en fallback (HYBRID)');
+    }
+
+    console.log('[AntiBotConfig] ✓ Mode HYBRID complètement activé');
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Vérifie si une stratégie spécifique est active (mode direct ou HYBRID)
+ * @param {string} strategy - Type de stratégie à vérifier
+ * @returns {boolean} True si la stratégie est active
+ */
+export function isStrategyActive(strategy) {
+  // Si la stratégie est directement sélectionnée
+  if (antiBotConfig.activeStrategy === strategy) {
+    return true;
+  }
+
+  // Si on est en mode HYBRID, vérifier si la stratégie est dans la liste
+  if (antiBotConfig.activeStrategy === ANTIBOT_STRATEGIES.HYBRID) {
+    return antiBotConfig.hybrid.strategies.includes(strategy);
+  }
+
+  return false;
 }
 
 export default antiBotConfig;

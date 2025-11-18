@@ -1,7 +1,9 @@
 import { chromium } from "playwright";
 import { getProxyManager } from "./proxyManager.js";
 import { getStealthService } from "./stealthService.js";
-import { antiBotConfig } from "../config/antiBotConfig.js";
+import { getSessionManager } from "./sessionManager.js";
+import { getRateLimiter, RATE_LIMIT_PATTERNS } from "./rateLimiter.js";
+import { antiBotConfig, enableHybridMode, isStrategyActive, ANTIBOT_STRATEGIES } from "../config/antiBotConfig.js";
 
 /**
  * Service de gestion de Playwright pour le scraping
@@ -32,6 +34,8 @@ class PlaywrightService {
     this.proxyManager = null;
     this.currentProxy = null;
     this.stealthService = null;
+    this.sessionManager = null;
+    this.rateLimiter = null;
   }
 
   /**
@@ -45,20 +49,41 @@ class PlaywrightService {
 
     try {
       console.log("[PlaywrightService] Initialisation du browser...");
+      console.log(`[PlaywrightService] Stratégie anti-bot: ${antiBotConfig.activeStrategy}`);
 
-      // Initialiser le gestionnaire de proxies si activé
-      if (antiBotConfig.proxies.enabled) {
-        console.log("[PlaywrightService] Initialisation du gestionnaire de proxies...");
+      // Activer le mode HYBRID si nécessaire (active automatiquement les sous-stratégies)
+      const isHybrid = enableHybridMode();
+      if (isHybrid) {
+        console.log("[PlaywrightService] ⚡ Mode HYBRID activé - Combinaison de plusieurs stratégies");
+      }
+
+      // Initialiser le gestionnaire de proxies si activé (direct ou via HYBRID)
+      if (isStrategyActive(ANTIBOT_STRATEGIES.PROXIES) && antiBotConfig.proxies.enabled) {
+        console.log("[PlaywrightService] 🔄 Initialisation du gestionnaire de proxies...");
         this.proxyManager = getProxyManager();
         await this.proxyManager.initialize();
+        console.log("[PlaywrightService] ✓ Proxies prêts");
       }
 
-      // Initialiser le service Stealth si activé
-      if (antiBotConfig.stealth.enabled) {
-        console.log("[PlaywrightService] Initialisation du service Stealth...");
+      // Initialiser le service Stealth si activé (direct ou via HYBRID)
+      if (isStrategyActive(ANTIBOT_STRATEGIES.STEALTH) && antiBotConfig.stealth.enabled) {
+        console.log("[PlaywrightService] 🥷 Initialisation du service Stealth...");
         this.stealthService = getStealthService();
         await this.stealthService.initialize();
+        console.log("[PlaywrightService] ✓ Stealth mode prêt");
       }
+
+      // Initialiser le SessionManager (toujours actif)
+      console.log("[PlaywrightService] 💾 Initialisation du SessionManager...");
+      this.sessionManager = getSessionManager();
+      await this.sessionManager.initialize();
+      console.log("[PlaywrightService] ✓ SessionManager prêt");
+
+      // Initialiser le RateLimiter avec pattern adapté
+      const rateLimitPattern = isHybrid ? RATE_LIMIT_PATTERNS.HUMAN : RATE_LIMIT_PATTERNS.NORMAL;
+      console.log(`[PlaywrightService] ⏱️ Initialisation du RateLimiter (${rateLimitPattern})...`);
+      this.rateLimiter = getRateLimiter(rateLimitPattern);
+      console.log("[PlaywrightService] ✓ RateLimiter prêt");
 
       this.browser = await chromium.launch({
         headless: this.config.headless,
@@ -71,9 +96,20 @@ class PlaywrightService {
       });
 
       this.isInitialized = true;
+
+      // Afficher le résumé des stratégies actives
+      const activeStrategies = [];
+      if (this.stealthService) activeStrategies.push('Stealth');
+      if (this.proxyManager) activeStrategies.push('Proxies');
+
       console.log(
         `[PlaywrightService] ✓ Browser initialisé (headless: ${this.config.headless})`
       );
+      if (activeStrategies.length > 0) {
+        console.log(
+          `[PlaywrightService] ✓ Stratégies actives: ${activeStrategies.join(' + ')}`
+        );
+      }
     } catch (error) {
       console.error("[PlaywrightService] ❌ Erreur initialisation:", error);
       throw new Error(`Impossible d'initialiser Playwright: ${error.message}`);
@@ -266,6 +302,67 @@ class PlaywrightService {
   }
 
   /**
+   * Attend avec rate limiting (utilise RateLimiter pour patterns humains)
+   * @returns {Promise<number>} Délai attendu
+   */
+  async waitWithRateLimit() {
+    if (!this.rateLimiter) {
+      // Fallback: délai aléatoire simple
+      return this.randomDelay(2000, 5000);
+    }
+
+    return await this.rateLimiter.wait();
+  }
+
+  /**
+   * Warm-up d'une session avant de commencer le scraping
+   * @param {Page} page - Page Playwright
+   * @param {string} baseUrl - URL de base (ex: "https://www.google.com")
+   * @param {Object} options - Options de warm-up
+   */
+  async warmupSession(page, baseUrl, options = {}) {
+    if (!this.sessionManager) {
+      console.log('[PlaywrightService] ⚠️ SessionManager non initialisé, skip warm-up');
+      return false;
+    }
+
+    console.log(`[PlaywrightService] 🔥 Warm-up session: ${baseUrl}`);
+
+    return await this.sessionManager.warmupSession(page, baseUrl, options);
+  }
+
+  /**
+   * Sauvegarde les cookies d'un context
+   * @param {BrowserContext} context - Context Playwright
+   * @param {string} domain - Domaine cible
+   */
+  async saveCookies(context, domain) {
+    if (!this.sessionManager) {
+      console.log('[PlaywrightService] ⚠️ SessionManager non initialisé, cookies non sauvegardés');
+      return null;
+    }
+
+    const sessionId = this.sessionManager.generateSessionId(domain);
+    await this.sessionManager.saveCookies(context, sessionId);
+
+    return sessionId;
+  }
+
+  /**
+   * Charge les cookies dans un context
+   * @param {BrowserContext} context - Context Playwright
+   * @param {string} sessionId - ID de session
+   */
+  async loadCookies(context, sessionId) {
+    if (!this.sessionManager) {
+      console.log('[PlaywrightService] ⚠️ SessionManager non initialisé, cookies non chargés');
+      return false;
+    }
+
+    return await this.sessionManager.loadCookies(context, sessionId);
+  }
+
+  /**
    * Ferme un context spécifique
    * @param {BrowserContext} context - Context à fermer
    */
@@ -318,12 +415,30 @@ class PlaywrightService {
    * Récupère les statistiques du service
    */
   getStats() {
-    return {
+    const stats = {
       isInitialized: this.isInitialized,
       activeContexts: this.contexts.length,
       maxConcurrentContexts: this.config.maxConcurrentContexts,
       headless: this.config.headless,
+      activeStrategies: {
+        stealth: !!this.stealthService,
+        proxies: !!this.proxyManager,
+        sessionManager: !!this.sessionManager,
+        rateLimiter: !!this.rateLimiter
+      }
     };
+
+    // Ajouter stats RateLimiter si disponible
+    if (this.rateLimiter) {
+      stats.rateLimiter = this.rateLimiter.getStats();
+    }
+
+    // Ajouter stats SessionManager si disponible
+    if (this.sessionManager) {
+      stats.sessionManager = this.sessionManager.getStats();
+    }
+
+    return stats;
   }
 }
 
