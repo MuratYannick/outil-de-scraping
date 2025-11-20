@@ -10,7 +10,8 @@ Projet de développement d'un outil de scraping autonome permettant de collecter
 - Établir un flux récurrent de 10 prospects/semaine
 - Stocker et visualiser les données collectées
 
-**Durée** : 4 semaines (20 jours de développement)
+**Durée** : 4,5 semaines (22 jours de développement)
+**Note** : Durée ajustée suite à l'ajout des optimisations Playwright (Phases 1-3)
 
 ---
 
@@ -186,13 +187,14 @@ Voir [PROGRESS.md](./PROGRESS.md) pour l'état détaillé de chaque tâche.
 - ✅ **EFFECTUÉE** : Repository, architecture, modèles DB, Express app
 
 ### Semaine 2 : 🕷️ Moteur de Scraping MVP
-- 📋 À faire : Service Playwright, scrapers, intégration API
+- ✅ **EFFECTUÉE** : Service Playwright, scrapers Pages Jaunes, intégration API, TaskManager
 
 ### Semaine 3 : 💻 Interface Utilisateur
-- 📋 À faire : Composants React, dashboard, gestion tags
+- ✅ **EFFECTUÉE** : Composants React, dashboard, gestion tags, formulaire scraping, filtres
 
-### Semaine 4 : 🌐 Scraping Dynamique & Déploiement
-- 📋 À faire : Scrapers additionnels, nettoyage, déploiement
+### Semaine 4-5 : 🌐 Scraping Dynamique & Déploiement (Jours 16-22)
+- ✅ **COMPLÉTÉES** : Google Maps dual-strategy (J16), Optimisations Playwright Phases 1-3 (J17-18)
+- 📋 **À FAIRE** : LinkedIn scraper (J19-20), nettoyage (J21), déploiement (J22)
 
 ---
 
