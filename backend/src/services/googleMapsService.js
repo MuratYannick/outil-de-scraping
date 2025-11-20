@@ -147,11 +147,11 @@ class GoogleMapsService {
   }
 
   /**
-   * Recherche avec le scraper Playwright
+   * Recherche avec le scraper Playwright (VERSION AMÉLIORÉE)
    * @private
    */
   async _searchWithScraper(keyword, location, maxResults, onProgress) {
-    console.log('[GoogleMapsService] Utilisation du scraper Playwright');
+    console.log('[GoogleMapsService] 🚀 Utilisation du scraper Playwright AMÉLIORÉ');
 
     if (onProgress) onProgress(10, 'Initialisation du navigateur...');
 
@@ -165,69 +165,253 @@ class GoogleMapsService {
       context = await playwrightService.createContext();
       page = await context.newPage();
 
-      if (onProgress) onProgress(20, 'Navigation vers Google Maps...');
+      if (onProgress) onProgress(15, 'Navigation vers Google Maps...');
 
       // Construire l'URL de recherche Google Maps
       const searchQuery = `${keyword} ${location}`;
       const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`;
 
       console.log(`[GoogleMapsService] Navigation: ${url}`);
-      await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
       // Attendre que les résultats se chargent
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(2000);
 
-      if (onProgress) onProgress(40, 'Extraction des résultats...');
+      if (onProgress) onProgress(20, 'Détection des résultats...');
 
-      // Scraper la liste de résultats
-      const prospects = await page.evaluate((maxResults) => {
-        const results = [];
+      // Détecter le panneau de résultats (scrollable)
+      const resultsSelector = 'div[role="feed"]';
+      await page.waitForSelector(resultsSelector, { timeout: 10000 });
 
-        // Sélecteurs pour Google Maps (peuvent changer)
-        const placeElements = document.querySelectorAll('div[role="article"]');
+      console.log('[GoogleMapsService] ✓ Panneau de résultats détecté');
 
-        for (let i = 0; i < Math.min(placeElements.length, maxResults); i++) {
-          const element = placeElements[i];
+      if (onProgress) onProgress(25, 'Scroll pour charger plus de résultats...');
 
-          try {
-            const nameEl = element.querySelector('[role="heading"]');
-            const addressEl = element.querySelector('[class*="address"]');
+      // Infinite scroll pour charger tous les résultats nécessaires
+      const loadedCount = await this._infiniteScrollResults(page, resultsSelector, maxResults, onProgress);
 
-            const prospect = {
-              nom_entreprise: nameEl?.textContent?.trim() || 'Nom inconnu',
-              adresse: addressEl?.textContent?.trim() || null,
-              telephone: null, // Nécessite de cliquer sur chaque résultat
-              url_site: null,
-              email: null,
-              source_scraping: 'Google Maps Scraper',
-            };
+      console.log(`[GoogleMapsService] ✓ ${loadedCount} résultats chargés via scroll`);
 
-            results.push(prospect);
-          } catch (error) {
-            console.error('Erreur extraction élément:', error);
-          }
-        }
+      if (onProgress) onProgress(50, `Extraction détaillée de ${Math.min(loadedCount, maxResults)} prospects...`);
 
-        return results;
-      }, maxResults);
+      // Extraire les détails de chaque résultat (avec clic)
+      const prospects = await this._extractDetailedProspects(
+        page,
+        Math.min(loadedCount, maxResults),
+        onProgress
+      );
 
       if (onProgress) onProgress(100, 'Extraction terminée');
 
-      console.log(`[GoogleMapsService] ✓ ${prospects.length} prospects extraits via scraper`);
-
-      // Note: Le scraper basique ci-dessus extrait seulement les noms et adresses
-      // Pour obtenir téléphone/site web, il faudrait cliquer sur chaque résultat
-      // Ce qui augmente significativement le temps et le risque de détection
+      console.log(`[GoogleMapsService] ✓ ${prospects.length} prospects extraits avec détails complets`);
 
       return prospects;
 
     } catch (error) {
-      console.error('[GoogleMapsService] Erreur scraper:', error.message);
+      console.error('[GoogleMapsService] ❌ Erreur scraper:', error.message);
       throw error;
     } finally {
       if (context) {
         await playwrightService.closeContext(context);
       }
+    }
+  }
+
+  /**
+   * Scroll infini pour charger plus de résultats
+   * @private
+   */
+  async _infiniteScrollResults(page, resultsSelector, targetCount, onProgress) {
+    console.log(`[GoogleMapsService] 📜 Infinite scroll pour charger ${targetCount} résultats...`);
+
+    const playwrightService = getPlaywrightService();
+    let previousCount = 0;
+    let stableCount = 0;
+    const maxStableIterations = 3;
+
+    for (let iteration = 0; iteration < 20; iteration++) {
+      // Compter les résultats actuellement chargés
+      const currentCount = await page.evaluate((selector) => {
+        const articles = document.querySelectorAll(`${selector} div[role="article"]`);
+        return articles.length;
+      }, resultsSelector);
+
+      console.log(`[GoogleMapsService] Scroll ${iteration + 1}: ${currentCount} résultats chargés`);
+
+      // Si on a atteint le nombre cible, arrêter
+      if (currentCount >= targetCount) {
+        console.log(`[GoogleMapsService] ✓ Objectif atteint: ${currentCount}/${targetCount}`);
+        break;
+      }
+
+      // Si le nombre n'a pas changé, incrémenter le compteur stable
+      if (currentCount === previousCount) {
+        stableCount++;
+        if (stableCount >= maxStableIterations) {
+          console.log(`[GoogleMapsService] ⚠️ Plus de résultats disponibles (${currentCount} total)`);
+          break;
+        }
+      } else {
+        stableCount = 0;
+      }
+
+      previousCount = currentCount;
+
+      // Scroll progressif dans le panneau de résultats
+      await page.evaluate((selector) => {
+        const feed = document.querySelector(selector);
+        if (feed) {
+          feed.scrollBy(0, feed.clientHeight * 0.8);
+        }
+      }, resultsSelector);
+
+      // Attendre le chargement avec rate limiting
+      await playwrightService.waitWithRateLimit();
+
+      // Mettre à jour la progression
+      if (onProgress) {
+        const progress = 25 + Math.min((currentCount / targetCount) * 25, 25);
+        onProgress(Math.round(progress), `Chargement: ${currentCount}/${targetCount} résultats...`);
+      }
+    }
+
+    // Retourner au début de la liste
+    await page.evaluate((selector) => {
+      const feed = document.querySelector(selector);
+      if (feed) {
+        feed.scrollTo(0, 0);
+      }
+    }, resultsSelector);
+
+    await page.waitForTimeout(500);
+
+    return previousCount;
+  }
+
+  /**
+   * Extrait les détails complets en cliquant sur chaque résultat
+   * @private
+   */
+  async _extractDetailedProspects(page, count, onProgress) {
+    console.log(`[GoogleMapsService] 📋 Extraction détaillée de ${count} prospects...`);
+
+    const playwrightService = getPlaywrightService();
+    const prospects = [];
+
+    // Sélecteur des articles
+    const articleSelector = 'div[role="feed"] div[role="article"]';
+
+    for (let i = 0; i < count; i++) {
+      try {
+        console.log(`[GoogleMapsService] Extraction prospect ${i + 1}/${count}...`);
+
+        // Attendre que l'article soit disponible
+        const article = await page.$(`:nth-match(${articleSelector}, ${i + 1})`);
+
+        if (!article) {
+          console.warn(`[GoogleMapsService] Article ${i + 1} non trouvé, skip`);
+          continue;
+        }
+
+        // Scroll vers l'article de manière progressive
+        await playwrightService.scrollToElement(page, `:nth-match(${articleSelector}, ${i + 1})`, {
+          offset: -100,
+          duration: 800
+        });
+
+        await page.waitForTimeout(300);
+
+        // Cliquer sur l'article pour ouvrir le panneau de détails
+        await article.click();
+        console.log(`[GoogleMapsService] ✓ Clic sur prospect ${i + 1}`);
+
+        // Attendre que le panneau de détails se charge
+        await page.waitForTimeout(1500);
+
+        // Extraire les informations du panneau de détails
+        const prospect = await this._extractProspectDetails(page);
+
+        if (prospect) {
+          prospects.push(prospect);
+          console.log(`[GoogleMapsService] ✓ Prospect ${i + 1}: ${prospect.nom_entreprise}`);
+        }
+
+        // Mettre à jour la progression
+        if (onProgress) {
+          const progress = 50 + Math.round(((i + 1) / count) * 50);
+          onProgress(progress, `Extraction: ${i + 1}/${count} prospects...`);
+        }
+
+        // Rate limiting entre chaque extraction
+        await playwrightService.waitWithRateLimit();
+
+      } catch (error) {
+        console.error(`[GoogleMapsService] ❌ Erreur extraction prospect ${i + 1}:`, error.message);
+        // Continuer avec le suivant
+      }
+    }
+
+    return prospects;
+  }
+
+  /**
+   * Extrait les détails d'un prospect depuis le panneau latéral
+   * @private
+   */
+  async _extractProspectDetails(page) {
+    try {
+      const details = await page.evaluate(() => {
+        const data = {};
+
+        // Nom de l'entreprise (heading principal)
+        const nameEl = document.querySelector('h1');
+        data.nom_entreprise = nameEl?.textContent?.trim() || 'Nom inconnu';
+
+        // Adresse
+        const addressButton = document.querySelector('button[data-item-id="address"]');
+        data.adresse = addressButton?.textContent?.trim() || null;
+
+        // Téléphone
+        const phoneButton = document.querySelector('button[data-item-id^="phone"]');
+        const phoneText = phoneButton?.textContent?.trim();
+        data.telephone = phoneText || null;
+
+        // Site web
+        const websiteButton = document.querySelector('a[data-item-id="authority"]');
+        data.url_site = websiteButton?.href || null;
+
+        // Coordonnées GPS depuis l'URL
+        const urlMatch = window.location.href.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (urlMatch) {
+          data.latitude = parseFloat(urlMatch[1]);
+          data.longitude = parseFloat(urlMatch[2]);
+        }
+
+        // Note/avis (optionnel)
+        const ratingEl = document.querySelector('span[role="img"]');
+        const ratingText = ratingEl?.getAttribute('aria-label');
+        if (ratingText) {
+          const ratingMatch = ratingText.match(/(\d+[,.]?\d*)/);
+          data.note = ratingMatch ? parseFloat(ratingMatch[1].replace(',', '.')) : null;
+        }
+
+        return data;
+      });
+
+      // Formater le téléphone
+      if (details.telephone) {
+        details.telephone = this._formatPhoneNumber(details.telephone);
+      }
+
+      // Ajouter la source
+      details.source_scraping = 'Google Maps Scraper (Enhanced)';
+      details.email = null; // Google Maps ne fournit généralement pas d'email
+
+      return details;
+
+    } catch (error) {
+      console.error('[GoogleMapsService] Erreur extraction détails:', error);
+      return null;
     }
   }
 
