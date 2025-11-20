@@ -1,6 +1,6 @@
 # 📊 Progression du Projet Outil de Scraping
 
-**Dernière mise à jour** : 19 novembre 2025 (Jour 17-18: Optimisations Playwright Phases 1-3 complétées)
+**Dernière mise à jour** : 20 novembre 2025 (Roadmap corrigée: LinkedIn réintégré, durée ajustée à 22 jours)
 
 ## 🎯 Objectif Phase 1 (MVP)
 
@@ -9,7 +9,8 @@
   - Établir un flux récurrent de 10 prospects/semaine
   - Stocker et visualiser les données collectées
 
-**Durée prévue** : 4 semaines (20 jours de développement)
+**Durée prévue** : 4,5 semaines (22 jours de développement)
+**Note** : La durée a été ajustée de 20 à 22 jours suite à l'ajout des optimisations Playwright (Phases 1-3) qui ont décalé LinkedIn et les tâches suivantes.
 
 ---
 
@@ -209,7 +210,7 @@
 
 ---
 
-### Semaine 4 : 🌐 Scraping Dynamique & Déploiement (🔄 EN COURS)
+### Semaine 4-5 : 🌐 Scraping Dynamique & Déploiement (🔄 EN COURS - Jours 16-22)
 
 #### Jour 16 : Google Maps - Système Dual-Strategy (✅ COMPLÉTÉ le 18 novembre 2025)
 - [x] Analyser la structure de Google Maps et l'API Google Places
@@ -371,24 +372,87 @@
 - Documentation complète
 - Prêt pour production avec configuration HYBRID + proxies/CAPTCHA
 
-#### Jour 19 : Nettoyage et finalisation du code
-- [ ] Refactoring du code backend
-- [ ] Refactoring du code frontend
-- [ ] Ajouter les commentaires et documentation inline
-- [ ] Optimiser les performances (requêtes DB, chargement frontend)
-- [ ] Exécuter les linters (ESLint) et corriger les warnings
-- [ ] Vérifier la sécurité (npm audit, validation inputs)
-- [ ] Créer/mettre à jour les tests unitaires
+#### Jour 19-20 : Scraper LinkedIn (📋 À FAIRE)
 
-#### Jour 20 : Déploiement MVP & démo
-- [ ] Préparer l'environnement de production
-- [ ] Déployer la base de données (MySQL en prod)
-- [ ] Déployer le backend
-- [ ] Déployer le frontend
-- [ ] Configurer les variables d'environnement prod
-- [ ] Tester l'application en production
-- [ ] Préparer la démo et documentation utilisateur
-- [ ] Livrer le MVP au chef de projet
+**Note** : Cette tâche était initialement prévue aux Jours 16-18 avec Google Maps, mais a été décalée suite aux optimisations Playwright (Phases 1-3).
+
+- [ ] **Analyse de LinkedIn** :
+  - [ ] Analyser la structure HTML de LinkedIn (pages entreprises, profils)
+  - [ ] Identifier les sélecteurs CSS/XPath pour extraction
+  - [ ] Étudier les mécanismes anti-scraping spécifiques à LinkedIn
+  - [ ] Décider entre scraping authentifié vs non-authentifié
+- [ ] **Backend - Service LinkedIn** :
+  - [ ] Créer `linkedInScraper.js` dans `backend/src/services/scrapers/`
+  - [ ] Implémenter extraction basique (nom entreprise, secteur, localisation)
+  - [ ] Ajouter extraction avancée (nombre d'employés, site web, description)
+  - [ ] Gérer l'authentification LinkedIn (si nécessaire)
+  - [ ] Implémenter anti-détection (stealth, rate limiting, human behavior)
+  - [ ] Ajouter normalisation des données LinkedIn
+  - [ ] Créer script de test `test-linkedin-scraper.js`
+- [ ] **Intégration API** :
+  - [ ] Intégrer LinkedIn dans `scrapingController.js`
+  - [ ] Ajouter détection automatique source "LinkedIn"
+  - [ ] Tester route `/api/scraping/lancer` avec source LinkedIn
+  - [ ] Valider sauvegarde des prospects en DB
+- [ ] **Frontend** :
+  - [ ] Activer l'option LinkedIn dans `ScrapingForm.jsx` (retirer `disabled`)
+  - [ ] Ajouter icône LinkedIn dans les filtres
+  - [ ] Tester lancement scraping LinkedIn depuis l'interface
+- [ ] **Tests & Validation** :
+  - [ ] Tester avec 10 recherches LinkedIn différentes
+  - [ ] Valider taux de succès (objectif : 70%+)
+  - [ ] Vérifier gestion des erreurs et retry
+  - [ ] Documenter dans `docs/TESTS.md`
+
+#### Jour 21 : Nettoyage et finalisation du code (📋 À FAIRE)
+- [ ] **Refactoring Backend** :
+  - [ ] Refactoring du code backend (services, controllers)
+  - [ ] Ajouter les commentaires JSDoc
+  - [ ] Vérifier la cohérence des noms de variables/fonctions
+- [ ] **Refactoring Frontend** :
+  - [ ] Refactoring du code frontend (composants React)
+  - [ ] Ajouter PropTypes ou TypeScript (si temps)
+  - [ ] Optimiser les re-renders inutiles
+- [ ] **Documentation Inline** :
+  - [ ] Ajouter commentaires explicatifs dans le code complexe
+  - [ ] Documenter les fonctions principales
+- [ ] **Optimisation Performances** :
+  - [ ] Optimiser les requêtes DB (indexes, eager loading)
+  - [ ] Optimiser le chargement frontend (lazy loading, code splitting)
+  - [ ] Mesurer les temps de réponse API
+- [ ] **Qualité & Sécurité** :
+  - [ ] Exécuter ESLint et corriger les warnings
+  - [ ] Vérifier npm audit (backend + frontend)
+  - [ ] Valider la sécurité (injection SQL, XSS, CSRF)
+- [ ] **Tests** :
+  - [ ] Créer/mettre à jour les tests unitaires
+  - [ ] Ajouter tests d'intégration si temps
+
+#### Jour 22 : Déploiement MVP & démo (📋 À FAIRE)
+- [ ] **Préparation Déploiement** :
+  - [ ] Préparer l'environnement de production (serveur, credentials)
+  - [ ] Configurer les variables d'environnement prod (.env.production)
+  - [ ] Builder le frontend (`npm run build`)
+- [ ] **Déploiement Base de Données** :
+  - [ ] Déployer MySQL en production (ou utiliser service cloud)
+  - [ ] Exécuter les migrations DB
+  - [ ] Créer backup automatique
+- [ ] **Déploiement Backend** :
+  - [ ] Déployer le backend (serveur Node.js, PM2, etc.)
+  - [ ] Configurer reverse proxy (Nginx/Apache)
+  - [ ] Configurer HTTPS/SSL
+- [ ] **Déploiement Frontend** :
+  - [ ] Déployer le frontend (serveur statique, CDN, Vercel, etc.)
+  - [ ] Vérifier les chemins API en production
+- [ ] **Tests Production** :
+  - [ ] Tester l'application en production (toutes fonctionnalités)
+  - [ ] Vérifier les performances (temps de chargement)
+  - [ ] Tester le scraping en production
+- [ ] **Documentation & Démo** :
+  - [ ] Préparer la documentation utilisateur
+  - [ ] Créer un guide de démarrage rapide
+  - [ ] Préparer la démo pour le chef de projet
+  - [ ] Livrer le MVP au chef de projet
 
 ---
 
