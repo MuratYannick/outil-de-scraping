@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getScrapingStatus, cancelScraping } from '../services/api';
 
 /**
@@ -9,6 +9,10 @@ export default function ProgressTracker({ taskId, onComplete, onError }) {
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [fatalError, setFatalError] = useState(null);
+  const errorCountRef = useRef(0);
+
+  const MAX_ERROR_RETRIES = 3;
 
   /**
    * Récupérer le statut de la tâche
@@ -18,6 +22,7 @@ export default function ProgressTracker({ taskId, onComplete, onError }) {
       const data = await getScrapingStatus(taskId);
       setTask(data);
       setLoading(false);
+      errorCountRef.current = 0; // Reset error count on success
 
       // Si terminé, notifier le parent
       if (data.status === 'completed' && onComplete) {
@@ -33,9 +38,25 @@ export default function ProgressTracker({ taskId, onComplete, onError }) {
     } catch (error) {
       console.error('[ProgressTracker] Erreur:', error);
       setLoading(false);
-      if (onError) {
-        onError(error);
+
+      // Increment error count
+      errorCountRef.current += 1;
+
+      // If too many errors, stop polling and show fatal error
+      if (errorCountRef.current >= MAX_ERROR_RETRIES) {
+        setFatalError({
+          message: error.response?.status === 404
+            ? 'Tâche introuvable (le serveur a peut-être redémarré)'
+            : 'Impossible de récupérer le statut de la tâche',
+          details: error.message
+        });
+        if (onError) {
+          onError(error);
+        }
+        return { status: 'failed' }; // Return failed status to stop polling
       }
+
+      return null;
     }
   };
 
@@ -101,6 +122,24 @@ export default function ProgressTracker({ taskId, onComplete, onError }) {
             />
           </svg>
           <span className="ml-3 text-gray-600">Chargement...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show fatal error if too many retries
+  if (fatalError) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <p className="font-medium">{fatalError.message}</p>
+          <p className="text-sm mt-1">{fatalError.details}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+          >
+            Recharger la page
+          </button>
         </div>
       </div>
     );
