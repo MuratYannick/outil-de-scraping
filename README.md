@@ -47,36 +47,120 @@ Projet de développement d'un outil de scraping autonome permettant de collecter
 
 ```
 outil-de-scraping/
-├── README.md                   # Vue d'ensemble
+├── README.md                   # Vue d'ensemble du projet
 ├── PROGRESS.md                 # Progression du projet
-├── backend/                    # API Node.js/Express
-│   ├── src/
-│   │   ├── config/            # Configuration (DB, env)
-│   │   ├── controllers/       # Logique métier
-│   │   ├── models/            # Modèles Sequelize
-│   │   ├── routes/            # Routes API
-│   │   ├── middlewares/       # Middlewares Express
-│   │   ├── services/          # Services (scraping, etc)
-│   │   └── app.js             # Point d'entrée
+├── backend/
 │   ├── package.json
-│   └── .env.example
-├── frontend/                   # App React/Vite
+│   ├── .env.example
 │   ├── src/
-│   │   ├── components/        # Composants React
-│   │   ├── pages/             # Pages/views
-│   │   ├── services/          # Services API
-│   │   ├── styles/            # Styles globaux
-│   │   ├── main.jsx           # Point d'entrée
-│   │   └── App.jsx            # Composant principal
+│   │   ├── app.js              # Express app
+│   │   ├── config/
+│   │   │   ├── database.js     # Config Sequelize
+│   │   │   └── antiBotConfig.js  # Configuration stratégies anti-bot
+│   │   ├── models/
+│   │   │   ├── index.js
+│   │   │   ├── Prospect.js
+│   │   │   └── Tag.js
+│   │   ├── controllers/
+│   │   │   ├── prospectController.js
+│   │   │   ├── tagController.js
+│   │   │   ├── scrapingController.js
+│   │   │   ├── antiBotConfigController.js
+│   │   │   └── googleMapsConfigController.js
+│   │   ├── routes/
+│   │   │   ├── prospectRoutes.js
+│   │   │   ├── tagRoutes.js
+│   │   │   ├── scrapingRoutes.js
+│   │   │   ├── antiBotConfigRoutes.js
+│   │   │   └── googleMapsConfigRoutes.js
+│   │   ├── middlewares/
+│   │   │   ├── validate.js           # Middleware validation Joi
+│   │   │   └── errorHandler.js       # Gestionnaire erreurs centralisé
+│   │   ├── validators/
+│   │   │   ├── prospectValidators.js
+│   │   │   ├── tagValidators.js
+│   │   │   └── scrapingValidators.js
+│   │   └── services/
+│   │       ├── playwrightService.js
+│   │       ├── proxyManager.js            # Gestion rotation proxies
+│   │       ├── captchaSolverService.js    # Résolution automatique CAPTCHA
+│   │       ├── stealthService.js          # Masquage avancé (14 techniques)
+│   │       ├── rateLimiter.js             # Rate limiting (5 patterns)
+│   │       ├── sessionManager.js          # Gestion sessions avec cookies
+│   │       ├── humanBehavior.js           # Comportement humain réaliste
+│   │       ├── taskManager.js             # Gestion tâches asynchrones
+│   │       ├── googleMapsService.js       # Service Google Maps dual-strategy
+│   │       └── scrapers/
+│   │           └── pagesJaunesScraper.js
+│   └── scripts/
+│       ├── init-db.sql
+│       ├── setup-db.js
+│       ├── migrate.js
+│       ├── drop-tables.js
+│       ├── seed-db.js
+│       ├── test-playwright.js
+│       ├── analyze-pages-jaunes.js
+│       ├── debug-pages-jaunes.js
+│       ├── test-pages-jaunes-scraper.js
+│       ├── test-proxy-rotation.js         # Test rotation proxies (8 tests)
+│       ├── test-pages-jaunes-with-proxy.js # Test comparatif avec/sans proxy
+│       ├── test-captcha-solver.js         # Test détection et résolution CAPTCHA
+│       ├── test-stealth-mode.js           # Test masquage Stealth
+│       ├── test-task-manager.js           # Test gestionnaire de tâches
+│       ├── test-scraping-api.js           # Test API scraping complète
+│       ├── test-validation.js             # Test validation Joi (14 tests)
+│       ├── test-phase1-optimization.js    # Tests Phase 1 (6 tests)
+│       ├── test-phase2-optimization.js    # Tests Phase 2 (7 tests)
+│       └── test-phase3-optimization.js    # Tests Phase 3 (6 tests)
+├── frontend/
 │   ├── package.json
 │   ├── vite.config.js
 │   ├── tailwind.config.js
-│   └── index.html
-├── docs/                       # Documentation
-│   ├── API.md                 # Spécifications API
-│   ├── DATABASE.md            # Schéma base de données
-│   ├── SETUP.md               # Guide d'installation
-│   └── PLAYWRIGHT_DECISION.md # Choix du moteur de scraping
+│   ├── postcss.config.cjs      # PostCSS config (CommonJS)
+│   ├── .eslintrc.json
+│   ├── index.html              # Entrée Vite
+│   └── src/
+│       ├── main.jsx            # Point d'entrée
+│       ├── App.jsx             # Composant principal avec 5 onglets
+│       ├── components/
+│       │   ├── Header.jsx
+│       │   ├── ProspectList.jsx         # Tableau/grille prospects
+│       │   ├── ProspectCard.jsx         # Carte individuelle prospect
+│       │   ├── ProspectStats.jsx        # Dashboard statistiques
+│       │   ├── ProspectFilters.jsx      # Filtres avancés
+│       │   ├── Pagination.jsx           # Pagination intelligente
+│       │   ├── ScrapingForm.jsx         # Formulaire lancement scraping
+│       │   ├── ProgressTracker.jsx      # Suivi temps réel
+│       │   ├── Notification.jsx         # Toast notifications
+│       │   ├── ExportMenu.jsx           # Menu export (CSV, JSON, clipboard)
+│       │   ├── TagManager.jsx           # Gestion complète CRUD des tags
+│       │   ├── TagBadge.jsx             # Gestion tags d'un prospect
+│       │   ├── AntiBotConfig.jsx        # Panneau config anti-bot
+│       │   ├── GoogleMapsConfig.jsx     # Config Google Maps dual-strategy
+│       │   ├── ErrorBoundary.jsx        # Gestion erreurs React
+│       ├── pages/
+│       │   ├── NotFound.jsx             # Page 404
+│       │   └── ServerError.jsx          # Page 500
+│       ├── services/
+│       │   └── api.js          # Service API Axios
+│       ├── utils/
+│       │   └── export.js       # Utilitaires export
+│       └── styles/
+│           └── index.css       # Styles Tailwind
+├── docs/
+│   ├── API.md                     # Spécifications API
+│   ├── DATABASE.md                # Schéma base de données
+│   ├── SETUP.md                   # Guide d'installation
+│   ├── PLAYWRIGHT_DECISION.md     # Rationale du choix Playwright
+│   ├── TESTS.md                   # Documentation de tous les tests
+│   ├── TESTING_GUIDE.md           # Guide de lancement des tests
+│   ├── ANTIBOT_CONFIG.md          # Guide configuration stratégies anti-bot
+│   ├── PROXY_TEST_RESULTS.md      # Résultats tests proxies
+│   ├── CAPTCHA_SOLVER.md          # Guide CAPTCHA solver
+│   ├── DECISION_ANTI_BOT.md       # Guide de décision
+│   ├── SCRAPING_API.md            # Documentation API de scraping
+│   ├── STEALTH_ENHANCED.md        # Guide complet anti-détection
+│   └── TESTS_STEALTH_ENHANCED.md  # Résultats détaillés tests Phases 1-3
 └── .gitignore
 ```
 
