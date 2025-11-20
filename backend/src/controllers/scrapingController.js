@@ -1,6 +1,7 @@
 import taskManager from '../services/taskManager.js';
 import { PagesJaunesScraper } from '../services/scrapers/pagesJaunesScraper.js';
 import { getGoogleMapsService } from '../services/googleMapsService.js';
+import { getLinkedInScraper } from '../services/scrapers/linkedInScraper.js';
 import { Prospect, Tag } from '../models/index.js';
 import { Op } from 'sequelize';
 
@@ -82,6 +83,26 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
         }
       );
 
+    } else if (source === 'LinkedIn') {
+      // LinkedIn (Mode Public - Limité)
+      const linkedInScraper = getLinkedInScraper();
+
+      console.log(`[ScrapingController] 📊 LinkedIn scraping - Mode Public`);
+      console.log(`[ScrapingController] ⚠️ Limites : Max ${Math.min(maxResults, 10)} profils, délais longs`);
+
+      prospects = await linkedInScraper.scrape(keyword, location, {
+        maxResults: Math.min(maxResults, 10), // Forcer limite de 10 max
+        onProgress: (data) => {
+          taskManager.updateTaskProgress(taskId, data.progress, {
+            message: data.message,
+            step: data.step
+          });
+        },
+      });
+
+      // LinkedIn retourne directement un tableau de prospects (pas de result wrapper)
+      // Pas besoin de transformation
+
     } else {
       // Pages Jaunes (par défaut)
       const scraper = new PagesJaunesScraper();
@@ -100,14 +121,29 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
     // Sauvegarder les prospects en base de données
     const savedProspects = await saveProspects(prospects, keyword);
 
-    // Marquer la tâche comme terminée
-    taskManager.completeTask(taskId, {
+    // Préparer les données de résultat selon la source
+    let taskResult = {
       prospects: savedProspects,
       total: savedProspects.length,
-      pages_scraped: result.pages_scraped,
-      duplicates_skipped: result.prospects.length - savedProspects.length,
-      success: result.success,
-    });
+      duplicates_skipped: prospects.length - savedProspects.length,
+    };
+
+    // Ajouter des métriques spécifiques selon la source
+    if (source === 'LinkedIn') {
+      taskResult.source = 'LinkedIn (Mode Public)';
+      taskResult.captcha_detected = getLinkedInScraper().captchaDetected;
+      taskResult.success = savedProspects.length > 0;
+    } else if (source === 'Google Maps') {
+      taskResult.source = 'Google Maps';
+      taskResult.success = true;
+    } else {
+      // Pages Jaunes
+      taskResult.pages_scraped = result?.pages_scraped || 1;
+      taskResult.success = result?.success || false;
+    }
+
+    // Marquer la tâche comme terminée
+    taskManager.completeTask(taskId, taskResult);
 
     console.log(`[ScrapingController] Tâche ${taskId} terminée: ${savedProspects.length} prospects sauvegardés`);
   } catch (error) {
