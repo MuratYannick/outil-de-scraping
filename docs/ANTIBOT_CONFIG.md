@@ -1,18 +1,21 @@
 # 🛡️ Configuration des Stratégies Anti-Bot
 
-**Dernière mise à jour** : 14 novembre 2025
+**Dernière mise à jour** : 21 novembre 2025
 
 Ce document explique comment configurer et utiliser les différentes stratégies de contournement anti-bot pour le scraping.
 
 ## 📋 Table des Matières
 
 - [Vue d'ensemble](#vue-densemble)
+- [Configuration par Scraper](#configuration-par-scraper)
+- [Interface Utilisateur](#interface-utilisateur)
 - [Stratégies Disponibles](#stratégies-disponibles)
 - [Configuration](#configuration)
   - [Option 1: Proxies Résidentiels](#option-1-proxies-résidentiels)
   - [Option 2: Résolution CAPTCHA](#option-2-résolution-captcha)
   - [Option 3: Masquage Amélioré](#option-3-masquage-amélioré)
   - [Option 4: Mode Hybride](#option-4-mode-hybride)
+  - [Option 5: Mode Custom](#option-5-mode-custom)
 - [Utilisation](#utilisation)
 - [Tests](#tests)
 - [Coûts et Comparaison](#coûts-et-comparaison)
@@ -33,10 +36,160 @@ Pages Jaunes détecte l'automatisation Playwright et affiche une page d'erreur t
 ### Solution
 
 Un système modulaire permettant de :
-1. **Choisir la stratégie** via variable d'environnement
+1. **Choisir la stratégie** via variable d'environnement ou interface web
 2. **Configurer plusieurs providers** pour chaque stratégie
 3. **Combiner les stratégies** en mode hybride
 4. **Gérer automatiquement** les rotations et fallbacks
+5. **Configuration indépendante par scraper** (nouveau)
+6. **Interface utilisateur intuitive** avec synchronisation bidirectionnelle (nouveau)
+
+---
+
+## Configuration par Scraper
+
+**Depuis le Jour 20** (21 novembre 2025), chaque scraper peut avoir sa propre configuration anti-bot indépendante.
+
+### Architecture
+
+```
+antiBotConfig.scrapers = {
+  pagesJaunes: {
+    activeStrategy: 'hybrid',
+    proxies: { enabled: true, ... },
+    captcha: { enabled: true, ... },
+    stealth: { enabled: true, ... }
+  },
+  googleMaps: {
+    activeStrategy: 'none',
+    proxies: { enabled: false, ... },
+    captcha: { enabled: false, ... },
+    stealth: { enabled: false, ... }
+  },
+  linkedin: {
+    activeStrategy: 'stealth',
+    proxies: { enabled: false, ... },
+    captcha: { enabled: false, ... },
+    stealth: { enabled: true, ... }
+  }
+}
+```
+
+### Avantages
+
+- ✅ **Indépendance** : Pages Jaunes peut être en mode HYBRID pendant que Google Maps est en NONE
+- ✅ **Flexibilité** : Adapter la configuration à la difficulté de chaque site
+- ✅ **Isolation** : Chaque scraper a sa propre instance de PlaywrightService
+- ✅ **Scalabilité** : Facile d'ajouter de nouveaux scrapers
+
+### Scrapers Supportés
+
+| Scraper ID | Nom | Difficulté | Config Recommandée |
+|------------|-----|------------|-------------------|
+| `pagesJaunes` | Pages Jaunes | ⭐⭐⭐⭐ | HYBRID ou CAPTCHA+Stealth |
+| `googleMaps` | Google Maps | ⭐⭐⭐ | STEALTH ou API Places |
+| `linkedin` | LinkedIn | ⭐⭐⭐⭐⭐ | STEALTH (mode public limité) |
+
+---
+
+## Interface Utilisateur
+
+L'onglet **"Config Anti-Bot"** offre une interface complète pour gérer les stratégies anti-bot.
+
+### Structure de l'Interface
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Config Anti-Bot         [Menu Scraper: Pages Jaunes ▼]     │
+├─────────────────────────────────────────────────────────────┤
+│  [📊 Vue d'ensemble] [🌐 Proxies] [🔐 CAPTCHA] [🥷 Stealth] [🧪 Tests] │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  Contenu de l'onglet actif                                   │
+│                                                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Onglets Disponibles
+
+#### 1. 📊 **Vue d'Ensemble**
+
+Sélection rapide de la stratégie avec 6 options :
+
+| Stratégie | Badge | Description | Cliquable |
+|-----------|-------|-------------|-----------|
+| **Aucune Protection** | - | Aucune stratégie active | ✅ Oui |
+| **Stealth Seul** | - | Masquage Playwright uniquement | ✅ Oui |
+| **CAPTCHA + Stealth** | ⭐ Recommandé | Résolution CAPTCHA + masquage | ✅ Oui |
+| **Proxies + Stealth** | - | Rotation IP + masquage | ✅ Oui |
+| **Mode HYBRID** | - | Toutes les stratégies combinées | ✅ Oui |
+| **Configuration Personnalisée** | 🔄 Automatique | Combinaison personnalisée | ❌ Non (auto) |
+
+**Synchronisation Bidirectionnelle** :
+- Sélectionner une stratégie met à jour automatiquement les toggles dans les onglets individuels
+- Modifier les toggles individuels met à jour automatiquement la stratégie sélectionnée
+
+**Mode Custom** :
+- S'active automatiquement pour toute combinaison non-standard (ex: Proxies seuls, CAPTCHA sans Stealth)
+- Bordure et fond violet quand actif
+- Badge "🔄 Automatique" pour indiquer l'activation automatique
+- Non cliquable (activation uniquement via les toggles individuels)
+
+#### 2. 🌐 **Proxies**
+
+Configuration détaillée des proxies résidentiels :
+- Toggle **Activé/Désactivé**
+- Sélection du provider (BrightData, Oxylabs, SmartProxy, Custom)
+- Liste de proxies personnalisée (pour provider Custom)
+- Mode de rotation (Round-robin, Aléatoire)
+
+#### 3. 🔐 **CAPTCHA**
+
+Configuration du CAPTCHA solver :
+- Toggle **Activé/Désactivé**
+- Sélection du provider (2Captcha, Anti-Captcha, CapMonster)
+- Clé API
+- Message d'avertissement si Stealth est désactivé
+
+#### 4. 🥷 **Stealth**
+
+Configuration du masquage avancé :
+- Toggle **Activé/Désactivé**
+- Chemin du profil navigateur
+- Checkbox comportements humains (scroll, delays, mouvements souris)
+- Liste des fonctionnalités Stealth (14 indicateurs masqués)
+- Avertissement : insuffisant seul contre Pages Jaunes
+
+#### 5. 🧪 **Tests**
+
+Interface de test avec :
+- **Menu Scraper à tester** (Pages Jaunes, Google Maps, LinkedIn)
+- **Configuration Actuelle** : affiche la config du scraper sélectionné dans le menu
+- **Bouton de test** : lance un test réel avec la config actuelle
+- **Résultats** : affiche succès/échec, nombre de prospects extraits, message détaillé
+
+**Note** : Le menu Scraper du header est **masqué** dans cet onglet (évite la confusion).
+
+### Fonctionnalités UX Avancées
+
+#### Synchronisation Bidirectionnelle
+
+```
+Vue d'ensemble ←→ Onglets individuels
+     ↓                    ↓
+Stratégie sélectionnée   Toggles activés
+```
+
+**Exemple** :
+1. Tu sélectionnes "Proxies + Stealth" dans Vue d'ensemble
+2. Les toggles se mettent à jour : Proxies ✅, CAPTCHA ❌, Stealth ✅
+3. Tu vas dans l'onglet Proxies et désactives le toggle
+4. La stratégie dans Vue d'ensemble passe automatiquement en "Stealth Seul"
+
+#### Rechargement Automatique
+
+- **Au changement de scraper** : Recharge la config du scraper sélectionné
+- **À l'entrée dans l'onglet Test** : Recharge la config du scraper de test
+- **Après sauvegarde** : La config affichée est immédiatement à jour
 
 ---
 
@@ -49,6 +202,7 @@ Un système modulaire permettant de :
 | **CAPTCHA_SOLVER** | Résolution automatique CAPTCHA + Stealth | ⭐⭐⭐ | 💰 ($0.15-$3/1000p) | ✅✅ À tester ⭐ |
 | **STEALTH** | Masquage navigateur avancé | ⭐⭐ | Gratuit | ❌ Insuffisant seul |
 | **HYBRID** | Proxies + Stealth + CAPTCHA | ⭐⭐⭐⭐ | 💰💰 | ✅✅✅✅ Maximum |
+| **CUSTOM** | Configuration personnalisée (automatique) | Variable | Variable | Variable |
 
 ---
 
@@ -270,6 +424,63 @@ hybrid: {
 **Inconvénients** :
 - ❌ Coût le plus élevé
 - ❌ Configuration plus complexe
+
+---
+
+### Option 5: Mode Custom
+
+**Nouveau depuis le Jour 20bis** (21 novembre 2025)
+
+Le mode Custom s'active **automatiquement** lorsque vous créez une combinaison de stratégies qui ne correspond à aucune configuration prédéfinie.
+
+#### Activation Automatique
+
+Le mode Custom est détecté pour toute combinaison non-standard :
+
+```javascript
+// Exemples de configurations Custom :
+{ proxies: true,  captcha: false, stealth: false }  // Proxies seuls
+{ proxies: false, captcha: true,  stealth: false }  // CAPTCHA seul
+{ proxies: true,  captcha: true,  stealth: false }  // Proxies + CAPTCHA sans Stealth
+{ proxies: false, captcha: false, stealth: false }  // → Devient 'none' (pas custom)
+```
+
+#### Interface Utilisateur
+
+Dans l'onglet "Config Anti-Bot" → "Vue d'ensemble" :
+
+```
+┌──────────────────────────────────────────────────┐
+│  ⚙️ Configuration Personnalisée    [🔄 Automatique] │
+│                                                    │
+│  💰 Coût: Variable                                 │
+│  📊 Efficacité: Variable                           │
+└──────────────────────────────────────────────────┘
+```
+
+**Caractéristiques** :
+- **Badge "🔄 Automatique"** : Indique que le mode s'est activé automatiquement
+- **Bordure violette** : Style visuel distinct quand actif
+- **Non cliquable** : La carte ne peut pas être sélectionnée directement
+- **Activation uniquement via toggles** : Modifier les toggles dans les onglets Proxies, CAPTCHA ou Stealth
+
+#### Comment Créer une Configuration Custom
+
+1. Va dans l'onglet "Proxies" et active le toggle
+2. Va dans l'onglet "Stealth" et **désactive** le toggle
+3. Retourne dans "Vue d'ensemble" → Mode "Custom" est actif ⚙️
+4. Sauvegarde la configuration
+
+#### Désactiver le Mode Custom
+
+Pour sortir du mode Custom, sélectionne n'importe quelle stratégie prédéfinie dans la Vue d'ensemble :
+- Aucune Protection
+- Stealth Seul
+- CAPTCHA + Stealth
+- Proxies + Stealth
+- Mode HYBRID
+
+**⚠️ Note** : Les configurations Custom ne sont pas recommandées car certaines combinaisons peuvent être inefficaces (ex: CAPTCHA seul sans Stealth).
 
 ---
 
