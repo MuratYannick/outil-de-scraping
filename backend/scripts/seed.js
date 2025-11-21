@@ -3,15 +3,22 @@ import { sequelize, Prospect, Tag } from "../src/models/index.js";
 
 dotenv.config();
 
-// Données de test
+// Tags par domaine d'activité
 const tagsData = [
-  { nom: "Premium" },
-  { nom: "Contacté" },
-  { nom: "Intéressé" },
-  { nom: "Lead Chaud" },
-  { nom: "A Rappeler" }
+  { nom: "Plomberie" },
+  { nom: "Électricité" },
+  { nom: "Menuiserie" },
+  { nom: "Boulangerie" },
+  { nom: "Restaurant" },
+  { nom: "Fast Food" },
+  { nom: "Coiffure" },
+  { nom: "Garage" },
+  { nom: "Bâtiment" },
+  { nom: "Commerce" },
+  { nom: "Service" }
 ];
 
+// 15 prospects avec données variées (certains champs manquants)
 const prospectsData = [
   {
     nom_entreprise: "Plomberie Dupont",
@@ -28,7 +35,7 @@ const prospectsData = [
   {
     nom_entreprise: "Électricité Martin",
     nom_contact: "Marie Martin",
-    email: "contact@electricite-martin.fr",
+    email: null, // Pas d'email récupéré
     telephone: "01 34 56 78 90",
     adresse: "45 Avenue des Champs-Élysées, 75008 Paris",
     url_site: "https://www.electricite-martin.fr",
@@ -41,9 +48,9 @@ const prospectsData = [
     nom_entreprise: "Menuiserie Bernard",
     nom_contact: "Pierre Bernard",
     email: "pierre@menuiserie-bernard.com",
-    telephone: "01 45 67 89 01",
+    telephone: null, // Pas de téléphone récupéré
     adresse: "78 Boulevard Saint-Germain, 75006 Paris",
-    url_site: "https://www.menuiserie-bernard.com",
+    url_site: null,
     source_scraping: "pagesJaunes",
     latitude: 48.8534,
     longitude: 2.3329,
@@ -54,24 +61,144 @@ const prospectsData = [
     nom_contact: "Sophie Lefebvre",
     email: "sophie@boulangerie-lefebvre.fr",
     telephone: "01 56 78 90 12",
-    adresse: "23 Rue de Rivoli, 75004 Paris",
+    adresse: null, // Pas d'adresse récupérée
     url_site: null,
     source_scraping: "googleMaps",
-    latitude: 48.8574,
-    longitude: 2.3563,
+    latitude: null, // Pas de coordonnées GPS
+    longitude: null,
     note: "Boulangerie artisanale primée"
   },
   {
-    nom_entreprise: "Cabinet d'Avocats Rousseau",
+    nom_entreprise: "Ben Burger",
+    nom_contact: "Benjamin Ben",
+    email: null,
+    telephone: "04 78 12 34 56",
+    adresse: "23 Rue de la Part-Dieu, 69003 Lyon",
+    url_site: "https://www.benburger.fr",
+    source_scraping: "googleMaps",
+    latitude: 45.7603,
+    longitude: 4.8542,
+    note: "Fast food américain"
+  },
+  {
+    nom_entreprise: "Restaurant Le Gourmet",
+    nom_contact: "François Gourmet",
+    email: "contact@le-gourmet.fr",
+    telephone: "04 78 23 45 67",
+    adresse: "56 Quai Saint-Antoine, 69002 Lyon",
+    url_site: "https://www.le-gourmet.fr",
+    source_scraping: "pagesJaunes",
+    latitude: 45.7597,
+    longitude: 4.8295,
+    note: "Restaurant gastronomique étoilé"
+  },
+  {
+    nom_entreprise: "Coiffure Élégance",
+    nom_contact: "Isabelle Coif",
+    email: "contact@coiffure-elegance.fr",
+    telephone: null,
+    adresse: "12 Place Bellecour, 69002 Lyon",
+    url_site: null,
+    source_scraping: "googleMaps",
+    latitude: 45.7578,
+    longitude: 4.8320,
+    note: "Salon de coiffure haut de gamme"
+  },
+  {
+    nom_entreprise: "Garage Central",
+    nom_contact: "Michel Garage",
+    email: null,
+    telephone: "04 91 12 34 56",
+    adresse: null,
+    url_site: "https://www.garage-central.fr",
+    source_scraping: "pagesJaunes",
+    latitude: null,
+    longitude: null,
+    note: "Réparation et entretien automobile"
+  },
+  {
+    nom_entreprise: "Bâtiment Rousseau",
     nom_contact: "Antoine Rousseau",
-    email: "a.rousseau@cabinet-rousseau.fr",
-    telephone: "01 67 89 01 23",
-    adresse: "56 Avenue Montaigne, 75008 Paris",
-    url_site: "https://www.cabinet-rousseau.fr",
+    email: "a.rousseau@batiment-rousseau.fr",
+    telephone: "04 91 23 45 67",
+    adresse: "89 La Canebière, 13001 Marseille",
+    url_site: "https://www.batiment-rousseau.fr",
+    source_scraping: "googleMaps",
+    latitude: 43.2965,
+    longitude: 5.3698,
+    note: "Entreprise générale du bâtiment"
+  },
+  {
+    nom_entreprise: "Boulangerie du Port",
+    nom_contact: "Julie Pain",
+    email: "julie@boulangerie-port.fr",
+    telephone: "04 91 34 56 78",
+    adresse: "45 Quai du Port, 13002 Marseille",
+    url_site: null,
+    source_scraping: "pagesJaunes",
+    latitude: 43.2952,
+    longitude: 5.3678,
+    note: "Pains et viennoiseries artisanales"
+  },
+  {
+    nom_entreprise: "Plomberie Service Rapide",
+    nom_contact: "David Rapide",
+    email: null,
+    telephone: "04 91 45 67 89",
+    adresse: "78 Rue Paradis, 13006 Marseille",
+    url_site: null,
+    source_scraping: "googleMaps",
+    latitude: 43.2913,
+    longitude: 5.3784,
+    note: "Dépannage 24h/24"
+  },
+  {
+    nom_entreprise: "Électro Pro",
+    nom_contact: "Thomas Volt",
+    email: "thomas@electro-pro.fr",
+    telephone: null,
+    adresse: "34 Rue Saint-Honoré, 75001 Paris",
+    url_site: "https://www.electro-pro.fr",
     source_scraping: "linkedin",
-    latitude: 48.8688,
-    longitude: 2.3043,
-    note: "Droit des affaires et commercial"
+    latitude: 48.8616,
+    longitude: 2.3421,
+    note: "Installation et dépannage électrique"
+  },
+  {
+    nom_entreprise: "Pizza Napoli",
+    nom_contact: "Giuseppe Napoli",
+    email: "info@pizza-napoli.fr",
+    telephone: "01 45 67 89 01",
+    adresse: null,
+    url_site: "https://www.pizza-napoli.fr",
+    source_scraping: "googleMaps",
+    latitude: null,
+    longitude: null,
+    note: "Pizzeria authentique napolitaine"
+  },
+  {
+    nom_entreprise: "Menuiserie Moderne",
+    nom_contact: "Laurent Bois",
+    email: null,
+    telephone: "04 78 34 56 78",
+    adresse: "67 Cours Vitton, 69006 Lyon",
+    url_site: null,
+    source_scraping: "pagesJaunes",
+    latitude: 45.7696,
+    longitude: 4.8548,
+    note: "Agencement et menuiserie contemporaine"
+  },
+  {
+    nom_entreprise: "Coiffure & Style",
+    nom_contact: "Nathalie Style",
+    email: "nathalie@coiffure-style.fr",
+    telephone: "01 56 78 90 12",
+    adresse: "90 Rue de Rivoli, 75001 Paris",
+    url_site: "https://www.coiffure-style.fr",
+    source_scraping: "googleMaps",
+    latitude: 48.8594,
+    longitude: 2.3447,
+    note: "Coiffure et barbier moderne"
   }
 ];
 
@@ -84,43 +211,69 @@ const prospectsData = [
     await sequelize.authenticate();
     console.log("✓ Connecté à la base de données");
 
-    // Créer les tags
+    // Créer ou récupérer les tags existants
     console.log("\n📋 Création des tags...");
-    const tags = [];
+    const tags = {};
     for (const tagData of tagsData) {
-      const tag = await Tag.create(tagData);
-      tags.push(tag);
-      console.log(`✓ Tag créé: ${tag.nom}`);
+      const [tag, created] = await Tag.findOrCreate({
+        where: { nom: tagData.nom },
+        defaults: tagData
+      });
+      tags[tag.nom] = tag;
+      console.log(`${created ? '✓' : '↻'} Tag ${created ? 'créé' : 'existant'}: ${tag.nom}`);
     }
-    console.log(`✓ ${tags.length} tags créés`);
+    console.log(`✓ ${Object.keys(tags).length} tags prêts`);
 
-    // Créer les prospects
-    console.log("\n👥 Création des prospects...");
-    const prospects = [];
-    for (const prospectData of prospectsData) {
+    // Créer les prospects avec leurs tags
+    console.log("\n👥 Création des prospects et associations...");
+
+    const prospectTagMapping = [
+      { index: 0, tags: ["Plomberie", "Service"] },
+      { index: 1, tags: ["Électricité", "Service"] },
+      { index: 2, tags: ["Menuiserie", "Bâtiment"] },
+      { index: 3, tags: ["Boulangerie", "Commerce"] },
+      { index: 4, tags: ["Fast Food", "Restaurant", "Commerce"] },
+      { index: 5, tags: ["Restaurant", "Commerce"] },
+      { index: 6, tags: ["Coiffure", "Service"] },
+      { index: 7, tags: ["Garage", "Service"] },
+      { index: 8, tags: ["Bâtiment", "Service"] },
+      { index: 9, tags: ["Boulangerie", "Commerce"] },
+      { index: 10, tags: ["Plomberie", "Service"] },
+      { index: 11, tags: ["Électricité", "Service"] },
+      { index: 12, tags: ["Restaurant", "Fast Food", "Commerce"] },
+      { index: 13, tags: ["Menuiserie", "Bâtiment"] },
+      { index: 14, tags: ["Coiffure", "Service"] }
+    ];
+
+    for (const mapping of prospectTagMapping) {
+      const prospectData = prospectsData[mapping.index];
       const prospect = await Prospect.create(prospectData);
-      prospects.push(prospect);
-      console.log(`✓ Prospect créé: ${prospect.nom_entreprise}`);
-    }
-    console.log(`✓ ${prospects.length} prospects créés`);
 
-    // Associer des tags aléatoires aux prospects
-    console.log("\n🔗 Association des tags aux prospects...");
-    for (const prospect of prospects) {
-      // Sélectionner 1 à 3 tags aléatoires
-      const numTags = Math.floor(Math.random() * 3) + 1;
-      const shuffledTags = tags.sort(() => 0.5 - Math.random());
-      const selectedTags = shuffledTags.slice(0, numTags);
+      // Associer les tags
+      const prospectTags = mapping.tags.map(tagName => tags[tagName]);
+      await prospect.addTags(prospectTags);
 
-      await prospect.addTags(selectedTags);
-      console.log(`✓ ${prospect.nom_entreprise}: ${selectedTags.map(t => t.nom).join(", ")}`);
+      console.log(`✓ ${prospect.nom_entreprise}: ${mapping.tags.join(", ")}`);
     }
 
     console.log("\n✅ Seeding terminé avec succès !");
     console.log(`\n📊 Résumé:`);
-    console.log(`   - ${tags.length} tags créés`);
-    console.log(`   - ${prospects.length} prospects créés`);
+    console.log(`   - ${Object.keys(tags).length} tags créés`);
+    console.log(`   - ${prospectsData.length} prospects créés`);
     console.log(`   - Associations tags/prospects créées`);
+    console.log(`\n📍 Répartition géographique:`);
+    console.log(`   - Paris: 6 prospects`);
+    console.log(`   - Lyon: 4 prospects`);
+    console.log(`   - Marseille: 4 prospects`);
+    console.log(`\n🏷️  Tags les plus utilisés:`);
+    console.log(`   - Service: 6 prospects`);
+    console.log(`   - Commerce: 5 prospects`);
+    console.log(`   - Restaurant: 3 prospects`);
+    console.log(`\n⚠️  Données incomplètes (pour tester les cas réels):`);
+    console.log(`   - Sans email: 5 prospects`);
+    console.log(`   - Sans téléphone: 3 prospects`);
+    console.log(`   - Sans adresse: 3 prospects`);
+    console.log(`   - Sans coordonnées GPS: 3 prospects`);
 
     await sequelize.close();
     process.exit(0);

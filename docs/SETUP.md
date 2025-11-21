@@ -119,16 +119,88 @@ L'application sera disponible sur `http://localhost:5173`
 
 ## 📊 Initialiser la Base de Données
 
-### Avec Sequelize (Backend)
+### Commandes Disponibles
 
 ```bash
 cd backend
 
-# Créer les tables
+# 1. Créer la base de données (si elle n'existe pas)
+npm run db:setup
+
+# 2. Créer ou mettre à jour les tables
 npm run db:migrate
 
-# Insérer des données de test (optionnel)
+# 3. Remplir avec des données de test (13 prospects + tags)
 npm run db:seed
+
+# 4. Vider toutes les tables (avec confirmation)
+npm run db:clear
+
+# 5. Détruire toutes les tables (avec double confirmation)
+npm run db:drop
+```
+
+### Workflows Courants
+
+**Installation initiale :**
+```bash
+npm run db:setup      # Créer la DB
+npm run db:migrate    # Créer les tables
+npm run db:seed       # Ajouter données de test
+```
+
+**Réinitialisation complète :**
+```bash
+npm run db:drop       # Détruire les tables (⚠️ confirmation requise)
+npm run db:migrate    # Recréer les tables
+npm run db:seed       # Ajouter données de test
+```
+
+**Nettoyage simple :**
+```bash
+npm run db:clear      # Vider les données (⚠️ confirmation requise)
+npm run db:seed       # Ajouter de nouvelles données
+```
+
+### Description des Commandes
+
+#### `npm run db:setup`
+Crée la base de données si elle n'existe pas. À exécuter une seule fois.
+
+#### `npm run db:migrate`
+Crée ou met à jour les tables selon les modèles Sequelize.
+Utilise `sequelize.sync({ alter: true })` pour appliquer les modifications de structure.
+
+#### `npm run db:seed`
+Remplit la base avec 13 prospects de test et leurs tags :
+- Tags par domaine d'activité (Plomberie, Boulangerie, Restaurant, etc.)
+- Localités variées avec doublons pour tester les filtres
+- Certains champs vides (email, téléphone, adresse, coordonnées GPS)
+- Associations réalistes prospects ↔ tags
+
+#### `npm run db:clear` ⚠️
+Vide toutes les tables (DELETE FROM) avec confirmation interactive.
+- Demande confirmation `oui/non`
+- Affiche le nombre d'enregistrements avant suppression
+- Préserve la structure des tables
+
+**Exemple d'utilisation :**
+```bash
+npm run db:clear
+# > Êtes-vous sûr de vouloir VIDER toutes les tables ? (oui/non): oui
+```
+
+#### `npm run db:drop` 💥
+Détruit complètement toutes les tables (DROP TABLE) avec double confirmation.
+- Première confirmation : `oui/non`
+- Deuxième confirmation : Taper `DÉTRUIRE` en majuscules
+- Supprime les tables `prospects`, `tags`, et `prospects_tags`
+
+**Exemple d'utilisation :**
+```bash
+npm run db:drop
+# > Êtes-vous sûr de vouloir DÉTRUIRE toutes les tables ? (oui/non): oui
+# > Tapez 'DÉTRUIRE' en majuscules pour confirmer: DÉTRUIRE
 ```
 
 ### Manuellement (MySQL)
@@ -197,7 +269,13 @@ npm run dev          # Développement
 npm start            # Production
 npm test             # Tests
 npm run lint         # Linter
-npm run db:migrate   # Migrations DB
+
+# Base de données
+npm run db:setup     # Créer la DB
+npm run db:migrate   # Créer/mettre à jour les tables
+npm run db:seed      # Remplir avec données de test
+npm run db:clear     # Vider les tables (⚠️ confirmation)
+npm run db:drop      # Détruire les tables (⚠️⚠️ double confirmation)
 ```
 
 ### Frontend
