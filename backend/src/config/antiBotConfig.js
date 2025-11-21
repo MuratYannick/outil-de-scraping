@@ -11,7 +11,8 @@ export const ANTIBOT_STRATEGIES = {
   PROXIES: 'proxies',              // Rotation de proxies résidentiels
   CAPTCHA_SOLVER: 'captcha_solver', // Résolution automatique de CAPTCHA
   STEALTH: 'stealth',              // Masquage amélioré (profil navigateur, headers)
-  HYBRID: 'hybrid'                 // Combinaison de plusieurs stratégies
+  HYBRID: 'hybrid',                // Combinaison de plusieurs stratégies
+  CUSTOM: 'custom'                 // Configuration personnalisée (automatique)
 };
 
 /**

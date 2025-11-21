@@ -1,6 +1,6 @@
 # 📊 Progression du Projet Outil de Scraping
 
-**Dernière mise à jour** : 21 novembre 2025 (Jour 20: Configuration anti-bot par scraper + UI améliorée)
+**Dernière mise à jour** : 21 novembre 2025 (Jour 20bis: Améliorations UX configuration anti-bot + synchronisation bidirectionnelle)
 
 ## 🎯 Objectif Phase 1 (MVP)
 
@@ -489,6 +489,50 @@ antiBotConfig.scrapers = {
 }
 ```
 
+#### Jour 20bis : Améliorations UX Configuration Anti-Bot (✅ COMPLÉTÉ le 21 novembre 2025)
+
+**Objectif** : Améliorer l'expérience utilisateur de la configuration anti-bot avec synchronisation bidirectionnelle et mode Custom automatique.
+
+- [x] **Option Custom Automatique** :
+  - [x] Ajouter stratégie `CUSTOM` dans `antiBotConfig.js` (backend)
+  - [x] Créer carte "Configuration Personnalisée" avec badge "🔄 Automatique"
+  - [x] Détection automatique pour toute combinaison non-standard (ex: Proxies seuls, CAPTCHA sans Stealth)
+  - [x] Carte non cliquable (activation uniquement depuis toggles individuels)
+  - [x] Style visuel distinct (bordure/fond violet quand active)
+  - [x] Message explicatif : "Configuration personnalisée définie dans les onglets individuels"
+
+- [x] **Synchronisation Bidirectionnelle Complète** :
+  - [x] Vue d'ensemble → Onglets : Toggles se mettent à jour selon stratégie sélectionnée
+  - [x] Onglets → Vue d'ensemble : Stratégie se met à jour selon combinaison de toggles
+  - [x] Fonction `normalizeConfig()` pour synchroniser toggles avec stratégie au chargement
+  - [x] Fonction `detectStrategyFromToggles()` pour détecter stratégie depuis toggles
+  - [x] Handlers des 3 toggles (Proxies, CAPTCHA, Stealth) avec mise à jour automatique
+
+- [x] **Optimisation Onglet Test** :
+  - [x] Masquer menu déroulant "Scraper" du header dans onglet Test
+  - [x] Afficher configuration du scraper sélectionné dans "Scraper à tester" (pas `selectedScraper`)
+  - [x] État `testConfig` séparé pour la configuration du scraper de test
+  - [x] Rechargement automatique de `testConfig` à chaque entrée dans l'onglet Test
+  - [x] Rechargement automatique de `testConfig` quand `testScraper` change
+
+- [x] **Correction Bugs Tests Backend** :
+  - [x] Corriger import Google Maps : utiliser classe `GoogleMapsService` au lieu de `scrapeGoogleMaps()`
+  - [x] Corriger import LinkedIn : utiliser export default au lieu d'export nommé
+  - [x] Résoudre erreurs 500 lors des tests Google Maps et LinkedIn
+
+**Résultat** :
+- ✅ Synchronisation bidirectionnelle totale entre Vue d'ensemble et onglets individuels
+- ✅ Mode Custom s'active automatiquement pour configurations non-standard
+- ✅ Onglet Test indépendant avec sa propre config toujours à jour
+- ✅ Tests Google Maps et LinkedIn fonctionnels (erreurs 500 résolues)
+- ✅ UX cohérente et intuitive
+
+**Fichiers modifiés** :
+- Backend : `antiBotConfig.js` (+1 stratégie CUSTOM)
+- Backend : `antiBotConfigController.js` (correction imports Google Maps et LinkedIn)
+- Frontend : `AntiBotConfig.jsx` (+140 lignes, synchronisation bidirectionnelle complète)
+- Total : 3 fichiers, ~200 lignes modifiées
+
 #### Jour 21 : Nettoyage et finalisation du code (📋 À FAIRE)
 - [ ] **Refactoring Backend** :
   - [ ] Refactoring du code backend (services, controllers)
@@ -679,4 +723,4 @@ antiBotConfig.scrapers = {
 
 ---
 
-**Dernière mise à jour** : 19 novembre 2025 (Jour 17-18: Optimisations Playwright Phases 1-3 complétées)
+**Dernière mise à jour** : 21 novembre 2025 (Jour 20bis: Améliorations UX configuration anti-bot + synchronisation bidirectionnelle)

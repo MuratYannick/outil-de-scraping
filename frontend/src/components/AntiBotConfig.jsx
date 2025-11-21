@@ -32,15 +32,70 @@ export default function AntiBotConfig() {
     }
   });
 
+  // Configuration du scraper de test (pour l'onglet Test)
+  const [testConfig, setTestConfig] = useState(null);
+
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [testResults, setTestResults] = useState(null);
 
+  // Fonction pour normaliser la config et assurer la cohérence des toggles avec la stratégie
+  const normalizeConfig = (config) => {
+    const normalized = { ...config };
+
+    // Synchroniser les toggles avec la stratégie active
+    switch (config.strategy) {
+      case 'none':
+        normalized.proxies = { ...normalized.proxies, enabled: false };
+        normalized.captcha = { ...normalized.captcha, enabled: false };
+        normalized.stealth = { ...normalized.stealth, enabled: false };
+        break;
+      case 'stealth':
+        normalized.proxies = { ...normalized.proxies, enabled: false };
+        normalized.captcha = { ...normalized.captcha, enabled: false };
+        normalized.stealth = { ...normalized.stealth, enabled: true };
+        break;
+      case 'captcha_solver':
+        normalized.proxies = { ...normalized.proxies, enabled: false };
+        normalized.captcha = { ...normalized.captcha, enabled: true };
+        normalized.stealth = { ...normalized.stealth, enabled: true };
+        break;
+      case 'proxies':
+        normalized.proxies = { ...normalized.proxies, enabled: true };
+        normalized.captcha = { ...normalized.captcha, enabled: false };
+        normalized.stealth = { ...normalized.stealth, enabled: true };
+        break;
+      case 'hybrid':
+        normalized.proxies = { ...normalized.proxies, enabled: true };
+        normalized.captcha = { ...normalized.captcha, enabled: true };
+        normalized.stealth = { ...normalized.stealth, enabled: true };
+        break;
+      case 'custom':
+        // Pour une config custom, on ne modifie pas les toggles
+        // On les garde tels quels car c'est justement une configuration personnalisée
+        break;
+    }
+
+    return normalized;
+  };
+
   // Charger la configuration au montage du composant et quand le scraper change
   useEffect(() => {
     loadConfig();
   }, [selectedScraper]);
+
+  // Charger la configuration du scraper de test quand il change
+  useEffect(() => {
+    loadTestConfig();
+  }, [testScraper]);
+
+  // Recharger la configuration du scraper de test quand on entre dans l'onglet Test
+  useEffect(() => {
+    if (activeTab === 'test') {
+      loadTestConfig();
+    }
+  }, [activeTab]);
 
   const loadConfig = async () => {
     try {
@@ -48,7 +103,9 @@ export default function AntiBotConfig() {
       setError(null);
       const response = await getAntiBotConfig(selectedScraper);
       if (response.success) {
-        setConfig(response.data);
+        // Normaliser la config pour assurer la cohérence des toggles
+        const normalizedConfig = normalizeConfig(response.data);
+        setConfig(normalizedConfig);
       }
     } catch (err) {
       console.error('Erreur chargement config:', err);
@@ -58,9 +115,33 @@ export default function AntiBotConfig() {
     }
   };
 
+  const loadTestConfig = async () => {
+    try {
+      const response = await getAntiBotConfig(testScraper);
+      if (response.success) {
+        const normalizedConfig = normalizeConfig(response.data);
+        setTestConfig(normalizedConfig);
+      }
+    } catch (err) {
+      console.error('Erreur chargement config test:', err);
+    }
+  };
+
   const handleScraperChange = (scraperId) => {
     setSelectedScraper(scraperId);
     setTestResults(null); // Reset test results quand on change de scraper
+  };
+
+  // Fonction pour détecter la stratégie basée sur les toggles actuels
+  const detectStrategyFromToggles = (proxiesEnabled, captchaEnabled, stealthEnabled) => {
+    if (!proxiesEnabled && !captchaEnabled && !stealthEnabled) return 'none';
+    if (!proxiesEnabled && !captchaEnabled && stealthEnabled) return 'stealth';
+    if (!proxiesEnabled && captchaEnabled && stealthEnabled) return 'captcha_solver';
+    if (proxiesEnabled && !captchaEnabled && stealthEnabled) return 'proxies';
+    if (proxiesEnabled && captchaEnabled && stealthEnabled) return 'hybrid';
+
+    // Configuration personnalisée qui ne correspond à aucune stratégie prédéfinie
+    return 'custom';
   };
 
   const strategies = [
@@ -68,7 +149,8 @@ export default function AntiBotConfig() {
     { id: 'stealth', name: 'Stealth Seul', cost: 'Gratuit', efficacy: 'Limité', icon: '🥷' },
     { id: 'captcha_solver', name: 'CAPTCHA + Stealth', cost: '$0.15-$3/1000p', efficacy: 'Bon', icon: '🔐', recommended: true },
     { id: 'proxies', name: 'Proxies Résidentiels + Stealth', cost: '$75-$1000/mois', efficacy: 'Bon', icon: '🌐' },
-    { id: 'hybrid', name: 'Mode HYBRID : Proxies + CAPTCHA + Stealth', cost: '$75-$1003/mois', efficacy: 'Maximum', icon: '🚀' }
+    { id: 'hybrid', name: 'Mode HYBRID : Proxies + CAPTCHA + Stealth', cost: '$75-$1003/mois', efficacy: 'Maximum', icon: '🚀' },
+    { id: 'custom', name: 'Configuration Personnalisée', cost: 'Variable', efficacy: 'Variable', icon: '⚙️', disabled: true, isAutomatic: true }
   ];
 
   const handleStrategyChange = (strategyId) => {
@@ -170,31 +252,33 @@ export default function AntiBotConfig() {
             </p>
           </div>
 
-          {/* Sélecteur de scraper (menu déroulant) */}
-          <div className="flex items-center gap-3">
-            <label htmlFor="scraper-select" className="text-sm font-medium text-gray-700">
-              Scraper :
-            </label>
-            <div className="relative">
-              <select
-                id="scraper-select"
-                value={selectedScraper}
-                onChange={(e) => handleScraperChange(e.target.value)}
-                className="appearance-none bg-white border border-gray-300 rounded-md pl-4 pr-10 py-2 text-sm font-medium text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer min-w-[200px]"
-              >
-                {scrapers.map(scraper => (
-                  <option key={scraper.id} value={scraper.id}>
-                    {scraper.icon} {scraper.name}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                </svg>
+          {/* Sélecteur de scraper (menu déroulant) - Masqué dans l'onglet Test */}
+          {activeTab !== 'test' && (
+            <div className="flex items-center gap-3">
+              <label htmlFor="scraper-select" className="text-sm font-medium text-gray-700">
+                Scraper :
+              </label>
+              <div className="relative">
+                <select
+                  id="scraper-select"
+                  value={selectedScraper}
+                  onChange={(e) => handleScraperChange(e.target.value)}
+                  className="appearance-none bg-white border border-gray-300 rounded-md pl-4 pr-10 py-2 text-sm font-medium text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer min-w-[200px]"
+                >
+                  {scrapers.map(scraper => (
+                    <option key={scraper.id} value={scraper.id}>
+                      {scraper.icon} {scraper.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                  </svg>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {error && (
@@ -241,12 +325,14 @@ export default function AntiBotConfig() {
                 {strategies.map(strategy => (
                   <div
                     key={strategy.id}
-                    className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                    className={`relative border-2 rounded-lg p-4 transition-all ${
                       strategy.disabled
-                        ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
-                        : config.strategy === strategy.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-300'
+                        ? config.strategy === strategy.id
+                          ? 'border-purple-500 bg-purple-50 cursor-default'
+                          : 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+                        : 'cursor-pointer ' + (config.strategy === strategy.id
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-blue-300')
                     }`}
                     onClick={() => !strategy.disabled && handleStrategyChange(strategy.id)}
                   >
@@ -255,7 +341,12 @@ export default function AntiBotConfig() {
                         ⭐ Recommandé
                       </span>
                     )}
-                    {strategy.disabled && (
+                    {strategy.isAutomatic && config.strategy === strategy.id && (
+                      <span className="absolute top-2 right-2 bg-purple-100 text-purple-800 text-xs font-semibold px-2 py-1 rounded">
+                        🔄 Automatique
+                      </span>
+                    )}
+                    {strategy.disabled && !strategy.isAutomatic && (
                       <span className="absolute top-2 right-2 bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded">
                         ❌ Non viable
                       </span>
@@ -284,10 +375,21 @@ export default function AntiBotConfig() {
 
             {/* Current Strategy Summary */}
             {config.strategy !== 'none' && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">Configuration Actuelle</h4>
-                <div className="space-y-1 text-sm text-blue-800">
+              <div className={`border rounded-lg p-4 ${
+                config.strategy === 'custom'
+                  ? 'bg-purple-50 border-purple-200'
+                  : 'bg-blue-50 border-blue-200'
+              }`}>
+                <h4 className={`font-semibold mb-2 ${
+                  config.strategy === 'custom' ? 'text-purple-900' : 'text-blue-900'
+                }`}>Configuration Actuelle</h4>
+                <div className={`space-y-1 text-sm ${
+                  config.strategy === 'custom' ? 'text-purple-800' : 'text-blue-800'
+                }`}>
                   <p>✓ Stratégie: <strong>{strategies.find(s => s.id === config.strategy)?.name}</strong></p>
+                  {config.strategy === 'custom' && (
+                    <p className="text-purple-700 italic">⚙️ Configuration personnalisée définie dans les onglets individuels</p>
+                  )}
                   {config.proxies.enabled && <p>✓ Proxies résidentiels activés</p>}
                   {config.captcha.enabled && <p>✓ Résolution CAPTCHA activée</p>}
                   {config.stealth.enabled && <p>✓ Stealth Mode activé</p>}
@@ -307,10 +409,20 @@ export default function AntiBotConfig() {
                 <input
                   type="checkbox"
                   checked={config.proxies.enabled}
-                  onChange={(e) => setConfig({
-                    ...config,
-                    proxies: { ...config.proxies, enabled: e.target.checked }
-                  })}
+                  onChange={(e) => {
+                    const newEnabled = e.target.checked;
+                    const newConfig = {
+                      ...config,
+                      proxies: { ...config.proxies, enabled: newEnabled }
+                    };
+                    // Détecter et mettre à jour la stratégie
+                    newConfig.strategy = detectStrategyFromToggles(
+                      newEnabled,
+                      config.captcha.enabled,
+                      config.stealth.enabled
+                    );
+                    setConfig(newConfig);
+                  }}
                   className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                 />
               </label>
@@ -383,10 +495,20 @@ export default function AntiBotConfig() {
                 <input
                   type="checkbox"
                   checked={config.captcha.enabled}
-                  onChange={(e) => setConfig({
-                    ...config,
-                    captcha: { ...config.captcha, enabled: e.target.checked }
-                  })}
+                  onChange={(e) => {
+                    const newEnabled = e.target.checked;
+                    const newConfig = {
+                      ...config,
+                      captcha: { ...config.captcha, enabled: newEnabled }
+                    };
+                    // Détecter et mettre à jour la stratégie
+                    newConfig.strategy = detectStrategyFromToggles(
+                      config.proxies.enabled,
+                      newEnabled,
+                      config.stealth.enabled
+                    );
+                    setConfig(newConfig);
+                  }}
                   className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                 />
               </label>
@@ -445,10 +567,20 @@ export default function AntiBotConfig() {
                 <input
                   type="checkbox"
                   checked={config.stealth.enabled}
-                  onChange={(e) => setConfig({
-                    ...config,
-                    stealth: { ...config.stealth, enabled: e.target.checked }
-                  })}
+                  onChange={(e) => {
+                    const newEnabled = e.target.checked;
+                    const newConfig = {
+                      ...config,
+                      stealth: { ...config.stealth, enabled: newEnabled }
+                    };
+                    // Détecter et mettre à jour la stratégie
+                    newConfig.strategy = detectStrategyFromToggles(
+                      config.proxies.enabled,
+                      config.captcha.enabled,
+                      newEnabled
+                    );
+                    setConfig(newConfig);
+                  }}
                   className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                 />
               </label>
@@ -546,13 +678,17 @@ export default function AntiBotConfig() {
             </div>
 
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-2">Configuration Actuelle ({scrapers.find(s => s.id === selectedScraper)?.name})</h4>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>Stratégie: <strong>{strategies.find(s => s.id === config.strategy)?.name}</strong></p>
-                <p>Proxies: {config.proxies.enabled ? '✅ Activé' : '❌ Désactivé'}</p>
-                <p>CAPTCHA: {config.captcha.enabled ? '✅ Activé' : '❌ Désactivé'}</p>
-                <p>Stealth: {config.stealth.enabled ? '✅ Activé' : '❌ Désactivé'}</p>
-              </div>
+              <h4 className="font-medium text-gray-900 mb-2">Configuration Actuelle ({scrapers.find(s => s.id === testScraper)?.name})</h4>
+              {testConfig ? (
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>Stratégie: <strong>{strategies.find(s => s.id === testConfig.strategy)?.name}</strong></p>
+                  <p>Proxies: {testConfig.proxies.enabled ? '✅ Activé' : '❌ Désactivé'}</p>
+                  <p>CAPTCHA: {testConfig.captcha.enabled ? '✅ Activé' : '❌ Désactivé'}</p>
+                  <p>Stealth: {testConfig.stealth.enabled ? '✅ Activé' : '❌ Désactivé'}</p>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Chargement de la configuration...</p>
+              )}
             </div>
 
             <button

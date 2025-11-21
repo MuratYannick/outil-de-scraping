@@ -314,25 +314,35 @@ export async function testConfig(req, res) {
         break;
 
       case SCRAPER_IDS.GOOGLE_MAPS:
-        const { scrapeGoogleMaps } = await import('../services/googleMapsService.js');
-        // Test avec le scraper Playwright (pas l'API)
+        const GoogleMapsServiceModule = await import('../services/googleMapsService.js');
+        const GoogleMapsService = GoogleMapsServiceModule.default;
+        const gmService = new GoogleMapsService();
+
         console.log('[AntiBotConfigController] Test Google Maps scraper...');
-        const gmResult = await scrapeGoogleMaps('plombier', 'Paris', { maxResults: 5 });
+        const gmProspects = await gmService.search({
+          keyword: 'plombier',
+          location: 'Paris',
+          maxResults: 5
+        });
+
+        const gmSuccess = gmProspects && gmProspects.length > 0;
         return res.json({
           success: true,
           data: {
-            testSuccess: gmResult.success,
-            blocked: !gmResult.success,
-            prospectsExtracted: gmResult.prospects?.length || 0,
-            message: gmResult.success
-              ? `Test réussi ! ${gmResult.prospects.length} prospect(s) extrait(s).`
+            testSuccess: gmSuccess,
+            blocked: !gmSuccess,
+            prospectsExtracted: gmProspects?.length || 0,
+            message: gmSuccess
+              ? `Test réussi ! ${gmProspects.length} prospect(s) extrait(s).`
               : 'Le scraping a été bloqué.',
-            prospects: gmResult.prospects?.slice(0, 3) || []
+            prospects: gmProspects?.slice(0, 3) || [],
+            metadata: {}
           }
         });
 
       case SCRAPER_IDS.LINKEDIN:
-        const { LinkedInScraper } = await import('../services/scrapers/linkedInScraper.js');
+        const LinkedInScraperModule = await import('../services/scrapers/linkedInScraper.js');
+        const LinkedInScraper = LinkedInScraperModule.default;
         scraper = new LinkedInScraper();
         testParams = { keyword: 'développeur', location: 'Paris', maxResults: 5 };
         break;
