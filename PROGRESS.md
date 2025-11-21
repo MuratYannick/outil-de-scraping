@@ -1,6 +1,6 @@
 # 📊 Progression du Projet Outil de Scraping
 
-**Dernière mise à jour** : 20 novembre 2025 (Jour 19: LinkedIn scraper implémenté en mode public)
+**Dernière mise à jour** : 21 novembre 2025 (Jour 20: Configuration anti-bot par scraper + UI améliorée)
 
 ## 🎯 Objectif Phase 1 (MVP)
 
@@ -423,9 +423,71 @@
 - `backend/src/controllers/scrapingController.js` (modifié)
 - `frontend/src/components/ScrapingForm.jsx` (modifié)
 
-**Tests** : À effectuer (Jour 20) avec script de test automatisé
+**Tests** : À effectuer avec script de test automatisé
 
-#### Jour 20 : Tests LinkedIn & Finalisation (📋 À FAIRE)
+#### Jour 20 : Configuration Anti-Bot par Scraper + UI Améliorée (✅ COMPLÉTÉ le 21 novembre 2025)
+
+**Objectif** : Permettre une configuration anti-bot indépendante pour chaque scraper (Pages Jaunes, Google Maps, LinkedIn) au lieu d'une configuration globale unique.
+
+- [x] **Restructuration Backend - Configuration par Scraper** :
+  - [x] Refactorer `antiBotConfig.js` pour supporter 3 configurations indépendantes
+  - [x] Créer constante `SCRAPER_IDS` (pagesJaunes, googleMaps, linkedin)
+  - [x] Implémenter `getScraperConfig(scraperId)` et `updateScraperConfig(scraperId, config)`
+  - [x] Créer providers partagés (proxies, CAPTCHA) pour éviter duplication
+  - [x] Ajouter fonctions `enableHybridMode(scraperId)` et `isStrategyActive(scraperId, strategy)`
+- [x] **Adaptation API Routes & Controller** :
+  - [x] Modifier routes : `GET /api/antibot/config/:scraperId` (config d'un scraper)
+  - [x] Ajouter route : `GET /api/antibot/config` (config de tous les scrapers)
+  - [x] Modifier routes : `PUT /api/antibot/config/:scraperId` et `POST /api/antibot/test/:scraperId`
+  - [x] Adapter `antiBotConfigController.js` pour gérer le paramètre `scraperId`
+  - [x] Support test de tous les scrapers (Pages Jaunes, Google Maps, LinkedIn)
+- [x] **Adaptation PlaywrightService** :
+  - [x] Modifier constructeur pour accepter `scraperId` : `PlaywrightService(scraperId, config)`
+  - [x] Créer instances séparées par scraper (isolation complète)
+  - [x] Modifier `getPlaywrightService(scraperId)` pour gérer un pool d'instances
+  - [x] Adapter méthode `initialize()` pour utiliser `getScraperConfig(scraperId)`
+- [x] **Modification des Scrapers** :
+  - [x] `pagesJaunesScraper.js` : Passer `SCRAPER_IDS.PAGES_JAUNES`
+  - [x] `googleMapsService.js` : Passer `SCRAPER_IDS.GOOGLE_MAPS`
+  - [x] `linkedInScraper.js` : Passer `SCRAPER_IDS.LINKEDIN`
+  - [x] Corriger bug `googleMapsService.getConfig()` (référence à `antiBotConfig.strategy` obsolète)
+- [x] **Frontend - Service API** :
+  - [x] Adapter `getAntiBotConfig(scraperId)` pour accepter scraperId
+  - [x] Ajouter `getAllAntiBotConfigs()` pour récupérer toutes les configs
+  - [x] Adapter `saveAntiBotConfig(scraperId, config)` et `testAntiBotConfig(scraperId)`
+- [x] **Frontend - Interface Utilisateur Améliorée** :
+  - [x] Ajouter menu déroulant pour sélectionner le scraper à configurer (Pages Jaunes, Google Maps, LinkedIn)
+  - [x] Implémenter rechargement automatique de config au changement de scraper
+  - [x] Réorganiser stratégies dans ordre logique : None → Stealth → CAPTCHA → Proxies → HYBRID
+  - [x] Corriger noms stratégies : "Proxies + Stealth", "Mode HYBRID : Proxies + CAPTCHA + Stealth"
+  - [x] Activer option "Stealth Seul" (retirer flag `disabled`)
+  - [x] Ajuster efficacité : "Limité" pour Stealth, "Bon" pour CAPTCHA/Proxies
+  - [x] Assurer activation automatique Stealth avec Proxies (ligne 81)
+  - [x] Ajouter menu déroulant dans onglet Test pour sélectionner scraper à tester
+  - [x] Permettre test de n'importe quel scraper indépendamment de celui configuré
+
+**Résultat** :
+- ✅ Configuration anti-bot totalement indépendante pour chaque scraper
+- ✅ Pages Jaunes peut être en mode HYBRID pendant que Google Maps est en NONE
+- ✅ LinkedIn peut avoir sa propre configuration adaptée (Stealth + rate limiting agressif)
+- ✅ Interface intuitive avec menu déroulant scalable (facile d'ajouter de futures cibles)
+- ✅ Tests flexibles : sélectionner n'importe quel scraper à tester
+- ✅ Bug GoogleMapsService corrigé (erreur 500 résolue)
+
+**Fichiers modifiés** :
+- Backend : `antiBotConfig.js`, `antiBotConfigController.js`, `antiBotConfigRoutes.js`
+- Backend : `playwrightService.js`, `pagesJaunesScraper.js`, `googleMapsService.js`, `linkedInScraper.js`
+- Frontend : `api.js`, `AntiBotConfig.jsx`
+- Total : 9 fichiers, ~800 lignes modifiées
+
+**Architecture** :
+```
+antiBotConfig.scrapers = {
+  pagesJaunes: { activeStrategy: 'hybrid', proxies: {...}, captcha: {...}, stealth: {...} },
+  googleMaps: { activeStrategy: 'none', ... },
+  linkedin: { activeStrategy: 'stealth', ... }
+}
+```
 
 #### Jour 21 : Nettoyage et finalisation du code (📋 À FAIRE)
 - [ ] **Refactoring Backend** :

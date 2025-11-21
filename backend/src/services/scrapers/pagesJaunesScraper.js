@@ -1,4 +1,5 @@
 import { getPlaywrightService } from "../playwrightService.js";
+import { SCRAPER_IDS } from "../../config/antiBotConfig.js";
 
 /**
  * Scraper pour Pages Jaunes
@@ -7,7 +8,7 @@ import { getPlaywrightService } from "../playwrightService.js";
 
 class PagesJaunesScraper {
   constructor() {
-    this.playwrightService = getPlaywrightService();
+    this.playwrightService = getPlaywrightService(SCRAPER_IDS.PAGES_JAUNES);
     this.baseUrl = "https://www.pagesjaunes.fr";
   }
 

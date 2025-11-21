@@ -223,30 +223,42 @@ export const deleteTag = async (id) => {
 // ============================================================================
 
 /**
- * Récupérer la configuration anti-bot actuelle
+ * Récupérer la configuration anti-bot d'un scraper spécifique
+ * @param {string} scraperId - ID du scraper ('pagesJaunes', 'googleMaps', 'linkedin')
  * @returns {Promise}
  */
-export const getAntiBotConfig = async () => {
+export const getAntiBotConfig = async (scraperId) => {
+  const response = await api.get(`/antibot/config/${scraperId}`);
+  return response.data;
+};
+
+/**
+ * Récupérer la configuration de TOUS les scrapers
+ * @returns {Promise}
+ */
+export const getAllAntiBotConfigs = async () => {
   const response = await api.get("/antibot/config");
   return response.data;
 };
 
 /**
- * Sauvegarder la configuration anti-bot
+ * Sauvegarder la configuration anti-bot d'un scraper spécifique
+ * @param {string} scraperId - ID du scraper
  * @param {Object} config - Configuration à sauvegarder
  * @returns {Promise}
  */
-export const saveAntiBotConfig = async (config) => {
-  const response = await api.put("/antibot/config", config);
+export const saveAntiBotConfig = async (scraperId, config) => {
+  const response = await api.put(`/antibot/config/${scraperId}`, config);
   return response.data;
 };
 
 /**
- * Tester la configuration anti-bot actuelle
+ * Tester la configuration anti-bot d'un scraper spécifique
+ * @param {string} scraperId - ID du scraper
  * @returns {Promise}
  */
-export const testAntiBotConfig = async () => {
-  const response = await api.post("/antibot/test");
+export const testAntiBotConfig = async (scraperId) => {
+  const response = await api.post(`/antibot/test/${scraperId}`);
   return response.data;
 };
 

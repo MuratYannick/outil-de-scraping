@@ -1,4 +1,5 @@
 import { getPlaywrightService } from "../playwrightService.js";
+import { SCRAPER_IDS } from "../../config/antiBotConfig.js";
 
 /**
  * Scraper pour LinkedIn (Mode Public)
@@ -16,7 +17,7 @@ import { getPlaywrightService } from "../playwrightService.js";
 
 class LinkedInScraper {
   constructor() {
-    this.playwrightService = getPlaywrightService();
+    this.playwrightService = getPlaywrightService(SCRAPER_IDS.LINKEDIN);
     this.baseUrl = "https://www.linkedin.com";
 
     // Limites strictes pour éviter détection

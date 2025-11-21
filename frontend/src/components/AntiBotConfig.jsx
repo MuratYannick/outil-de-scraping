@@ -2,6 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { getAntiBotConfig, saveAntiBotConfig, testAntiBotConfig } from '../services/api';
 
 export default function AntiBotConfig() {
+  // Scrapers disponibles
+  const scrapers = [
+    { id: 'pagesJaunes', name: 'Pages Jaunes', icon: '📒' },
+    { id: 'googleMaps', name: 'Google Maps', icon: '🗺️' },
+    { id: 'linkedin', name: 'LinkedIn', icon: '💼' }
+  ];
+
+  const [selectedScraper, setSelectedScraper] = useState('pagesJaunes');
+  const [testScraper, setTestScraper] = useState('pagesJaunes'); // Scraper pour les tests
   const [activeTab, setActiveTab] = useState('overview');
   const [config, setConfig] = useState({
     strategy: 'none',
@@ -28,16 +37,16 @@ export default function AntiBotConfig() {
   const [error, setError] = useState(null);
   const [testResults, setTestResults] = useState(null);
 
-  // Charger la configuration au montage du composant
+  // Charger la configuration au montage du composant et quand le scraper change
   useEffect(() => {
     loadConfig();
-  }, []);
+  }, [selectedScraper]);
 
   const loadConfig = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getAntiBotConfig();
+      const response = await getAntiBotConfig(selectedScraper);
       if (response.success) {
         setConfig(response.data);
       }
@@ -49,12 +58,17 @@ export default function AntiBotConfig() {
     }
   };
 
+  const handleScraperChange = (scraperId) => {
+    setSelectedScraper(scraperId);
+    setTestResults(null); // Reset test results quand on change de scraper
+  };
+
   const strategies = [
     { id: 'none', name: 'Aucune Protection', cost: 'Gratuit', efficacy: 'Bloqué', icon: '⚠️' },
-    { id: 'proxies', name: 'Proxies Résidentiels', cost: '$75-$1000/mois', efficacy: 'À tester', icon: '🌐' },
-    { id: 'captcha_solver', name: 'CAPTCHA + Stealth', cost: '$0.15-$3/1000p', efficacy: 'À tester', icon: '🔐', recommended: true },
-    { id: 'stealth', name: 'Stealth Seul', cost: 'Gratuit', efficacy: 'Insuffisant', icon: '🥷', disabled: true },
-    { id: 'hybrid', name: 'Mode HYBRID', cost: '$75-$1003/mois', efficacy: 'Maximum', icon: '🚀' }
+    { id: 'stealth', name: 'Stealth Seul', cost: 'Gratuit', efficacy: 'Limité', icon: '🥷' },
+    { id: 'captcha_solver', name: 'CAPTCHA + Stealth', cost: '$0.15-$3/1000p', efficacy: 'Bon', icon: '🔐', recommended: true },
+    { id: 'proxies', name: 'Proxies Résidentiels + Stealth', cost: '$75-$1000/mois', efficacy: 'Bon', icon: '🌐' },
+    { id: 'hybrid', name: 'Mode HYBRID : Proxies + CAPTCHA + Stealth', cost: '$75-$1003/mois', efficacy: 'Maximum', icon: '🚀' }
   ];
 
   const handleStrategyChange = (strategyId) => {
@@ -65,7 +79,7 @@ export default function AntiBotConfig() {
       case 'proxies':
         newConfig.proxies.enabled = true;
         newConfig.captcha.enabled = false;
-        newConfig.stealth.enabled = false;
+        newConfig.stealth.enabled = true; // Proxies doivent toujours être combinés avec Stealth
         break;
       case 'captcha_solver':
         newConfig.proxies.enabled = false;
@@ -95,7 +109,7 @@ export default function AntiBotConfig() {
   const handleSave = async () => {
     try {
       setError(null);
-      const response = await saveAntiBotConfig(config);
+      const response = await saveAntiBotConfig(selectedScraper, config);
       if (response.success) {
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
@@ -112,7 +126,7 @@ export default function AntiBotConfig() {
       setTestResults({ loading: true });
       setError(null);
 
-      const response = await testAntiBotConfig();
+      const response = await testAntiBotConfig(testScraper);
 
       if (response.success) {
         setTestResults({
@@ -148,10 +162,41 @@ export default function AntiBotConfig() {
     <div className="bg-white rounded-lg shadow-md">
       {/* Header */}
       <div className="border-b border-gray-200 px-6 py-4">
-        <h2 className="text-2xl font-bold text-gray-900">Configuration Anti-Bot</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Configurez les stratégies de contournement pour Pages Jaunes
-        </p>
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Configuration Anti-Bot</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Configuration par scraper - Choisissez le scraper à configurer
+            </p>
+          </div>
+
+          {/* Sélecteur de scraper (menu déroulant) */}
+          <div className="flex items-center gap-3">
+            <label htmlFor="scraper-select" className="text-sm font-medium text-gray-700">
+              Scraper :
+            </label>
+            <div className="relative">
+              <select
+                id="scraper-select"
+                value={selectedScraper}
+                onChange={(e) => handleScraperChange(e.target.value)}
+                className="appearance-none bg-white border border-gray-300 rounded-md pl-4 pr-10 py-2 text-sm font-medium text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer min-w-[200px]"
+              >
+                {scrapers.map(scraper => (
+                  <option key={scraper.id} value={scraper.id}>
+                    {scraper.icon} {scraper.name}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {error && (
           <div className="mt-3 bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-800">
             {error}
@@ -470,8 +515,38 @@ export default function AntiBotConfig() {
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-gray-900">Tester la Configuration</h3>
 
+            {/* Sélecteur de scraper pour le test */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-blue-900 mb-1">Scraper à tester</h4>
+                  <p className="text-sm text-blue-700">
+                    Sélectionnez le scraper sur lequel lancer le test
+                  </p>
+                </div>
+                <div className="relative">
+                  <select
+                    value={testScraper}
+                    onChange={(e) => setTestScraper(e.target.value)}
+                    className="appearance-none bg-white border border-blue-300 rounded-md pl-4 pr-10 py-2 text-sm font-medium text-gray-900 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer min-w-[200px]"
+                  >
+                    {scrapers.map(scraper => (
+                      <option key={scraper.id} value={scraper.id}>
+                        {scraper.icon} {scraper.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-2">Configuration Actuelle</h4>
+              <h4 className="font-medium text-gray-900 mb-2">Configuration Actuelle ({scrapers.find(s => s.id === selectedScraper)?.name})</h4>
               <div className="text-sm text-gray-600 space-y-1">
                 <p>Stratégie: <strong>{strategies.find(s => s.id === config.strategy)?.name}</strong></p>
                 <p>Proxies: {config.proxies.enabled ? '✅ Activé' : '❌ Désactivé'}</p>
@@ -484,7 +559,7 @@ export default function AntiBotConfig() {
               onClick={handleTest}
               className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
             >
-              🧪 Lancer un test sur Pages Jaunes
+              🧪 Lancer un test sur {scrapers.find(s => s.id === testScraper)?.name}
             </button>
 
             {testResults && (

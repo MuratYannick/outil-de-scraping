@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getPlaywrightService } from './playwrightService.js';
-import { antiBotConfig } from '../config/antiBotConfig.js';
+import { SCRAPER_IDS, getScraperConfig } from '../config/antiBotConfig.js';
 
 /**
  * Service principal pour Google Maps
@@ -155,7 +155,7 @@ class GoogleMapsService {
 
     if (onProgress) onProgress(10, 'Initialisation du navigateur...');
 
-    const playwrightService = getPlaywrightService();
+    const playwrightService = getPlaywrightService(SCRAPER_IDS.GOOGLE_MAPS);
     let context = null;
     let page = null;
 
@@ -224,7 +224,7 @@ class GoogleMapsService {
   async _infiniteScrollResults(page, resultsSelector, targetCount, onProgress) {
     console.log(`[GoogleMapsService] 📜 Infinite scroll pour charger ${targetCount} résultats...`);
 
-    const playwrightService = getPlaywrightService();
+    const playwrightService = getPlaywrightService(SCRAPER_IDS.GOOGLE_MAPS);
     let previousCount = 0;
     let stableCount = 0;
     const maxStableIterations = 3;
@@ -295,7 +295,7 @@ class GoogleMapsService {
   async _extractDetailedProspects(page, count, onProgress) {
     console.log(`[GoogleMapsService] 📋 Extraction détaillée de ${count} prospects...`);
 
-    const playwrightService = getPlaywrightService();
+    const playwrightService = getPlaywrightService(SCRAPER_IDS.GOOGLE_MAPS);
     const prospects = [];
 
     // Sélecteur des articles
@@ -462,11 +462,12 @@ class GoogleMapsService {
    * Récupère la configuration actuelle
    */
   getConfig() {
+    const scraperConfig = getScraperConfig(SCRAPER_IDS.GOOGLE_MAPS);
     return {
       strategy: this.strategy,
       apiKeyConfigured: !!this.apiKey,
       maxResults: this.maxResults,
-      antiBotStrategy: antiBotConfig.strategy,
+      antiBotStrategy: scraperConfig.activeStrategy,
     };
   }
 }

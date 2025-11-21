@@ -4,10 +4,16 @@ import { getStealthService } from "./stealthService.js";
 import { getSessionManager } from "./sessionManager.js";
 import { getRateLimiter, RATE_LIMIT_PATTERNS } from "./rateLimiter.js";
 import { getHumanBehavior } from "./humanBehavior.js";
-import { antiBotConfig, enableHybridMode, isStrategyActive, ANTIBOT_STRATEGIES } from "../config/antiBotConfig.js";
+import {
+  SCRAPER_IDS,
+  ANTIBOT_STRATEGIES,
+  getScraperConfig,
+  enableHybridMode,
+  isStrategyActive
+} from "../config/antiBotConfig.js";
 
 /**
- * Service de gestion de Playwright pour le scraping
+ * Service de gestion de Playwright pour le scraping PAR SCRAPER
  * Gère le pool de browser contexts, retry, logging et configuration
  */
 
@@ -27,7 +33,8 @@ const DEFAULT_CONFIG = {
 };
 
 class PlaywrightService {
-  constructor(config = {}) {
+  constructor(scraperId = SCRAPER_IDS.PAGES_JAUNES, config = {}) {
+    this.scraperId = scraperId;
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.browser = null;
     this.contexts = [];
@@ -41,56 +48,59 @@ class PlaywrightService {
   }
 
   /**
-   * Initialise le browser Playwright
+   * Initialise le browser Playwright avec la config du scraper spécifique
    */
   async initialize() {
     if (this.isInitialized) {
-      console.log("[PlaywrightService] Déjà initialisé");
+      console.log(`[PlaywrightService:${this.scraperId}] Déjà initialisé`);
       return;
     }
 
     try {
-      console.log("[PlaywrightService] Initialisation du browser...");
-      console.log(`[PlaywrightService] Stratégie anti-bot: ${antiBotConfig.activeStrategy}`);
+      // Récupérer la configuration du scraper spécifique
+      const scraperConfig = getScraperConfig(this.scraperId);
+
+      console.log(`[PlaywrightService:${this.scraperId}] Initialisation du browser...`);
+      console.log(`[PlaywrightService:${this.scraperId}] Stratégie anti-bot: ${scraperConfig.activeStrategy}`);
 
       // Activer le mode HYBRID si nécessaire (active automatiquement les sous-stratégies)
-      const isHybrid = enableHybridMode();
+      const isHybrid = enableHybridMode(this.scraperId);
       if (isHybrid) {
-        console.log("[PlaywrightService] ⚡ Mode HYBRID activé - Combinaison de plusieurs stratégies");
+        console.log(`[PlaywrightService:${this.scraperId}] ⚡ Mode HYBRID activé - Combinaison de plusieurs stratégies`);
       }
 
       // Initialiser le gestionnaire de proxies si activé (direct ou via HYBRID)
-      if (isStrategyActive(ANTIBOT_STRATEGIES.PROXIES) && antiBotConfig.proxies.enabled) {
-        console.log("[PlaywrightService] 🔄 Initialisation du gestionnaire de proxies...");
+      if (isStrategyActive(this.scraperId, ANTIBOT_STRATEGIES.PROXIES) && scraperConfig.proxies.enabled) {
+        console.log(`[PlaywrightService:${this.scraperId}] 🔄 Initialisation du gestionnaire de proxies...`);
         this.proxyManager = getProxyManager();
         await this.proxyManager.initialize();
-        console.log("[PlaywrightService] ✓ Proxies prêts");
+        console.log(`[PlaywrightService:${this.scraperId}] ✓ Proxies prêts`);
       }
 
       // Initialiser le service Stealth si activé (direct ou via HYBRID)
-      if (isStrategyActive(ANTIBOT_STRATEGIES.STEALTH) && antiBotConfig.stealth.enabled) {
-        console.log("[PlaywrightService] 🥷 Initialisation du service Stealth...");
+      if (isStrategyActive(this.scraperId, ANTIBOT_STRATEGIES.STEALTH) && scraperConfig.stealth.enabled) {
+        console.log(`[PlaywrightService:${this.scraperId}] 🥷 Initialisation du service Stealth...`);
         this.stealthService = getStealthService();
         await this.stealthService.initialize();
-        console.log("[PlaywrightService] ✓ Stealth mode prêt");
+        console.log(`[PlaywrightService:${this.scraperId}] ✓ Stealth mode prêt`);
       }
 
       // Initialiser le SessionManager (toujours actif)
-      console.log("[PlaywrightService] 💾 Initialisation du SessionManager...");
+      console.log(`[PlaywrightService:${this.scraperId}] 💾 Initialisation du SessionManager...`);
       this.sessionManager = getSessionManager();
       await this.sessionManager.initialize();
-      console.log("[PlaywrightService] ✓ SessionManager prêt");
+      console.log(`[PlaywrightService:${this.scraperId}] ✓ SessionManager prêt`);
 
       // Initialiser le RateLimiter avec pattern adapté
       const rateLimitPattern = isHybrid ? RATE_LIMIT_PATTERNS.HUMAN : RATE_LIMIT_PATTERNS.NORMAL;
-      console.log(`[PlaywrightService] ⏱️ Initialisation du RateLimiter (${rateLimitPattern})...`);
+      console.log(`[PlaywrightService:${this.scraperId}] ⏱️ Initialisation du RateLimiter (${rateLimitPattern})...`);
       this.rateLimiter = getRateLimiter(rateLimitPattern);
-      console.log("[PlaywrightService] ✓ RateLimiter prêt");
+      console.log(`[PlaywrightService:${this.scraperId}] ✓ RateLimiter prêt`);
 
       // Initialiser le HumanBehavior (toujours actif)
-      console.log("[PlaywrightService] 🤖 Initialisation du HumanBehavior...");
+      console.log(`[PlaywrightService:${this.scraperId}] 🤖 Initialisation du HumanBehavior...`);
       this.humanBehavior = getHumanBehavior();
-      console.log("[PlaywrightService] ✓ HumanBehavior prêt");
+      console.log(`[PlaywrightService:${this.scraperId}] ✓ HumanBehavior prêt`);
 
       this.browser = await chromium.launch({
         headless: this.config.headless,
@@ -110,15 +120,15 @@ class PlaywrightService {
       if (this.proxyManager) activeStrategies.push('Proxies');
 
       console.log(
-        `[PlaywrightService] ✓ Browser initialisé (headless: ${this.config.headless})`
+        `[PlaywrightService:${this.scraperId}] ✓ Browser initialisé (headless: ${this.config.headless})`
       );
       if (activeStrategies.length > 0) {
         console.log(
-          `[PlaywrightService] ✓ Stratégies actives: ${activeStrategies.join(' + ')}`
+          `[PlaywrightService:${this.scraperId}] ✓ Stratégies actives: ${activeStrategies.join(' + ')}`
         );
       }
     } catch (error) {
-      console.error("[PlaywrightService] ❌ Erreur initialisation:", error);
+      console.error(`[PlaywrightService:${this.scraperId}] ❌ Erreur initialisation:`, error);
       throw new Error(`Impossible d'initialiser Playwright: ${error.message}`);
     }
   }
@@ -552,25 +562,40 @@ class PlaywrightService {
 }
 
 // Instance singleton
-let playwrightServiceInstance = null;
+// Instances par scraper (une instance par scraperId)
+const playwrightServiceInstances = {};
 
 /**
- * Récupère l'instance singleton du service
+ * Récupère l'instance du service pour un scraper spécifique
+ * @param {string} scraperId - ID du scraper (SCRAPER_IDS.*)
+ * @param {Object} config - Configuration additionnelle
  */
-export function getPlaywrightService(config = {}) {
-  if (!playwrightServiceInstance) {
-    playwrightServiceInstance = new PlaywrightService(config);
+export function getPlaywrightService(scraperId = SCRAPER_IDS.PAGES_JAUNES, config = {}) {
+  if (!playwrightServiceInstances[scraperId]) {
+    playwrightServiceInstances[scraperId] = new PlaywrightService(scraperId, config);
   }
-  return playwrightServiceInstance;
+  return playwrightServiceInstances[scraperId];
 }
 
 /**
- * Réinitialise l'instance (utile pour les tests)
+ * Réinitialise l'instance d'un scraper (utile pour les tests)
+ * @param {string} scraperId - ID du scraper à réinitialiser (ou undefined pour tous)
  */
-export function resetPlaywrightService() {
-  if (playwrightServiceInstance) {
-    playwrightServiceInstance.close().catch(console.error);
-    playwrightServiceInstance = null;
+export function resetPlaywrightService(scraperId = null) {
+  if (scraperId) {
+    // Réinitialiser un scraper spécifique
+    if (playwrightServiceInstances[scraperId]) {
+      playwrightServiceInstances[scraperId].close().catch(console.error);
+      delete playwrightServiceInstances[scraperId];
+    }
+  } else {
+    // Réinitialiser tous les scrapers
+    for (const id in playwrightServiceInstances) {
+      playwrightServiceInstances[id].close().catch(console.error);
+    }
+    Object.keys(playwrightServiceInstances).forEach(key => {
+      delete playwrightServiceInstances[key];
+    });
   }
 }
 
