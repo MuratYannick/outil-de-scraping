@@ -309,9 +309,28 @@ export async function testConfig(req, res) {
     switch (scraperId) {
       case SCRAPER_IDS.PAGES_JAUNES:
         const { PagesJaunesScraper } = await import('../services/scrapers/pagesJaunesScraper.js');
-        scraper = new PagesJaunesScraper();
-        testParams = { keyword: 'plombier', location: '75001', maxPages: 1, maxResults: 5 };
-        break;
+        const pjScraper = new PagesJaunesScraper();
+
+        console.log('[AntiBotConfigController] Test Pages Jaunes scraper...');
+        const pjProspects = await pjScraper.scrape('plombier', '75001', {
+          maxPages: 1,
+          maxResults: 5
+        });
+
+        const pjSuccess = pjProspects && pjProspects.length > 0;
+        return res.json({
+          success: true,
+          data: {
+            testSuccess: pjSuccess,
+            blocked: !pjSuccess,
+            prospectsExtracted: pjProspects?.length || 0,
+            message: pjSuccess
+              ? `Test réussi ! ${pjProspects.length} prospect(s) extrait(s).`
+              : 'Le scraping a été bloqué par Pages Jaunes.',
+            prospects: pjProspects?.slice(0, 3) || [],
+            metadata: {}
+          }
+        });
 
       case SCRAPER_IDS.GOOGLE_MAPS:
         const GoogleMapsServiceModule = await import('../services/googleMapsService.js');
@@ -343,9 +362,27 @@ export async function testConfig(req, res) {
       case SCRAPER_IDS.LINKEDIN:
         const LinkedInScraperModule = await import('../services/scrapers/linkedInScraper.js');
         const LinkedInScraper = LinkedInScraperModule.default;
-        scraper = new LinkedInScraper();
-        testParams = { keyword: 'développeur', location: 'Paris', maxResults: 5 };
-        break;
+        const linkedInScraper = new LinkedInScraper();
+
+        console.log('[AntiBotConfigController] Test LinkedIn scraper...');
+        const linkedInProspects = await linkedInScraper.scrape('développeur', 'Paris', {
+          maxResults: 5
+        });
+
+        const linkedInSuccess = linkedInProspects && linkedInProspects.length > 0;
+        return res.json({
+          success: true,
+          data: {
+            testSuccess: linkedInSuccess,
+            blocked: !linkedInSuccess,
+            prospectsExtracted: linkedInProspects?.length || 0,
+            message: linkedInSuccess
+              ? `Test réussi ! ${linkedInProspects.length} profil(s) LinkedIn extrait(s).`
+              : 'Le scraping a été bloqué. LinkedIn requiert une stratégie anti-bot plus avancée.',
+            prospects: linkedInProspects?.slice(0, 3) || [],
+            metadata: {}
+          }
+        });
 
       default:
         return res.status(400).json({
@@ -353,38 +390,6 @@ export async function testConfig(req, res) {
           message: 'Scraper non supporté pour les tests'
         });
     }
-
-    console.log(`[AntiBotConfigController] Lancement test de scraping pour ${scraperId}...`);
-
-    // Lancer le test
-    const result = await scraper.scrape(
-      testParams.keyword,
-      testParams.location,
-      { maxPages: testParams.maxPages, maxResults: testParams.maxResults }
-    );
-
-    const isBlocked = result.prospects.length === 0;
-    const success = !isBlocked;
-
-    console.log(`[AntiBotConfigController] Test ${scraperId} terminé:`, {
-      success,
-      prospectsCount: result.prospects.length,
-      blocked: isBlocked
-    });
-
-    res.json({
-      success: true,
-      data: {
-        testSuccess: success,
-        blocked: isBlocked,
-        prospectsExtracted: result.prospects.length,
-        message: isBlocked
-          ? `Le scraping a été bloqué par ${scraperId}. La configuration actuelle est insuffisante.`
-          : `Test réussi ! ${result.prospects.length} prospect(s) extrait(s).`,
-        prospects: result.prospects.slice(0, 3),
-        metadata: result.metadata || {}
-      }
-    });
   } catch (error) {
     console.error('[AntiBotConfigController] Erreur test:', error);
     res.status(500).json({

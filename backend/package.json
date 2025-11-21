@@ -9,6 +9,9 @@
     "dev": "node --watch src/app.js",
     "db:setup": "node scripts/setup-db.js",
     "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "db:clear": "node scripts/clear.js",
+    "db:drop": "node scripts/drop.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
