@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Header from "./components/Header";
 import ProspectList from "./components/ProspectList";
 import AntiBotConfig from "./components/AntiBotConfig";
@@ -21,7 +21,7 @@ export default function App() {
   const [apiStatus, setApiStatus] = useState({ connected: false });
   const [pagination, setPagination] = useState({
     total: 0,
-    limit: 20,
+    limit: 10, // Réduit de 20 à 10 pour avoir plusieurs pages
     offset: 0,
   });
 
@@ -129,15 +129,15 @@ export default function App() {
     }
   };
 
-  // Gérer le changement de filtres
-  const handleFilterChange = (newFilters) => {
+  // Gérer le changement de filtres (useCallback pour éviter les re-renders inutiles)
+  const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters);
     // Réinitialiser à la première page quand on change les filtres
     setPagination(prev => ({
       ...prev,
       offset: 0,
     }));
-  };
+  }, []);
 
   // Gérer le changement de page
   const handlePageChange = (newOffset) => {

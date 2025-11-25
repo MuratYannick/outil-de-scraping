@@ -32,7 +32,8 @@ export default function ProspectFilters({ onFilterChange }) {
     if (onFilterChange) {
       onFilterChange(filters);
     }
-  }, [filters, onFilterChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]); // Volontairement pas onFilterChange pour éviter la boucle infinie
 
   const handleChange = (name, value) => {
     setFilters(prev => ({

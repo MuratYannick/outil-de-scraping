@@ -7,8 +7,20 @@ export default function Pagination({ total, limit, offset, onPageChange }) {
   const currentPage = Math.floor(offset / limit) + 1;
   const totalPages = Math.ceil(total / limit);
 
+  // Si aucun prospect, ne rien afficher
+  if (total === 0) {
+    return null;
+  }
+
+  // Si une seule page, afficher juste l'info sans les boutons
   if (totalPages <= 1) {
-    return null; // Pas de pagination nécessaire
+    return (
+      <div className="bg-white px-4 py-3 flex items-center justify-center border-t border-gray-200 sm:px-6">
+        <p className="text-sm text-gray-700">
+          <span className="font-medium">{total}</span> résultat{total > 1 ? 's' : ''} au total
+        </p>
+      </div>
+    );
   }
 
   const handlePrevious = () => {

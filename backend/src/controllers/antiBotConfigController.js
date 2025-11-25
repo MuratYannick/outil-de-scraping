@@ -312,22 +312,22 @@ export async function testConfig(req, res) {
         const pjScraper = new PagesJaunesScraper();
 
         console.log('[AntiBotConfigController] Test Pages Jaunes scraper...');
-        const pjProspects = await pjScraper.scrape('plombier', '75001', {
+        const pjResult = await pjScraper.scrape('plombier', '75001', {
           maxPages: 1,
           maxResults: 5
         });
 
-        const pjSuccess = pjProspects && pjProspects.length > 0;
+        const pjSuccess = pjResult.success && pjResult.prospects && pjResult.prospects.length > 0;
         return res.json({
           success: true,
           data: {
             testSuccess: pjSuccess,
             blocked: !pjSuccess,
-            prospectsExtracted: pjProspects?.length || 0,
+            prospectsExtracted: pjResult.prospects?.length || 0,
             message: pjSuccess
-              ? `Test réussi ! ${pjProspects.length} prospect(s) extrait(s).`
+              ? `Test réussi ! ${pjResult.prospects.length} prospect(s) extrait(s).`
               : 'Le scraping a été bloqué par Pages Jaunes.',
-            prospects: pjProspects?.slice(0, 3) || [],
+            prospects: pjResult.prospects?.slice(0, 3) || [],
             metadata: {}
           }
         });

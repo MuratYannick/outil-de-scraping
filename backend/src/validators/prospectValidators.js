@@ -105,10 +105,10 @@ export const deleteProspectSchema = {
 // Validation pour la récupération de tous les prospects (avec filtres)
 export const getAllProspectsSchema = {
   query: Joi.object({
-    limit: Joi.number().integer().min(1).max(100).default(20).messages({
+    limit: Joi.number().integer().min(1).max(10000).default(20).messages({
       'number.base': 'La limite doit être un nombre',
       'number.min': 'La limite doit être au moins 1',
-      'number.max': 'La limite ne peut pas dépasser 100',
+      'number.max': 'La limite ne peut pas dépasser 10000',
     }),
     offset: Joi.number().integer().min(0).default(0).messages({
       'number.base': 'L\'offset doit être un nombre',

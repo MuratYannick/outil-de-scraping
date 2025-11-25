@@ -258,9 +258,9 @@ export const saveAntiBotConfig = async (scraperId, config) => {
  * @returns {Promise}
  */
 export const testAntiBotConfig = async (scraperId) => {
-  // Timeout augmenté à 60s pour les tests de scraping (lancent un navigateur)
+  // Timeout augmenté à 120s pour les tests de scraping (lancent un navigateur + rate limiting)
   const response = await api.post(`/antibot/test/${scraperId}`, {}, {
-    timeout: 60000 // 60 secondes
+    timeout: 120000 // 120 secondes
   });
   return response.data;
 };

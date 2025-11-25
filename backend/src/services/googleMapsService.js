@@ -174,14 +174,75 @@ class GoogleMapsService {
       console.log(`[GoogleMapsService] Navigation: ${url}`);
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
-      // Attendre que les résultats se chargent
-      await page.waitForTimeout(2000);
+      // Attendre que la page se stabilise
+      await page.waitForTimeout(3000);
+
+      // Gérer le popup de cookies Google si présent
+      let cookieHandled = false;
+      try {
+        console.log('[GoogleMapsService] Vérification popup cookies...');
+
+        // Vérifier si on est sur la page de consentement Google
+        const pageTitle = await page.title();
+        const pageUrl = page.url();
+        console.log(`[GoogleMapsService] Page actuelle: ${pageTitle}`);
+        console.log(`[GoogleMapsService] URL actuelle: ${pageUrl}`);
+
+        // Liste complète de sélecteurs pour les boutons de cookies
+        const acceptButtonSelectors = [
+          // Texte visible
+          'button:has-text("Tout accepter")',
+          'button:has-text("Accept all")',
+          'button:has-text("Tout refuser")',
+          'button:has-text("Reject all")',
+          // IDs courants
+          '#L2AGLb', // Bouton "Tout refuser" en français
+          '#W0wltc', // Bouton "Tout accepter" en français
+          // Sélecteurs plus génériques
+          'button[aria-label*="Accepter"]',
+          'button[aria-label*="Accept"]',
+          'button[aria-label*="Refuser"]',
+          'button[aria-label*="Reject"]',
+          // Forme du bouton
+          'form[action*="consent"] button',
+          'div[role="dialog"] button'
+        ];
+
+        for (const selector of acceptButtonSelectors) {
+          try {
+            const button = await page.$(selector);
+            if (button) {
+              const isVisible = await button.isVisible();
+              if (isVisible) {
+                console.log(`[GoogleMapsService] ✓ Bouton cookies trouvé: ${selector}`);
+                await button.click();
+                console.log('[GoogleMapsService] ✓ Clic effectué, attente de la redirection...');
+
+                // Attendre que la page Google Maps se charge après le clic
+                await page.waitForTimeout(3000);
+                cookieHandled = true;
+                break;
+              }
+            }
+          } catch (err) {
+            // Ignorer les erreurs pour continuer à tester les autres sélecteurs
+            continue;
+          }
+        }
+
+        if (!cookieHandled) {
+          console.log('[GoogleMapsService] Aucun popup cookies détecté ou déjà géré');
+        }
+      } catch (error) {
+        console.log('[GoogleMapsService] Erreur lors de la gestion des cookies:', error.message);
+      }
 
       if (onProgress) onProgress(20, 'Détection des résultats...');
 
       // Détecter le panneau de résultats (scrollable)
+      console.log('[GoogleMapsService] Recherche du panneau de résultats...');
       const resultsSelector = 'div[role="feed"]';
-      await page.waitForSelector(resultsSelector, { timeout: 10000 });
+      await page.waitForSelector(resultsSelector, { timeout: 20000 });
 
       console.log('[GoogleMapsService] ✓ Panneau de résultats détecté');
 
@@ -226,12 +287,13 @@ class GoogleMapsService {
 
     const playwrightService = getPlaywrightService(SCRAPER_IDS.GOOGLE_MAPS);
     let previousCount = 0;
+    let currentCount = 0;
     let stableCount = 0;
     const maxStableIterations = 3;
 
     for (let iteration = 0; iteration < 20; iteration++) {
       // Compter les résultats actuellement chargés
-      const currentCount = await page.evaluate((selector) => {
+      currentCount = await page.evaluate((selector) => {
         const articles = document.querySelectorAll(`${selector} div[role="article"]`);
         return articles.length;
       }, resultsSelector);
@@ -285,7 +347,7 @@ class GoogleMapsService {
 
     await page.waitForTimeout(500);
 
-    return previousCount;
+    return currentCount;
   }
 
   /**
@@ -301,39 +363,194 @@ class GoogleMapsService {
     // Sélecteur des articles
     const articleSelector = 'div[role="feed"] div[role="article"]';
 
-    for (let i = 0; i < count; i++) {
+    // Récupérer tous les articles d'un coup
+    const articles = await page.$$(articleSelector);
+    console.log(`[GoogleMapsService] ${articles.length} articles trouvés dans le DOM`);
+
+    // Extraire directement depuis les cards de la liste (pas besoin de cliquer !)
+    for (let i = 0; i < Math.min(count, articles.length); i++) {
       try {
         console.log(`[GoogleMapsService] Extraction prospect ${i + 1}/${count}...`);
 
-        // Attendre que l'article soit disponible
-        const article = await page.$(`:nth-match(${articleSelector}, ${i + 1})`);
+        const article = articles[i];
 
         if (!article) {
           console.warn(`[GoogleMapsService] Article ${i + 1} non trouvé, skip`);
           continue;
         }
 
-        // Scroll vers l'article de manière progressive
-        await playwrightService.scrollToElement(page, `:nth-match(${articleSelector}, ${i + 1})`, {
-          offset: -100,
-          duration: 800
+        // Extraire les informations directement depuis la card
+        const prospect = await article.evaluate((el) => {
+          const data = {};
+
+          // DEBUG: Obtenir tout le HTML de l'article pour inspection
+          data.debug_html = el.innerHTML.substring(0, 500); // Premiers 500 caractères
+
+          // Nom de l'entreprise - le nom est dans aria-label du lien !
+          let nameEl = el.querySelector('a[href*="/maps/place/"]');
+          if (!nameEl) nameEl = el.querySelector('a.hfpxzc'); // Classe spécifique Google Maps
+
+          // Le nom est dans aria-label, pas dans textContent
+          let nom = null;
+          if (nameEl) {
+            nom = nameEl.getAttribute('aria-label');
+            // Si pas d'aria-label, essayer le textContent
+            if (!nom) nom = nameEl.textContent?.trim();
+          }
+
+          // Fallback sur d'autres sélecteurs si pas trouvé
+          if (!nom) {
+            const headingEl = el.querySelector('[class*="fontHeadline"]') || el.querySelector('div[role="heading"]');
+            nom = headingEl?.textContent?.trim();
+          }
+
+          data.nom_entreprise = nom || 'Nom inconnu';
+          data.debug_name_selector = nameEl ? 'found (aria-label)' : 'not found';
+
+          // Adresse - chercher dans plusieurs endroits
+          // L'adresse est dans un div/span séparé, généralement après la note
+          let adresse = null;
+
+          // Stratégie: Chercher UNIQUEMENT les divs/spans feuilles (sans enfants)
+          // qui contiennent une vraie adresse
+          const allElements = el.querySelectorAll('div, span');
+          const addressCandidates = [];
+
+          for (const element of allElements) {
+            // IMPORTANT: Prendre UNIQUEMENT les éléments sans enfants (feuilles du DOM)
+            if (element.children.length > 0) continue;
+
+            const text = element.textContent?.trim();
+
+            // Skip si vide ou trop court
+            if (!text || text.length < 5) continue;
+
+            // Skip si c'est exactement le nom de l'entreprise
+            if (text === nom) continue;
+
+            // Skip si c'est une note (ex: "4,6(322)")
+            if (text.match(/^\d+[,.]?\d*\(\d+\)$/)) continue;
+
+            // Skip si le texte contient le nom (= c'est un parent qui contient tout)
+            if (text.includes(nom) && text.length > nom.length + 10) continue;
+
+            // Skip si contient une note avec parenthèses (signe de concaténation)
+            if (text.match(/\d+[,.]?\d*\(\d+\)/)) continue;
+
+            // Score pour identifier une adresse
+            let score = 0;
+
+            // Bonus si contient un code postal français (5 chiffres)
+            if (text.match(/\b\d{5}\b/)) score += 10;
+
+            // Bonus si contient "rue", "avenue", "boulevard", etc.
+            if (text.match(/\b(rue|avenue|av\.|bd|boulevard|impasse|place|chemin|allée)\b/i)) score += 8;
+
+            // Bonus si commence par un numéro (ex: "15 rue de...")
+            if (text.match(/^\d+[\s,]/)) score += 5;
+
+            // Bonus si contient une ville connue
+            if (text.match(/\b(Paris|Lyon|Marseille|Toulouse|Nice|Nantes|Bordeaux)\b/i)) score += 3;
+
+            // Malus si contient des mots métier (signe que c'est pas une adresse pure)
+            if (text.match(/\b(plombier|électricien|chauffagiste|dépannage|service|artisan)\b/i)) score -= 10;
+
+            // Malus si trop long (probablement du texte concaténé)
+            if (text.length > 100) score -= 5;
+
+            if (score > 0) {
+              addressCandidates.push({ text, score });
+            }
+          }
+
+          // Prendre le candidat avec le meilleur score
+          if (addressCandidates.length > 0) {
+            addressCandidates.sort((a, b) => b.score - a.score);
+            adresse = addressCandidates[0].text;
+          }
+
+          data.adresse = adresse;
+          data.debug_address_selector = adresse ? `found (score: ${addressCandidates[0]?.score || 0})` : 'not found';
+
+          // Téléphone - chercher un numéro de téléphone français
+          let telephone = null;
+          const phoneRegexes = [
+            /\b0[1-9](?:[\s\.]?\d{2}){4}\b/,           // 01 23 45 67 89 ou 01.23.45.67.89
+            /\b\+33[\s\.]?[1-9](?:[\s\.]?\d{2}){4}\b/, // +33 1 23 45 67 89
+            /\b(?:0033|0)[\s\.]?[1-9](?:[\s\.]?\d{2}){4}\b/ // 0033 1 23 45 67 89
+          ];
+
+          // Chercher dans tous les éléments texte
+          for (const element of allElements) {
+            if (element.children.length > 0) continue;
+            const text = element.textContent?.trim();
+            if (!text) continue;
+
+            // Tester chaque pattern de téléphone
+            for (const regex of phoneRegexes) {
+              const match = text.match(regex);
+              if (match) {
+                telephone = match[0];
+                break;
+              }
+            }
+
+            if (telephone) break;
+          }
+
+          data.telephone = telephone;
+          data.debug_phone_selector = telephone ? 'found' : 'not found';
+
+          // Note
+          const ratingEl = el.querySelector('span[role="img"]');
+          if (ratingEl) {
+            const ariaLabel = ratingEl.getAttribute('aria-label');
+            const match = ariaLabel?.match(/(\d+[,.]?\d*)/);
+            data.note = match ? parseFloat(match[1].replace(',', '.')) : null;
+          }
+          data.debug_rating_selector = ratingEl ? 'found' : 'not found';
+
+          // Site web (lien)
+          const linkEl = el.querySelector('a[href*="/maps/place/"]');
+          data.url_maps = linkEl?.href || null;
+          data.debug_link_selector = linkEl ? 'found' : 'not found';
+
+          return data;
         });
 
-        await page.waitForTimeout(300);
+        // Logger les données extraites pour debug
+        console.log(`[GoogleMapsService] 🔍 Debug prospect ${i + 1}:`, {
+          nom: prospect.nom_entreprise,
+          adresse: prospect.adresse?.substring(0, 50),
+          telephone: prospect.telephone,
+          note: prospect.note,
+          url: prospect.url_maps?.substring(0, 60),
+          selectors: {
+            name: prospect.debug_name_selector,
+            address: prospect.debug_address_selector,
+            phone: prospect.debug_phone_selector,
+            rating: prospect.debug_rating_selector,
+            link: prospect.debug_link_selector
+          }
+        });
 
-        // Cliquer sur l'article pour ouvrir le panneau de détails
-        await article.click();
-        console.log(`[GoogleMapsService] ✓ Clic sur prospect ${i + 1}`);
+        // Logger le HTML pour inspection (seulement le premier pour éviter spam)
+        if (i === 0) {
+          console.log(`[GoogleMapsService] 📄 HTML du premier article:\n${prospect.debug_html}`);
+        }
 
-        // Attendre que le panneau de détails se charge
-        await page.waitForTimeout(1500);
+        // Formater et ajouter les champs manquants
+        // Le téléphone est maintenant extrait ci-dessus
+        prospect.email = null; // Jamais visible dans la liste
+        prospect.source_scraping = 'Google Maps Scraper (Enhanced)';
+        prospect.latitude = null;
+        prospect.longitude = null;
 
-        // Extraire les informations du panneau de détails
-        const prospect = await this._extractProspectDetails(page);
-
-        if (prospect) {
+        if (prospect && prospect.nom_entreprise && prospect.nom_entreprise !== 'Nom inconnu') {
           prospects.push(prospect);
           console.log(`[GoogleMapsService] ✓ Prospect ${i + 1}: ${prospect.nom_entreprise}`);
+        } else {
+          console.log(`[GoogleMapsService] ⚠️ Prospect ${i + 1}: données incomplètes, ignoré`);
         }
 
         // Mettre à jour la progression
@@ -342,8 +559,8 @@ class GoogleMapsService {
           onProgress(progress, `Extraction: ${i + 1}/${count} prospects...`);
         }
 
-        // Rate limiting entre chaque extraction
-        await playwrightService.waitWithRateLimit();
+        // Pas besoin de rate limiting si on ne clique pas
+        await page.waitForTimeout(100);
 
       } catch (error) {
         console.error(`[GoogleMapsService] ❌ Erreur extraction prospect ${i + 1}:`, error.message);
@@ -363,21 +580,49 @@ class GoogleMapsService {
       const details = await page.evaluate(() => {
         const data = {};
 
-        // Nom de l'entreprise (heading principal)
-        const nameEl = document.querySelector('h1');
-        data.nom_entreprise = nameEl?.textContent?.trim() || 'Nom inconnu';
+        // Cibler spécifiquement le panneau de détails (role="main")
+        const mainPanel = document.querySelector('div[role="main"]');
 
-        // Adresse
-        const addressButton = document.querySelector('button[data-item-id="address"]');
+        if (!mainPanel) {
+          console.log('[Extract] Panneau principal non trouvé');
+          data.nom_entreprise = 'Nom inconnu';
+          return data;
+        }
+
+        // Nom de l'entreprise - chercher dans le panneau principal uniquement
+        let nameEl = mainPanel.querySelector('h1.DUwDvf');
+        if (!nameEl) nameEl = mainPanel.querySelector('h1[class*="fontHeadline"]');
+        if (!nameEl) nameEl = mainPanel.querySelector('h1');
+        if (!nameEl) nameEl = mainPanel.querySelector('h2');
+
+        // Filtrer "Résultats" qui est le titre de la sidebar
+        let nomEntreprise = nameEl?.textContent?.trim() || 'Nom inconnu';
+        if (nomEntreprise === 'Résultats' || nomEntreprise === 'Results') {
+          // Essayer un autre sélecteur plus spécifique
+          nameEl = mainPanel.querySelector('[class*="fontHeadline"]');
+          nomEntreprise = nameEl?.textContent?.trim() || 'Nom inconnu';
+        }
+
+        data.nom_entreprise = nomEntreprise;
+
+        // Adresse - essayer plusieurs sélecteurs
+        let addressButton = document.querySelector('button[data-item-id="address"]');
+        if (!addressButton) addressButton = document.querySelector('[data-item-id="address"]');
+        if (!addressButton) addressButton = document.querySelector('button[aria-label*="Adresse"]');
         data.adresse = addressButton?.textContent?.trim() || null;
 
-        // Téléphone
-        const phoneButton = document.querySelector('button[data-item-id^="phone"]');
-        const phoneText = phoneButton?.textContent?.trim();
-        data.telephone = phoneText || null;
+        // Téléphone - essayer plusieurs sélecteurs
+        let phoneButton = document.querySelector('button[data-item-id^="phone"]');
+        if (!phoneButton) phoneButton = document.querySelector('[data-item-id^="phone"]');
+        if (!phoneButton) phoneButton = document.querySelector('button[aria-label*="Téléphone"]');
+        if (!phoneButton) phoneButton = document.querySelector('button[aria-label*="Phone"]');
+        data.telephone = phoneButton?.textContent?.trim() || null;
 
-        // Site web
-        const websiteButton = document.querySelector('a[data-item-id="authority"]');
+        // Site web - essayer plusieurs sélecteurs
+        let websiteButton = document.querySelector('a[data-item-id="authority"]');
+        if (!websiteButton) websiteButton = document.querySelector('[data-item-id="authority"]');
+        if (!websiteButton) websiteButton = document.querySelector('a[aria-label*="Site Web"]');
+        if (!websiteButton) websiteButton = document.querySelector('a[aria-label*="Website"]');
         data.url_site = websiteButton?.href || null;
 
         // Coordonnées GPS depuis l'URL
@@ -388,11 +633,19 @@ class GoogleMapsService {
         }
 
         // Note/avis (optionnel)
-        const ratingEl = document.querySelector('span[role="img"]');
-        const ratingText = ratingEl?.getAttribute('aria-label');
-        if (ratingText) {
-          const ratingMatch = ratingText.match(/(\d+[,.]?\d*)/);
-          data.note = ratingMatch ? parseFloat(ratingMatch[1].replace(',', '.')) : null;
+        const ratingEl = document.querySelector('span[role="img"][aria-label*="étoiles"]');
+        if (!ratingEl) {
+          const ratingText = document.querySelector('div[role="img"][aria-label*="étoiles"]')?.getAttribute('aria-label');
+          if (ratingText) {
+            const ratingMatch = ratingText.match(/(\d+[,.]?\d*)/);
+            data.note = ratingMatch ? parseFloat(ratingMatch[1].replace(',', '.')) : null;
+          }
+        } else {
+          const ratingText = ratingEl.getAttribute('aria-label');
+          if (ratingText) {
+            const ratingMatch = ratingText.match(/(\d+[,.]?\d*)/);
+            data.note = ratingMatch ? parseFloat(ratingMatch[1].replace(',', '.')) : null;
+          }
         }
 
         return data;
