@@ -158,10 +158,12 @@ outil-de-scraping/
 │   ├── ANTIBOT_CONFIG.md          # Guide configuration stratégies anti-bot
 │   ├── PROXY_TEST_RESULTS.md      # Résultats tests proxies
 │   ├── CAPTCHA_SOLVER.md          # Guide CAPTCHA solver
-│   ├── DECISION_ANTI_BOT.md       # Guide de décision
-│   ├── SCRAPING_API.md            # Documentation API de scraping
-│   ├── STEALTH_ENHANCED.md        # Guide complet anti-détection
-│   └── TESTS_STEALTH_ENHANCED.md  # Résultats détaillés tests Phases 1-3
+│   ├── DECISION_ANTI_BOT.md          # Guide de décision
+│   ├── SCRAPING_API.md               # Documentation API de scraping
+│   ├── STEALTH_ENHANCED.md           # Guide complet anti-détection
+│   ├── TESTS_STEALTH_ENHANCED.md     # Résultats détaillés tests Phases 1-3
+│   ├── GOOGLE_MAPS_EXTRACTION.md     # Méthode de scoring extraction Google Maps
+│   └── TESTS_ANTIBOT_EXPECTED_RESULTS.md  # Résultats attendus tests anti-bot
 └── .gitignore
 ```
 
