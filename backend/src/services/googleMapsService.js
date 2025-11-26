@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getPlaywrightService } from './playwrightService.js';
 import { SCRAPER_IDS, getScraperConfig } from '../config/antiBotConfig.js';
+import { normalizeKeyword, normalizeLocation } from '../utils/stringUtils.js';
 
 /**
  * Service principal pour Google Maps
@@ -26,12 +27,27 @@ class GoogleMapsService {
   async search(params, onProgress = null) {
     const { keyword, location, maxResults = this.maxResults } = params;
 
-    console.log(`[GoogleMapsService] Recherche: "${keyword}" à "${location}" (stratégie: ${this.strategy})`);
+    // Normaliser les mots-clés et localisation (retirer accents pour compatibilité URL)
+    const normalizedKeyword = normalizeKeyword(keyword);
+    const normalizedLocation = normalizeLocation(location);
+
+    // Logger les mots-clés originaux et normalisés si différents
+    if (normalizedKeyword !== keyword || normalizedLocation !== location) {
+      console.log(`[GoogleMapsService] Normalisation des accents:`);
+      if (normalizedKeyword !== keyword) {
+        console.log(`  Keyword: "${keyword}" → "${normalizedKeyword}"`);
+      }
+      if (normalizedLocation !== location) {
+        console.log(`  Location: "${location}" → "${normalizedLocation}"`);
+      }
+    }
+
+    console.log(`[GoogleMapsService] Recherche: "${normalizedKeyword}" à "${normalizedLocation}" (stratégie: ${this.strategy})`);
 
     if (this.strategy === 'api') {
-      return await this._searchWithAPI(keyword, location, maxResults, onProgress);
+      return await this._searchWithAPI(normalizedKeyword, normalizedLocation, maxResults, onProgress);
     } else {
-      return await this._searchWithScraper(keyword, location, maxResults, onProgress);
+      return await this._searchWithScraper(normalizedKeyword, normalizedLocation, maxResults, onProgress);
     }
   }
 
@@ -518,13 +534,42 @@ class GoogleMapsService {
           return data;
         });
 
+        // Mapper url_maps vers url_site pour correspondre au modèle DB
+        prospect.url_site = prospect.url_maps;
+
+        // Extraire latitude/longitude depuis l'URL Google Maps
+        // Format principal: https://www.google.com/maps/place/.../data=!4m7!3m6!...!3d48.889609!4d2.344058!...
+        // Format alternatif: https://www.google.com/maps/place/.../@48.8566,2.3522,17z/...
+        if (prospect.url_maps) {
+          // Essayer d'abord le format !3d/!4d (format data - plus commun)
+          let coordsMatch = prospect.url_maps.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+          if (coordsMatch) {
+            prospect.latitude = parseFloat(coordsMatch[1]);
+            prospect.longitude = parseFloat(coordsMatch[2]);
+          } else {
+            // Fallback sur format @lat,lng (format classique)
+            coordsMatch = prospect.url_maps.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+            if (coordsMatch) {
+              prospect.latitude = parseFloat(coordsMatch[1]);
+              prospect.longitude = parseFloat(coordsMatch[2]);
+            } else {
+              prospect.latitude = null;
+              prospect.longitude = null;
+            }
+          }
+        } else {
+          prospect.latitude = null;
+          prospect.longitude = null;
+        }
+
         // Logger les données extraites pour debug
         console.log(`[GoogleMapsService] 🔍 Debug prospect ${i + 1}:`, {
           nom: prospect.nom_entreprise,
           adresse: prospect.adresse?.substring(0, 50),
           telephone: prospect.telephone,
           note: prospect.note,
-          url: prospect.url_maps?.substring(0, 60),
+          url: prospect.url_site?.substring(0, 60),
+          coords: prospect.latitude && prospect.longitude ? `${prospect.latitude}, ${prospect.longitude}` : 'N/A',
           selectors: {
             name: prospect.debug_name_selector,
             address: prospect.debug_address_selector,
@@ -540,11 +585,8 @@ class GoogleMapsService {
         }
 
         // Formater et ajouter les champs manquants
-        // Le téléphone est maintenant extrait ci-dessus
         prospect.email = null; // Jamais visible dans la liste
         prospect.source_scraping = 'Google Maps Scraper (Enhanced)';
-        prospect.latitude = null;
-        prospect.longitude = null;
 
         if (prospect && prospect.nom_entreprise && prospect.nom_entreprise !== 'Nom inconnu') {
           prospects.push(prospect);

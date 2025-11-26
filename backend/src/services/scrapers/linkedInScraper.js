@@ -1,5 +1,6 @@
 import { getPlaywrightService } from "../playwrightService.js";
 import { SCRAPER_IDS } from "../../config/antiBotConfig.js";
+import { normalizeKeyword, normalizeLocation } from "../../utils/stringUtils.js";
 
 /**
  * Scraper pour LinkedIn (Mode Public)
@@ -46,11 +47,26 @@ class LinkedInScraper {
    * @param {number} maxResults - Nombre max de résultats (limité à 10)
    */
   async searchProfilesViaGoogle(keyword, location, maxResults = 10) {
+    // Normaliser les mots-clés et localisation (retirer accents)
+    const normalizedKeyword = normalizeKeyword(keyword);
+    const normalizedLocation = normalizeLocation(location);
+
+    // Logger si normalisation effectuée
+    if (normalizedKeyword !== keyword || normalizedLocation !== location) {
+      console.log(`[LinkedInScraper] Normalisation des accents:`);
+      if (normalizedKeyword !== keyword) {
+        console.log(`  Keyword: "${keyword}" → "${normalizedKeyword}"`);
+      }
+      if (normalizedLocation !== location) {
+        console.log(`  Location: "${location}" → "${normalizedLocation}"`);
+      }
+    }
+
     // Limiter strictement le nombre de résultats
     const limit = Math.min(maxResults, this.maxProfilesPerSession);
 
     // Construction de la requête Google
-    const googleQuery = `site:linkedin.com/in/ "${keyword}" "${location}"`;
+    const googleQuery = `site:linkedin.com/in/ "${normalizedKeyword}" "${normalizedLocation}"`;
     const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQuery)}&num=${limit}`;
 
     console.log(`[LinkedInScraper] Recherche Google: ${googleQuery}`);

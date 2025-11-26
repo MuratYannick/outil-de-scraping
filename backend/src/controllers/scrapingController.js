@@ -193,6 +193,9 @@ async function saveProspects(prospects, keyword) {
         adresse: prospectData.adresse || null,
         url_site: prospectData.url_site || null,
         source_scraping: prospectData.source_scraping || 'Pages Jaunes',
+        latitude: prospectData.latitude || null,
+        longitude: prospectData.longitude || null,
+        note: prospectData.note || null,
       });
 
       // Associer le tag

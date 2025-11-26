@@ -1,5 +1,6 @@
 import { getPlaywrightService } from "../playwrightService.js";
 import { SCRAPER_IDS } from "../../config/antiBotConfig.js";
+import { normalizeKeyword, normalizeLocation } from "../../utils/stringUtils.js";
 
 /**
  * Scraper pour Pages Jaunes
@@ -267,7 +268,22 @@ class PagesJaunesScraper {
       onProgress = null // Callback pour le feedback en temps réel
     } = options;
 
-    console.log(`[PagesJaunesScraper] Démarrage du scraping: "${quoiqui}" à "${ou}"`);
+    // Normaliser les mots-clés et localisation (retirer accents)
+    const normalizedQuoiqui = normalizeKeyword(quoiqui);
+    const normalizedOu = normalizeLocation(ou);
+
+    // Logger si normalisation effectuée
+    if (normalizedQuoiqui !== quoiqui || normalizedOu !== ou) {
+      console.log(`[PagesJaunesScraper] Normalisation des accents:`);
+      if (normalizedQuoiqui !== quoiqui) {
+        console.log(`  Quoi/Qui: "${quoiqui}" → "${normalizedQuoiqui}"`);
+      }
+      if (normalizedOu !== ou) {
+        console.log(`  Où: "${ou}" → "${normalizedOu}"`);
+      }
+    }
+
+    console.log(`[PagesJaunesScraper] Démarrage du scraping: "${normalizedQuoiqui}" à "${normalizedOu}"`);
     console.log(`[PagesJaunesScraper] Max pages: ${maxPages}, Max résultats: ${maxResults}`);
 
     const allProspects = [];
@@ -283,7 +299,7 @@ class PagesJaunesScraper {
       for (pageNum = 1; pageNum <= maxPages; pageNum++) {
         console.log(`\n[PagesJaunesScraper] === Page ${pageNum}/${maxPages} ===`);
 
-        const prospects = await this.scrapePage(page, quoiqui, ou, pageNum);
+        const prospects = await this.scrapePage(page, normalizedQuoiqui, normalizedOu, pageNum);
         allProspects.push(...prospects);
 
         console.log(`[PagesJaunesScraper] ${prospects.length} prospects extraits de la page ${pageNum}`);
