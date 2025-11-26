@@ -102,6 +102,50 @@
 
 ---
 
+#### Correction : Téléphones extraits dans le champ adresse
+**Date** : 26 novembre 2025
+
+**Symptôme** : Pour les prospects sans adresse physique sur Google Maps, le numéro de téléphone était parfois extrait dans le champ `adresse` au lieu de rester à `null`.
+
+**Exemple** :
+- ❌ Avant : `adresse='01 86 95 96 67'`, `telephone='01 86 95 96 67'`
+- ✅ Après : `adresse=null`, `telephone='01 86 95 96 67'`
+
+**Cause racine** :
+- L'algorithme de scoring des candidats d'adresse ne filtrait pas les numéros de téléphone
+- Un texte contenant uniquement un téléphone pouvait obtenir un score positif s'il commençait par un chiffre
+
+**Solution** :
+- Ajout d'une détection de pattern téléphone AVANT le scoring d'adresse
+- Skip automatique des éléments matchant le pattern téléphone français
+- Pattern utilisé : `/\b0[1-9](?:[\s\.]?\d{2}){4}\b|\b\+33[\s\.]?[1-9](?:[\s\.]?\d{2}){4}\b/`
+
+**Test de validation** :
+- Script : `backend/scripts/test-adresse-vs-telephone.js`
+- Recherche : "plombier" à "Paris 15" (10 prospects)
+- Résultat : ✅ 100% de séparation correcte
+
+**Métriques** :
+```
+Total prospects: 10
+✅ Avec adresse valide (sans téléphone): 9/10 (90%)
+✅ Sans adresse (normal): 1/10 (10%)
+❌ Téléphone dans adresse: 0/10 (0%)
+```
+
+**Exemple de prospect corrigé** :
+- **Art André** : `adresse=null`, `telephone='01 86 95 96 67'` ✅
+
+**Fichiers modifiés** :
+- `backend/src/services/googleMapsService.js` (lignes 457-460)
+
+**Fichiers créés** :
+- `backend/scripts/test-adresse-vs-telephone.js` (nouveau test)
+
+**Commit** : `858c93d` fix(google-maps): empêcher téléphones d'être extraits comme adresse
+
+---
+
 #### Problème : Données manquantes en base de données (téléphone, URL, note, GPS)
 **Symptôme** : Lors du scraping Google Maps, seuls le nom et l'adresse étaient sauvegardés en base de données, alors que téléphone, URL, note et coordonnées GPS étaient bien extraits.
 
