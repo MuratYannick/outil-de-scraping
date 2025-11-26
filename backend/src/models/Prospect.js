@@ -64,6 +64,16 @@ export default (sequelize) => {
         allowNull: true,
         comment: "Note/avis (ex: 4.5/5)",
       },
+      ville: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        comment: "Ville extraite via geocoding inversé depuis GPS",
+      },
+      code_postal: {
+        type: DataTypes.STRING(10),
+        allowNull: true,
+        comment: "Code postal extrait via geocoding inversé depuis GPS",
+      },
       date_ajout: {
         type: DataTypes.DATE,
         allowNull: false,

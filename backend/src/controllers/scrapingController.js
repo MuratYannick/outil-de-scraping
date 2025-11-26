@@ -196,6 +196,8 @@ async function saveProspects(prospects, keyword) {
         latitude: prospectData.latitude || null,
         longitude: prospectData.longitude || null,
         note: prospectData.note || null,
+        ville: prospectData.ville || null,
+        code_postal: prospectData.code_postal || null,
       });
 
       // Associer le tag

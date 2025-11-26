@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getPlaywrightService } from './playwrightService.js';
 import { SCRAPER_IDS, getScraperConfig } from '../config/antiBotConfig.js';
 import { normalizeKeyword, normalizeLocation } from '../utils/stringUtils.js';
+import geocodingService from './geocodingService.js';
 
 /**
  * Service principal pour Google Maps
@@ -587,6 +588,28 @@ class GoogleMapsService {
         // Formater et ajouter les champs manquants
         prospect.email = null; // Jamais visible dans la liste
         prospect.source_scraping = 'Google Maps Scraper (Enhanced)';
+
+        // Enrichissement avec geocoding inversé (ville + code postal depuis GPS)
+        if (prospect.latitude && prospect.longitude) {
+          try {
+            const geocodingResult = await geocodingService.reverseGeocode(
+              prospect.latitude,
+              prospect.longitude
+            );
+
+            prospect.ville = geocodingResult.ville;
+            prospect.code_postal = geocodingResult.code_postal;
+
+            console.log(`[GoogleMapsService] 📍 Geocoding: ${geocodingResult.ville} (${geocodingResult.code_postal}) [${geocodingResult.source}]`);
+          } catch (error) {
+            console.error(`[GoogleMapsService] ❌ Erreur geocoding:`, error.message);
+            prospect.ville = null;
+            prospect.code_postal = null;
+          }
+        } else {
+          prospect.ville = null;
+          prospect.code_postal = null;
+        }
 
         if (prospect && prospect.nom_entreprise && prospect.nom_entreprise !== 'Nom inconnu') {
           prospects.push(prospect);

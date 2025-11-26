@@ -22,6 +22,11 @@ CREATE TABLE prospects (
   adresse TEXT,
   url_site VARCHAR(255) UNIQUE,
   source_scraping VARCHAR(100) NOT NULL,
+  latitude DECIMAL(10,7) COMMENT 'Latitude GPS (Google Maps)',
+  longitude DECIMAL(10,7) COMMENT 'Longitude GPS (Google Maps)',
+  note DECIMAL(2,1) COMMENT 'Note/avis (ex: 4.5/5)',
+  ville VARCHAR(100) COMMENT 'Ville extraite via geocoding inversé depuis GPS',
+  code_postal VARCHAR(10) COMMENT 'Code postal extrait via geocoding inversé depuis GPS',
   date_ajout DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   date_modification DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -35,11 +40,18 @@ CREATE TABLE prospects (
 | `nom_contact` | VARCHAR(255) | - | Nom du contact |
 | `email` | VARCHAR(255) | UNIQUE | Email professionnel |
 | `telephone` | VARCHAR(50) | - | Numéro de téléphone |
-| `adresse` | TEXT | - | Adresse complète |
-| `url_site` | VARCHAR(255) | UNIQUE | URL du site web |
+| `adresse` | TEXT | - | Adresse complète (rue) |
+| `url_site` | VARCHAR(255) | UNIQUE | URL du site web ou Google Maps |
 | `source_scraping` | VARCHAR(100) | NOT NULL | Source (Google Maps, Pages Jaunes) |
+| `latitude` | DECIMAL(10,7) | - | Latitude GPS (Google Maps) |
+| `longitude` | DECIMAL(10,7) | - | Longitude GPS (Google Maps) |
+| `note` | DECIMAL(2,1) | - | Note/avis (ex: 4.5/5) |
+| `ville` | VARCHAR(100) | - | Ville (geocoding inversé depuis GPS) ✨ |
+| `code_postal` | VARCHAR(10) | - | Code postal (geocoding inversé depuis GPS) ✨ |
 | `date_ajout` | DATETIME | NOT NULL | Date d'ajout |
 | `date_modification` | DATETIME | - | Dernière modification |
+
+> ✨ **Nouveauté (26 nov 2025)** : Les champs `ville` et `code_postal` sont extraits automatiquement depuis les coordonnées GPS via le service de geocoding inversé (API Gouvernementale française + fallback Nominatim). Voir [GEOCODING.md](GEOCODING.md) pour plus de détails.
 
 ---
 
@@ -100,10 +112,37 @@ prospects (1) ──── (N) prospects_tags ──── (N) tags
 ### Insertion de prospects
 
 ```sql
-INSERT INTO prospects (nom_entreprise, email, telephone, adresse, source_scraping)
+INSERT INTO prospects (
+  nom_entreprise, email, telephone, adresse, url_site, source_scraping,
+  latitude, longitude, note, ville, code_postal
+)
 VALUES
-  ('Plomberie Martin', 'contact@plomberie-martin.fr', '04 78 12 34 56', '123 Rue de la Paix, 69000 Lyon', 'Google Maps'),
-  ('Électricité Dubois', 'info@electricite-dubois.fr', '04 78 56 78 90', '456 Avenue des Champs, 69001 Lyon', 'Pages Jaunes');
+  (
+    'Plomberie Martin',
+    'contact@plomberie-martin.fr',
+    '04 78 12 34 56',
+    '123 Rue de la Paix',
+    'https://plomberie-martin.fr',
+    'Google Maps Scraper (Enhanced)',
+    45.7640,
+    4.8357,
+    4.5,
+    'Lyon',
+    '69002'
+  ),
+  (
+    'Électricité Dubois',
+    'info@electricite-dubois.fr',
+    '04 78 56 78 90',
+    '456 Avenue des Champs',
+    'https://electricite-dubois.fr',
+    'Pages Jaunes',
+    45.7720,
+    4.8410,
+    4.8,
+    'Lyon',
+    '69001'
+  );
 ```
 
 ### Insertion de tags
@@ -140,6 +179,11 @@ CREATE INDEX idx_prospects_source ON prospects(source_scraping);
 
 -- Optimiser les recherches par date
 CREATE INDEX idx_prospects_date_ajout ON prospects(date_ajout);
+
+-- Optimiser les filtres géographiques ✨ NOUVEAUX
+CREATE INDEX idx_prospects_ville ON prospects(ville);
+CREATE INDEX idx_prospects_code_postal ON prospects(code_postal);
+CREATE INDEX idx_prospects_coords ON prospects(latitude, longitude);
 
 -- Optimiser les jointures tags
 CREATE INDEX idx_prospects_tags_prospect ON prospects_tags(prospect_id);
