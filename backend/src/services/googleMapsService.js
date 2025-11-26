@@ -454,6 +454,11 @@ class GoogleMapsService {
             // Skip si contient une note avec parenthèses (signe de concaténation)
             if (text.match(/\d+[,.]?\d*\(\d+\)/)) continue;
 
+            // Skip si c'est un numéro de téléphone
+            // Patterns de téléphone français
+            const phonePattern = /\b0[1-9](?:[\s\.]?\d{2}){4}\b|\b\+33[\s\.]?[1-9](?:[\s\.]?\d{2}){4}\b/;
+            if (phonePattern.test(text)) continue;
+
             // Score pour identifier une adresse
             let score = 0;
 
