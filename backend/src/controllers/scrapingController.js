@@ -169,18 +169,25 @@ async function saveProspects(prospects, keyword) {
 
   for (const prospectData of prospects) {
     try {
-      // Vérifier les doublons par email ou URL
+      // Vérifier les doublons par (nom_entreprise + adresse) OU email OU URL
       const existingProspect = await Prospect.findOne({
         where: {
           [Op.or]: [
+            // Doublon si même nom ET même adresse
+            prospectData.nom_entreprise && prospectData.adresse ? {
+              nom_entreprise: prospectData.nom_entreprise,
+              adresse: prospectData.adresse
+            } : null,
+            // Ou même email
             prospectData.email ? { email: prospectData.email } : null,
+            // Ou même URL
             prospectData.url_site ? { url_site: prospectData.url_site } : null,
           ].filter(Boolean),
         },
       });
 
       if (existingProspect) {
-        console.log(`[ScrapingController] Doublon détecté: ${prospectData.nom_entreprise}`);
+        console.log(`[ScrapingController] ⚠️  Doublon détecté: ${prospectData.nom_entreprise} (${prospectData.adresse || 'pas d\'adresse'})`);
         continue; // Skip duplicates
       }
 

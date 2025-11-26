@@ -89,6 +89,13 @@ export default (sequelize) => {
       tableName: "prospects",
       timestamps: false,
       underscored: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ['nom_entreprise', 'adresse'],
+          name: 'unique_entreprise_adresse'
+        }
+      ]
     }
   );
 
