@@ -41,9 +41,9 @@ function askQuestion(query) {
     }
 
     // Deuxième confirmation pour être vraiment sûr
-    const answer2 = await askQuestion("⚠️  DERNIÈRE CONFIRMATION - Tapez 'DÉTRUIRE' en majuscules pour confirmer: ");
+    const answer2 = await askQuestion("⚠️  DERNIÈRE CONFIRMATION - Tapez 'DETRUIRE' en majuscules pour confirmer: ");
 
-    if (answer2 !== "DÉTRUIRE") {
+    if (answer2 !== "DETRUIRE") {
       console.log("\n❌ Opération annulée - Confirmation non reçue");
       rl.close();
       await sequelize.close();
