@@ -56,6 +56,52 @@
 
 ### 🐛 Corrections majeures
 
+#### Correction : Extraction URL site web vs URL Google Maps
+**Date** : 26 novembre 2025
+
+**Symptôme** : L'extraction Google Maps récupérait l'URL du lieu sur Google Maps au lieu de l'URL du site web de l'entreprise.
+
+**Exemple** :
+- ❌ URL incorrecte : `https://www.google.com/maps/place/Élégance+plomberie/data=!4m7!3m6!...`
+- ✅ URL correcte : `https://elegance-plombier.fr/`
+
+**Cause racine** :
+- Le sélecteur `a[href*="/maps/place/"]` récupérait le lien Google Maps
+- Ce lien était ensuite copié dans le champ `url_site` (ligne 539)
+
+**Solution** :
+- Ajout de sélecteurs spécifiques pour le site web :
+  - `a[data-value="Site Web"]` (sélecteur principal)
+  - `a[aria-label*="Visiter le site"]` (fallback 1)
+  - `a[aria-label*="site web" i]` (fallback 2)
+  - `a.lcr4fd[href]:not([href*="google.com"])` (fallback 3)
+- Séparation claire entre `url_maps` (Google Maps) et `url_site` (site web externe)
+- Suppression du mapping incorrect `url_site = url_maps`
+
+**Test de validation** :
+- Script : `backend/scripts/test-google-maps-website-url.js`
+- Recherche : "plombier" à "Cannes"
+- Résultat : ✅ 100% (5/5 prospects avec URL site web correcte)
+
+**Exemples d'URLs extraites** :
+```
+1. Élégance plomberie → https://elegance-plombier.fr/
+2. Art André → http://art-andre-depannage.fr/
+3. Azur Service 06 → https://www.azur-service06.fr/depannage-plomberie
+4. Allo James → http://plombier-cannes-allo-james.fr/
+5. CL Plomberie → https://www.cl-plomberie-cannes.fr/
+```
+
+**Fichiers modifiés** :
+- `backend/src/services/googleMapsService.js` (lignes 530-548)
+
+**Fichiers créés** :
+- `backend/scripts/test-google-maps-website-url.js` (nouveau test)
+
+**Commit** : `4076b82` fix(google-maps): extraire URL site web au lieu URL Google Maps
+
+---
+
 #### Problème : Données manquantes en base de données (téléphone, URL, note, GPS)
 **Symptôme** : Lors du scraping Google Maps, seuls le nom et l'adresse étaient sauvegardés en base de données, alors que téléphone, URL, note et coordonnées GPS étaient bien extraits.
 
