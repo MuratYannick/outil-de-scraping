@@ -2,6 +2,58 @@
 
 ## [Non versionnée] - 26 Novembre 2025
 
+### ✨ Améliorations UX
+
+#### Amélioration : Refonte de l'affichage de la liste des prospects
+**Date** : 26 novembre 2025
+
+**Objectif** : Améliorer la lisibilité et l'accès aux informations des prospects dans l'interface.
+
+**Modifications apportées** :
+
+1. **Nouvelle organisation des colonnes du tableau** :
+   - Nom de l'entreprise (cliquable en bleu)
+   - Adresse
+   - Code postal
+   - Ville
+   - Téléphone
+   - Tags
+
+2. **Modal de détails complets** :
+   - Créé composant `ProspectDetailsModal.jsx`
+   - Affiche toutes les informations du prospect :
+     - Coordonnées complètes (adresse, CP, ville, téléphone, email)
+     - Informations complémentaires (contact, poste, site web, LinkedIn)
+     - Note/avis avec étoile
+     - Coordonnées GPS avec lien Google Maps
+     - Tags avec gestion complète
+     - Source et date d'ajout
+   - Design moderne avec layout en deux colonnes
+   - Scroll interne si contenu long
+
+3. **Interaction améliorée** :
+   - Clic sur nom d'entreprise ouvre la modal
+   - Téléphone reste cliquable (appel direct)
+   - Adresse tronquée avec tooltip au survol
+   - Tags directement modifiables depuis modal
+
+**Fichiers créés** :
+- `frontend/src/components/ProspectDetailsModal.jsx` (236 lignes)
+
+**Fichiers modifiés** :
+- `frontend/src/components/ProspectList.jsx` (152 lignes, +84 insertions)
+
+**Bénéfices utilisateur** :
+- ✅ Vision synthétique dans le tableau
+- ✅ Accès rapide aux détails complets
+- ✅ Mise en valeur des nouvelles données (ville, code postal)
+- ✅ Meilleure ergonomie mobile (modal responsive)
+- ✅ Toutes les infos accessibles en 1 clic
+
+**Commit** : `dc7252a` feat(frontend): réorganiser affichage prospects + modal détails
+
+---
+
 ### 🐛 Corrections majeures
 
 #### Problème : Données manquantes en base de données (téléphone, URL, note, GPS)
