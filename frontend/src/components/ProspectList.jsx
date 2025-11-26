@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ProspectCard from "./ProspectCard";
+import ProspectDetailsModal from "./ProspectDetailsModal";
 import TagBadge from "./TagBadge";
 
 /**
@@ -7,6 +8,19 @@ import TagBadge from "./TagBadge";
  * Supporte deux modes d'affichage : tableau et grille
  */
 export default function ProspectList({ prospects, loading, error, viewMode = 'table', onProspectUpdated }) {
+  const [selectedProspect, setSelectedProspect] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleProspectClick = (prospect) => {
+    setSelectedProspect(prospect);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProspect(null);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -36,79 +50,103 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
   // Mode grille (cartes)
   if (viewMode === 'grid') {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {prospects.map((prospect) => (
-          <ProspectCard key={prospect.id} prospect={prospect} onProspectUpdated={onProspectUpdated} />
-        ))}
-      </div>
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {prospects.map((prospect) => (
+            <ProspectCard key={prospect.id} prospect={prospect} onProspectUpdated={onProspectUpdated} />
+          ))}
+        </div>
+        <ProspectDetailsModal
+          prospect={selectedProspect}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onProspectUpdated={onProspectUpdated}
+        />
+      </>
     );
   }
 
   // Mode tableau (par défaut)
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Entreprise
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Contact
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Email
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Téléphone
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Source
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Tags
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {prospects.map((prospect) => (
-            <tr key={prospect.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">
-                  {prospect.nom_entreprise}
-                </div>
-                {prospect.url_site && (
-                  <a
-                    href={prospect.url_site}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    Voir le site
-                  </a>
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{prospect.nom_contact || "-"}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{prospect.email || "-"}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{prospect.telephone || "-"}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                  {prospect.source_scraping}
-                </span>
-              </td>
-              <td className="px-6 py-4">
-                <TagBadge prospect={prospect} onTagsUpdated={onProspectUpdated} />
-              </td>
+    <>
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Nom de l'entreprise
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Adresse
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Code postal
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Ville
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Téléphone
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Tags
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {prospects.map((prospect) => (
+              <tr key={prospect.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <button
+                    onClick={() => handleProspectClick(prospect)}
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left"
+                  >
+                    {prospect.nom_entreprise}
+                  </button>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-900 max-w-xs truncate" title={prospect.adresse}>
+                    {prospect.adresse || "-"}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
+                    {prospect.code_postal || "-"}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
+                    {prospect.ville || "-"}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {prospect.telephone ? (
+                    <a
+                      href={`tel:${prospect.telephone}`}
+                      className="text-sm text-blue-600 hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {prospect.telephone}
+                    </a>
+                  ) : (
+                    <span className="text-sm text-gray-400">-</span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  <TagBadge prospect={prospect} onTagsUpdated={onProspectUpdated} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <ProspectDetailsModal
+        prospect={selectedProspect}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onProspectUpdated={onProspectUpdated}
+      />
+    </>
   );
 }
