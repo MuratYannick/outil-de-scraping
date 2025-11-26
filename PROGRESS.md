@@ -1,6 +1,6 @@
 # 📊 Progression du Projet Outil de Scraping
 
-**Dernière mise à jour** : 25 janvier 2025 (Jour 21: Refonte extraction Google Maps - Méthode de scoring passive)
+**Dernière mise à jour** : 26 novembre 2025 (Jour 23: Corrections sauvegarde données + normalisation accents - Planification Jour 24: Geocoding inversé)
 
 ## 🎯 Objectif Phase 1 (MVP)
 
@@ -9,8 +9,10 @@
   - Établir un flux récurrent de 10 prospects/semaine
   - Stocker et visualiser les données collectées
 
-**Durée prévue** : 4,5 semaines (22 jours de développement)
-**Note** : La durée a été ajustée de 20 à 22 jours suite à l'ajout des optimisations Playwright (Phases 1-3) qui ont décalé LinkedIn et les tâches suivantes.
+**Durée prévue** : 5,5 semaines (26 jours de développement)
+**Note** :
+- Durée ajustée de 20 → 22 jours suite aux optimisations Playwright (Phases 1-3)
+- Durée ajustée de 22 → 26 jours suite aux corrections sauvegarde données (Jour 23) et ajout geocoding inversé (Jour 24)
 
 ---
 
@@ -210,7 +212,7 @@
 
 ---
 
-### Semaine 4-5 : 🌐 Scraping Dynamique & Déploiement (🔄 EN COURS - Jours 16-22)
+### Semaine 4-6 : 🌐 Scraping Dynamique, Optimisations & Déploiement (🔄 EN COURS - Jours 16-26)
 
 #### Jour 16 : Google Maps - Système Dual-Strategy (✅ COMPLÉTÉ le 18 novembre 2025)
 - [x] Analyser la structure de Google Maps et l'API Google Places
@@ -489,7 +491,7 @@ antiBotConfig.scrapers = {
 }
 ```
 
-#### Jour 20bis : Améliorations UX Configuration Anti-Bot (✅ COMPLÉTÉ le 21 novembre 2025)
+#### Jour 21 : Améliorations UX Configuration Anti-Bot (✅ COMPLÉTÉ le 21 novembre 2025)
 
 **Objectif** : Améliorer l'expérience utilisateur de la configuration anti-bot avec synchronisation bidirectionnelle et mode Custom automatique.
 
@@ -533,7 +535,7 @@ antiBotConfig.scrapers = {
 - Frontend : `AntiBotConfig.jsx` (+140 lignes, synchronisation bidirectionnelle complète)
 - Total : 3 fichiers, ~200 lignes modifiées
 
-#### Jour 21 : Refonte extraction Google Maps - Méthode de scoring passive (✅ COMPLÉTÉ le 25 janvier 2025)
+#### Jour 22 : Refonte extraction Google Maps - Méthode de scoring passive (✅ COMPLÉTÉ le 25 janvier 2025)
 
 **Objectif** : Améliorer radicalement l'extraction Google Maps en passant d'une méthode interactive (clicks) à une méthode passive par scoring, augmentant la vitesse d'extraction de 10-15x.
 
@@ -639,7 +641,95 @@ antiBotConfig.scrapers = {
 - Adresse : **0% → 100%** (extraction avec scoring)
 - Nom : **0% → 100%** (aria-label)
 
-#### Jour 22 : Nettoyage et finalisation du code (📋 À FAIRE)
+#### Jour 23 : Corrections sauvegarde données + normalisation accents (✅ COMPLÉTÉ le 26 novembre 2025)
+
+**Objectif** : Corriger les données manquantes en DB et normaliser les accents dans les URLs de recherche.
+
+- [x] **Problème 1 : Données manquantes en base de données**
+  - [x] Identifier que téléphone, URL, note et GPS extraits mais non sauvegardés
+  - [x] Corriger `scrapingController.js` : Ajouter mapping `telephone`, `latitude`, `longitude`, `note`
+  - [x] Corriger `googleMapsService.js` : Supprimer forçage GPS à null
+  - [x] Corriger regex GPS : Support format `!3d48.889609!4d2.344058` + fallback `@lat,lng`
+  - [x] Ajouter mapping `url_maps` → `url_site`
+
+- [x] **Problème 2 : Encodage accents dans URLs**
+  - [x] Créer module `utils/stringUtils.js` avec 3 fonctions :
+    - `removeAccents()` : Retire tous les accents (NFD + regex)
+    - `normalizeKeyword()` : Normalise keyword + trim
+    - `normalizeLocation()` : Normalise localisation + trim
+  - [x] Intégrer normalisation dans 3 scrapers (Google Maps, Pages Jaunes, LinkedIn)
+  - [x] Ajouter logs informatifs quand normalisation effectuée
+
+- [x] **Tests de validation**
+  - [x] Créer `test-google-maps-extraction.js` (3/3 URL + note + GPS ✅)
+  - [x] Créer `test-google-maps-telephone.js` (5/5 téléphones électriciens ✅)
+  - [x] Créer `test-accent-normalization.js` (18/18 tests ✅)
+  - [x] Créer `test-scraping-avec-accents.js` (normalisation confirmée ✅)
+
+**Résultat** :
+- ✅ Taux de complétude : **0-50% → 90-100%**
+- ✅ Téléphones : **100%** sauvegardés (quand disponibles)
+- ✅ GPS : **100%** extraites et sauvegardées
+- ✅ Accents : Normalisés automatiquement dans tous les scrapers
+
+**Fichiers modifiés** :
+- Backend : `scrapingController.js`, `googleMapsService.js`, `pagesJaunesScraper.js`, `linkedInScraper.js`
+- Nouveau module : `utils/stringUtils.js`
+- Tests : 4 scripts de test ajoutés
+- Documentation : `CHANGELOG.md` créé
+- Commit : `c76dfeb` fix(scraping): corriger sauvegarde données complètes + normalisation accents
+
+#### Jour 24 : Geocoding inversé - Extraction ville et code postal (📋 À FAIRE)
+
+**Objectif** : Enrichir les données prospects avec la ville et le code postal en utilisant le geocoding inversé depuis les coordonnées GPS.
+
+- [ ] **Modification du modèle de données**
+  - [ ] Ajouter champs `ville` (VARCHAR 100) et `code_postal` (VARCHAR 10) au modèle `Prospect`
+  - [ ] Créer migration pour ajouter les colonnes en base
+  - [ ] Mettre à jour la documentation `docs/DATABASE.md`
+
+- [ ] **Service de geocoding inversé**
+  - [ ] Créer `backend/src/services/geocodingService.js`
+  - [ ] Implémenter méthode 1 : API Gouvernementale (api-adresse.data.gouv.fr)
+    - Endpoint : `https://api-adresse.data.gouv.fr/reverse/?lon=X&lat=Y`
+    - Gratuit, sans limite, données officielles françaises
+  - [ ] Implémenter méthode 2 : Nominatim OpenStreetMap (fallback)
+    - Endpoint : `https://nominatim.openstreetmap.org/reverse`
+    - Gratuit, rate limit 1 req/sec
+  - [ ] Ajouter gestion d'erreurs et retry
+  - [ ] Ajouter cache local (éviter requêtes répétées pour mêmes coordonnées)
+
+- [ ] **Intégration dans le scraper Google Maps**
+  - [ ] Appeler service geocoding après extraction des coordonnées GPS
+  - [ ] Enrichir l'objet prospect avec `ville` et `code_postal`
+  - [ ] Gérer les cas où geocoding échoue (laisser null)
+  - [ ] Ajouter logs de debug pour traçabilité
+
+- [ ] **Mise à jour controller de sauvegarde**
+  - [ ] Modifier `scrapingController.js` pour sauvegarder `ville` et `code_postal`
+  - [ ] Gérer les doublons par ville/code postal si nécessaire
+
+- [ ] **Tests**
+  - [ ] Créer `test-geocoding-service.js`
+    - Tester API Gouv avec coordonnées Paris
+    - Tester fallback Nominatim
+    - Tester cache local
+  - [ ] Créer `test-google-maps-geocoding.js`
+    - Tester scraping complet avec extraction ville/code postal
+    - Vérifier que ville et code postal sont bien sauvegardés en DB
+
+- [ ] **Documentation**
+  - [ ] Documenter le service de geocoding dans un nouveau fichier `docs/GEOCODING.md`
+  - [ ] Mettre à jour `docs/DATABASE.md` avec les nouveaux champs
+  - [ ] Mettre à jour `CHANGELOG.md` avec les modifications
+
+**Résultat attendu** :
+- ✅ Champs `ville` et `code_postal` remplis automatiquement depuis GPS
+- ✅ API gratuite prioritaire (Gouv FR) avec fallback (Nominatim)
+- ✅ Cache local pour optimiser les performances
+- ✅ 100% des prospects avec GPS auront ville et code postal
+
+#### Jour 25 : Nettoyage et finalisation du code (📋 À FAIRE)
 - [ ] **Refactoring Backend** :
   - [ ] Refactoring du code backend (services, controllers)
   - [ ] Ajouter les commentaires JSDoc
@@ -663,7 +753,7 @@ antiBotConfig.scrapers = {
   - [ ] Créer/mettre à jour les tests unitaires
   - [ ] Ajouter tests d'intégration si temps
 
-#### Jour 22 : Déploiement MVP & démo (📋 À FAIRE)
+#### Jour 26 : Déploiement MVP & démo (📋 À FAIRE)
 - [ ] **Préparation Déploiement** :
   - [ ] Préparer l'environnement de production (serveur, credentials)
   - [ ] Configurer les variables d'environnement prod (.env.production)
@@ -786,14 +876,21 @@ antiBotConfig.scrapers = {
 - [x] Implémenter la gestion des tags (CRUD interface)
 - [x] Association/dissociation de tags aux prospects
 
-### Semaine 4 — Optimisations & Finalisation (✅ COMPLÉTÉE à 90%)
+### Semaines 4-6 — Optimisations, Corrections & Finalisation (🔄 EN COURS - 85%)
 - [x] Jour 16: Google Maps dual-strategy (100%)
 - [x] Jour 17-18: Optimisations Playwright Phases 1-3 (100%)
   - [x] Phase 1: Quick Wins (HYBRID, RateLimiter, SessionManager) - 6/6 tests
   - [x] Phase 2: Human Behavior (Souris, Scroll, Clavier, UA) - 6/7 tests
   - [x] Phase 3: Enhanced Extraction (Infinite Scroll, GPS) - 2/6 tests
   - [x] Documentation complète (STEALTH_ENHANCED.md, TESTS_STEALTH_ENHANCED.md)
-- [ ] Jour 19-20: Nettoyage et déploiement (en attente)
+- [x] Jour 19: LinkedIn scraper mode public (100%)
+- [x] Jour 20: Config anti-bot par scraper (100%)
+- [x] Jour 21: Améliorations UX config anti-bot (100%)
+- [x] Jour 22: Refonte extraction Google Maps - scoring passif (100%)
+- [x] Jour 23: Corrections sauvegarde données + normalisation accents (100%)
+- [ ] Jour 24: Geocoding inversé ville/code postal (📋 À FAIRE)
+- [ ] Jour 25: Nettoyage et finalisation (📋 À FAIRE)
+- [ ] Jour 26: Déploiement MVP & démo (📋 À FAIRE)
 
 ### Sécurité & Qualité (✅ COMPLÉTÉE)
 - [x] Ajouter validation Joi sur toutes les routes
@@ -829,4 +926,4 @@ antiBotConfig.scrapers = {
 
 ---
 
-**Dernière mise à jour** : 25 janvier 2025 (Jour 21: Refonte extraction Google Maps - Méthode de scoring passive)
+**Dernière mise à jour** : 26 novembre 2025 (Jour 23: Corrections sauvegarde données + normalisation accents - Planification Jour 24: Geocoding inversé)
