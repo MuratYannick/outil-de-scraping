@@ -188,7 +188,49 @@ async function saveProspects(prospects, keyword) {
 
       if (existingProspect) {
         console.log(`[ScrapingController] ⚠️  Doublon détecté: ${prospectData.nom_entreprise} (${prospectData.adresse || 'pas d\'adresse'})`);
-        continue; // Skip duplicates
+
+        // Enrichir les données existantes au lieu de skip
+        const updatedFields = {};
+        let hasUpdates = false;
+
+        // Pour chaque champ, mettre à jour si la valeur existante est null/vide
+        const fieldsToEnrich = [
+          'nom_contact', 'email', 'telephone', 'adresse', 'url_site',
+          'latitude', 'longitude', 'note', 'ville', 'code_postal', 'url_maps', 'url_linkedin'
+        ];
+
+        fieldsToEnrich.forEach(field => {
+          const existingValue = existingProspect[field];
+          const newValue = prospectData[field];
+
+          // Mettre à jour si:
+          // 1. La valeur existante est null/undefined/vide
+          // 2. ET la nouvelle valeur n'est pas null/undefined/vide
+          if ((existingValue === null || existingValue === undefined || existingValue === '') &&
+              newValue !== null && newValue !== undefined && newValue !== '') {
+            updatedFields[field] = newValue;
+            hasUpdates = true;
+          }
+        });
+
+        if (hasUpdates) {
+          await existingProspect.update(updatedFields);
+          console.log(`[ScrapingController] ✅ Données enrichies: ${Object.keys(updatedFields).join(', ')}`);
+
+          // Ajouter le tag si pas déjà présent
+          const existingTags = await existingProspect.getTags();
+          const hasTag = existingTags.some(t => t.id === tag.id);
+          if (!hasTag) {
+            await existingProspect.addTag(tag);
+            console.log(`[ScrapingController] ✅ Tag "${tag.nom}" ajouté au prospect existant`);
+          }
+
+          savedProspects.push(existingProspect);
+        } else {
+          console.log(`[ScrapingController] ℹ️  Aucune nouvelle donnée à enrichir`);
+        }
+
+        continue; // Passer au prospect suivant
       }
 
       // Créer le prospect
