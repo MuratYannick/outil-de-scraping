@@ -527,16 +527,25 @@ class GoogleMapsService {
           }
           data.debug_rating_selector = ratingEl ? 'found' : 'not found';
 
-          // Site web (lien)
-          const linkEl = el.querySelector('a[href*="/maps/place/"]');
-          data.url_maps = linkEl?.href || null;
-          data.debug_link_selector = linkEl ? 'found' : 'not found';
+          // URL Google Maps (pour coordonnées GPS)
+          const mapsLinkEl = el.querySelector('a[href*="/maps/place/"]');
+          data.url_maps = mapsLinkEl?.href || null;
+          data.debug_maps_link_selector = mapsLinkEl ? 'found' : 'not found';
+
+          // Site web de l'entreprise (lien externe)
+          // Chercher un lien avec data-value="Site Web" ou aria-label contenant "site web"
+          const websiteLinkEl = el.querySelector('a[data-value="Site Web"]') ||
+                                el.querySelector('a[aria-label*="Visiter le site"]') ||
+                                el.querySelector('a[aria-label*="site web" i]') ||
+                                el.querySelector('a.lcr4fd[href]:not([href*="google.com"])');
+          data.url_site = websiteLinkEl?.href || null;
+          data.debug_website_selector = websiteLinkEl ? 'found' : 'not found';
 
           return data;
         });
 
-        // Mapper url_maps vers url_site pour correspondre au modèle DB
-        prospect.url_site = prospect.url_maps;
+        // Garder url_site tel quel (pas de mapping depuis url_maps)
+        // url_site contient maintenant le vrai site web de l'entreprise
 
         // Extraire latitude/longitude depuis l'URL Google Maps
         // Format principal: https://www.google.com/maps/place/.../data=!4m7!3m6!...!3d48.889609!4d2.344058!...
