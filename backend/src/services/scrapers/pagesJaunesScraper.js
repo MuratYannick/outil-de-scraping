@@ -128,13 +128,20 @@ class PagesJaunesScraper {
         for (const selector of addressSelectors) {
           const addrEl = el.querySelector(selector);
           if (addrEl && addrEl.textContent.trim()) {
-            result.adresse = addrEl.textContent.trim().replace(/\s+/g, " ");
+            // Nettoyer l'adresse: retirer "Voir le plan", "Site web", icônes, etc.
+            let address = addrEl.textContent.trim()
+              .replace(/\s+/g, " ")
+              .replace(/Voir le plan/gi, "")
+              .replace(/Site web/gi, "")
+              .trim();
+            result.adresse = address;
             break;
           }
         }
 
-        // Téléphone
+        // Téléphone - 2024: caché dans .bi-fantomas .number-contact
         const phoneSelectors = [
+          '.bi-fantomas .number-contact',  // Format 2024: numéros cachés
           'a[href^="tel:"]',
           '.bi-phone',
           '[class*="phone"]',
@@ -143,7 +150,14 @@ class PagesJaunesScraper {
         for (const selector of phoneSelectors) {
           const phoneEl = el.querySelector(selector);
           if (phoneEl) {
-            result.telephone = phoneEl.getAttribute("href") || phoneEl.textContent.trim();
+            // Extraire le numéro du texte (format: "Tél : 01 23 45 67 89")
+            const text = phoneEl.textContent.trim();
+            const phoneMatch = text.match(/\d[\d\s]+\d/);
+            if (phoneMatch) {
+              result.telephone = phoneMatch[0].trim();
+            } else {
+              result.telephone = phoneEl.getAttribute("href") || text;
+            }
             break;
           }
         }
