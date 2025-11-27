@@ -1,8 +1,40 @@
 # 📡 API de Scraping - Documentation
 
-**Dernière mise à jour** : 17 novembre 2025
+**Dernière mise à jour** : 27 novembre 2025
 
 Ce document décrit l'API de scraping asynchrone qui permet de lancer, suivre et gérer des tâches de scraping.
+
+## 🆕 Nouveautés (Jour 25)
+
+### Pages Jaunes - Améliorations majeures
+
+✅ **Extraction optimale des données** :
+- Mise à jour des sélecteurs DOM pour 2024 (`.bi-list > li`, `.bi-denomination h3`)
+- Extraction des numéros de téléphone depuis `.bi-fantomas .number-contact`
+- Nettoyage automatique des adresses ("Voir le plan", "Site web")
+- Extraction automatique du code postal et de la ville dans des champs séparés
+
+✅ **Nouvelles fonctionnalités** :
+- Méthode `extractAddressComponents()` pour parser les adresses françaises
+- Séparation automatique : adresse / code postal / ville
+- Normalisation des téléphones au format français
+
+✅ **Correction de bugs** :
+- Fix `ReferenceError: result is not defined` dans scrapingController
+- Meilleure gestion du scope des variables
+
+**Exemple de données extraites** :
+```json
+{
+  "nom_entreprise": "Artisans Bernard Et Sylvestre",
+  "telephone": "01 44 40 02 61",
+  "adresse": "7 rue Rochebrune",
+  "ville": "Paris",
+  "code_postal": "75011",
+  "url_site": null,
+  "source_scraping": "Pages Jaunes"
+}
+```
 
 ---
 
@@ -428,5 +460,5 @@ cd backend && npm run dev
 
 ---
 
-**Dernière mise à jour** : 17 novembre 2025
-**Version** : 1.0.0 (Jour 9 - Intégration API)
+**Dernière mise à jour** : 27 novembre 2025
+**Version** : 1.2.0 (Jour 25 - Optimisation Pages Jaunes)

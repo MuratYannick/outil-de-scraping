@@ -757,7 +757,40 @@ antiBotConfig.scrapers = {
 
 **Commit** : `c1c4e34` feat(geocoding): ajouter extraction ville et code postal via geocoding inversé
 
-#### Jour 25 : Nettoyage et finalisation du code (📋 À FAIRE)
+#### Jour 25 : Optimisation Pages Jaunes & Corrections (✅ TERMINÉ)
+- [x] **Pages Jaunes - Mise à jour sélecteurs DOM 2024** :
+  - [x] Identifier nouveaux sélecteurs (`.bi-list > li`, `.bi-denomination h3`)
+  - [x] Créer script d'analyse DOM (`analyze-pages-jaunes-dom.js`)
+  - [x] Mettre à jour extracteurs de données (nom, adresse, téléphone)
+  - [x] Tester extraction avec nouveaux sélecteurs (21 résultats trouvés ✓)
+- [x] **Extraction téléphones optimisée** :
+  - [x] Identifier structure téléphone (`.bi-fantomas .number-contact`)
+  - [x] Implémenter extraction avec regex (`\d[\d\s]+\d`)
+  - [x] Normaliser format téléphones français (01 23 45 67 89)
+  - [x] Tester extraction (5/5 prospects avec téléphone ✓)
+- [x] **Nettoyage et parsing adresses** :
+  - [x] Retirer textes parasites ("Voir le plan", "Site web")
+  - [x] Créer méthode `extractAddressComponents()`
+  - [x] Extraire code postal (regex `\d{5}`)
+  - [x] Extraire ville (texte après code postal)
+  - [x] Stocker dans champs séparés (adresse/ville/code_postal)
+  - [x] Tester parsing adresses (5/5 prospects avec ville/CP ✓)
+- [x] **Corrections bugs** :
+  - [x] Fix `ReferenceError: result is not defined` (scrapingController)
+  - [x] Corriger scope variable `scrapingResult`
+  - [x] Tester scraping via interface web (succès ✓)
+- [x] **Documentation** :
+  - [x] Mettre à jour SCRAPING_API.md (nouveautés jour 25)
+  - [x] Mettre à jour PROGRESS.md (tâches effectuées)
+  - [x] Documenter nouvelles méthodes d'extraction
+
+**Résultats** :
+- ✅ Scraping Pages Jaunes fonctionnel à 100%
+- ✅ Extraction complète : nom, téléphone, adresse, ville, code postal
+- ✅ 5/5 prospects extraits avec toutes les données
+- ✅ Commits : 3 (sélecteurs DOM, téléphones, code postal/ville)
+
+#### Jour 26 : Nettoyage et finalisation du code (📋 À FAIRE)
 - [ ] **Refactoring Backend** :
   - [ ] Refactoring du code backend (services, controllers)
   - [ ] Ajouter les commentaires JSDoc
@@ -781,7 +814,7 @@ antiBotConfig.scrapers = {
   - [ ] Créer/mettre à jour les tests unitaires
   - [ ] Ajouter tests d'intégration si temps
 
-#### Jour 26 : Déploiement MVP & démo (📋 À FAIRE)
+#### Jour 27 : Déploiement MVP & démo (📋 À FAIRE)
 - [ ] **Préparation Déploiement** :
   - [ ] Préparer l'environnement de production (serveur, credentials)
   - [ ] Configurer les variables d'environnement prod (.env.production)
