@@ -58,5 +58,11 @@ uploads/
 temp/
 cache/
 
+# Debug files
+nul
+page*.json
+*-dom.html
+backend/pages-jaunes-dom.html
+
 # Ignore Claude files
 .claude/
