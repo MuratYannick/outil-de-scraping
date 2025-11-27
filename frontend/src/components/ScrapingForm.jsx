@@ -12,6 +12,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
     source: 'Pages Jaunes',
     maxPages: 1,
     maxResults: 10,
+    excludeDuplicates: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -21,10 +22,10 @@ export default function ScrapingForm({ onScrapingStarted }) {
    * Gérer les changements de champs
    */
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
     }));
     // Effacer l'erreur du champ modifié
     if (errors[name]) {
@@ -80,6 +81,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
         source: formData.source,
         maxPages: parseInt(formData.maxPages),
         maxResults: parseInt(formData.maxResults),
+        excludeDuplicates: formData.excludeDuplicates,
       });
 
       console.log('[ScrapingForm] Scraping lancé:', result);
@@ -270,6 +272,29 @@ export default function ScrapingForm({ onScrapingStarted }) {
             {errors.maxResults && (
               <p className="mt-1 text-sm text-red-600">{errors.maxResults}</p>
             )}
+          </div>
+        </div>
+
+        {/* Exclure les doublons */}
+        <div className="flex items-start">
+          <div className="flex items-center h-5">
+            <input
+              type="checkbox"
+              id="excludeDuplicates"
+              name="excludeDuplicates"
+              checked={formData.excludeDuplicates}
+              onChange={handleChange}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="ml-3">
+            <label htmlFor="excludeDuplicates" className="font-medium text-gray-700">
+              Exclure les doublons du décompte
+            </label>
+            <p className="text-sm text-gray-500">
+              Continue à scraper jusqu'à obtenir <strong>{formData.maxResults} nouveaux prospects</strong> (hors doublons déjà en base)
+            </p>
           </div>
         </div>
 
