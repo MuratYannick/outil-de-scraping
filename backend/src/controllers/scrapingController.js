@@ -193,23 +193,40 @@ async function saveProspects(prospects, keyword) {
         const updatedFields = {};
         let hasUpdates = false;
 
-        // Pour chaque champ, mettre à jour si la valeur existante est null/vide
-        const fieldsToEnrich = [
-          'nom_contact', 'email', 'telephone', 'adresse', 'url_site',
-          'latitude', 'longitude', 'note', 'ville', 'code_postal', 'url_maps', 'url_linkedin'
+        // Champs à enrichir uniquement si null/vide (données stables)
+        const fieldsToEnrichIfNull = [
+          'nom_contact', 'email', 'adresse', 'note',
+          'latitude', 'longitude', 'ville', 'code_postal', 'url_maps', 'url_linkedin'
         ];
 
-        fieldsToEnrich.forEach(field => {
+        // Champs à toujours mettre à jour si différents (données qui peuvent changer)
+        const fieldsToAlwaysUpdate = ['telephone', 'url_site'];
+
+        // 1. Enrichir les champs null/vides
+        fieldsToEnrichIfNull.forEach(field => {
           const existingValue = existingProspect[field];
           const newValue = prospectData[field];
 
-          // Mettre à jour si:
-          // 1. La valeur existante est null/undefined/vide
-          // 2. ET la nouvelle valeur n'est pas null/undefined/vide
           if ((existingValue === null || existingValue === undefined || existingValue === '') &&
               newValue !== null && newValue !== undefined && newValue !== '') {
             updatedFields[field] = newValue;
             hasUpdates = true;
+          }
+        });
+
+        // 2. Mettre à jour les champs qui peuvent changer (si la nouvelle valeur est différente et non vide)
+        fieldsToAlwaysUpdate.forEach(field => {
+          const existingValue = existingProspect[field];
+          const newValue = prospectData[field];
+
+          // Mettre à jour si:
+          // 1. La nouvelle valeur n'est pas null/undefined/vide
+          // 2. ET la nouvelle valeur est différente de l'existante
+          if (newValue !== null && newValue !== undefined && newValue !== '' &&
+              existingValue !== newValue) {
+            updatedFields[field] = newValue;
+            hasUpdates = true;
+            console.log(`[ScrapingController] 🔄 Mise à jour de ${field}: "${existingValue}" → "${newValue}"`);
           }
         });
 
