@@ -12,7 +12,7 @@ import { Op } from 'sequelize';
  */
 export const lancerScraping = async (req, res) => {
   try {
-    const { keyword, location, source = 'Pages Jaunes', maxPages = 1, maxResults = 10 } = req.body;
+    const { keyword, location, source = 'Pages Jaunes', startPage = 1, maxPages = 1, maxResults = 10, excludeDuplicates = false } = req.body;
 
     // Validation des paramètres
     if (!keyword || !location) {
@@ -27,12 +27,14 @@ export const lancerScraping = async (req, res) => {
       keyword,
       location,
       source,
+      startPage,
       maxPages,
       maxResults,
+      excludeDuplicates,
     });
 
     // Lancer le scraping de manière asynchrone
-    scrapeAsync(task.id, keyword, location, { maxPages, maxResults, source });
+    scrapeAsync(task.id, keyword, location, { startPage, maxPages, maxResults, source, excludeDuplicates });
 
     // Retourner immédiatement l'ID de la tâche
     res.status(202).json({
@@ -68,7 +70,7 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
     // Mettre à jour le statut à "in_progress"
     taskManager.updateTaskStatus(taskId, 'in_progress');
 
-    const { source = 'Pages Jaunes', maxPages = 1, maxResults = 10, excludeDuplicates = false } = options;
+    const { source = 'Pages Jaunes', startPage = 1, maxPages = 1, maxResults = 10, excludeDuplicates = false } = options;
     let prospects = [];
     let scrapingResult = null; // Stocker le résultat complet du scraping
 
@@ -131,6 +133,7 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
       console.log(`[ScrapingController] Mode excludeDuplicates: ${excludeDuplicates ? 'OUI' : 'NON'}`);
 
       scrapingResult = await scraper.scrape(keyword, location, {
+        startPage,
         maxPages,
         maxResults,
         excludeDuplicates,

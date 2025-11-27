@@ -320,6 +320,7 @@ class PagesJaunesScraper {
    */
   async scrape(quoiqui, ou, options = {}) {
     const {
+      startPage = 1,
       maxPages = 1,
       maxResults = 50,
       excludeDuplicates = false,
@@ -342,8 +343,12 @@ class PagesJaunesScraper {
       }
     }
 
+    // Calculer la page de fin
+    const endPage = startPage + maxPages - 1;
+
     console.log(`[PagesJaunesScraper] Démarrage du scraping: "${normalizedQuoiqui}" à "${normalizedOu}"`);
-    console.log(`[PagesJaunesScraper] Max pages: ${maxPages}, Max résultats: ${maxResults}`);
+    console.log(`[PagesJaunesScraper] Pages: ${startPage} à ${endPage} (${maxPages} page${maxPages > 1 ? 's' : ''})`);
+    console.log(`[PagesJaunesScraper] Max résultats: ${maxResults}`);
     if (excludeDuplicates) {
       console.log(`[PagesJaunesScraper] Mode excludeDuplicates activé: scraper jusqu'à ${maxResults} NOUVEAUX prospects`);
     }
@@ -352,6 +357,7 @@ class PagesJaunesScraper {
     const newProspects = []; // Prospects non-doublons
     let duplicatesCount = 0;
     let pageNum = 0;
+    let pagesScraped = 0;
 
     try {
       // Initialiser Playwright
@@ -360,8 +366,9 @@ class PagesJaunesScraper {
       const page = await context.newPage();
 
       // Scraper chaque page
-      for (pageNum = 1; pageNum <= maxPages; pageNum++) {
-        console.log(`\n[PagesJaunesScraper] === Page ${pageNum}/${maxPages} ===`);
+      for (pageNum = startPage; pageNum <= endPage; pageNum++) {
+        pagesScraped++;
+        console.log(`\n[PagesJaunesScraper] === Page ${pageNum} (${pagesScraped}/${maxPages}) ===`);
 
         const prospects = await this.scrapePage(page, normalizedQuoiqui, normalizedOu, pageNum);
 
@@ -391,10 +398,10 @@ class PagesJaunesScraper {
 
         // Callback de progression
         if (onProgress) {
-          const progress = Math.round((pageNum / maxPages) * 100);
+          const progress = Math.round((pagesScraped / maxPages) * 100);
           onProgress(progress, {
             prospects: allProspects.slice(0, maxResults),
-            pages_scraped: pageNum,
+            pages_scraped: pagesScraped,
             errors: [],
           });
         }
@@ -407,7 +414,7 @@ class PagesJaunesScraper {
         }
 
         // Delay entre les pages
-        if (pageNum < maxPages) {
+        if (pageNum < endPage) {
           await this.playwrightService.randomDelay(3000, 6000);
         }
       }
@@ -433,8 +440,8 @@ class PagesJaunesScraper {
         total: finalProspects.length,
         duplicates_skipped: excludeDuplicates ? duplicatesCount : 0,
         total_scraped: excludeDuplicates ? (allProspects.length + duplicatesCount) : finalProspects.length,
-        pages_scraped: Math.min(pageNum, maxPages),
-        search: { quoiqui, ou }
+        pages_scraped: pagesScraped,
+        search: { quoiqui, ou, startPage, endPage }
       };
 
     } catch (error) {
