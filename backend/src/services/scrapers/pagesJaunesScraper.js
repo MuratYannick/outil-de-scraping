@@ -102,8 +102,9 @@ class PagesJaunesScraper {
           email: null
         };
 
-        // Nom de l'entreprise - Différents sélecteurs possibles
+        // Nom de l'entreprise - Format 2024: .bi-denomination > h3
         const nameSelectors = [
+          '.bi-denomination h3',      // Format actuel (2024)
           '.bi-denomination',
           '[class*="denomination"]',
           'h2',
@@ -197,13 +198,13 @@ class PagesJaunesScraper {
     // Attendre que les résultats se chargent (JavaScript dynamique)
     await this.playwrightService.delay(5000);
 
-    // Chercher les résultats avec différents sélecteurs possibles
+    // Chercher les résultats - Pages Jaunes utilise une liste ul.bi-list > li
     const resultSelectors = [
-      '.bi-product',
-      '[class*="result-item"]',
-      '[class*="search-item"]',
+      '.bi-list > li',            // Sélecteur principal (2024)
+      'ul.bi-list > li',          // Alternative explicite
+      '.bi-product',              // Ancien format (fallback)
       'li[itemtype*="LocalBusiness"]',
-      'article[class*="item"]'
+      '[class*="result-item"]'
     ];
 
     let results = [];
