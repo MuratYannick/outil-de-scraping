@@ -33,7 +33,7 @@ export default (sequelize) => {
         allowNull: true,
       },
       adresse: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING(500),
         allowNull: true,
       },
       url_site: {
