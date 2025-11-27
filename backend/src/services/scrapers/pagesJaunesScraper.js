@@ -88,6 +88,43 @@ class PagesJaunesScraper {
   }
 
   /**
+   * Extrait le code postal et la ville de l'adresse française
+   * Format attendu: "rue 75001 Paris" ou "rue Paris 75001"
+   * @param {string} adresse - Adresse complète
+   * @returns {Object} { adresse_rue, code_postal, ville }
+   */
+  extractAddressComponents(adresse) {
+    if (!adresse) {
+      return { adresse_rue: null, code_postal: null, ville: null };
+    }
+
+    // Regex pour code postal français (5 chiffres)
+    const codePostalRegex = /\b(\d{5})\b/;
+    const match = adresse.match(codePostalRegex);
+
+    if (!match) {
+      // Pas de code postal trouvé, retourner l'adresse telle quelle
+      return { adresse_rue: adresse, code_postal: null, ville: null };
+    }
+
+    const codePostal = match[1];
+    const codePostalIndex = match.index;
+
+    // Extraire la ville (tout ce qui suit le code postal)
+    const afterCodePostal = adresse.substring(codePostalIndex + 5).trim();
+    const ville = afterCodePostal || null;
+
+    // Extraire la rue (tout ce qui précède le code postal)
+    const adresseRue = adresse.substring(0, codePostalIndex).trim();
+
+    return {
+      adresse_rue: adresseRue || null,
+      code_postal: codePostal,
+      ville: ville
+    };
+  }
+
+  /**
    * Extrait les données d'un élément de résultat
    * @param {ElementHandle} element - Élément DOM du résultat
    */
@@ -244,13 +281,18 @@ class PagesJaunesScraper {
         const data = await this.extractProspectData(results[i], page);
 
         if (data && data.nom_entreprise) {
+          // Extraire code postal et ville de l'adresse
+          const addressComponents = this.extractAddressComponents(data.adresse);
+
           // Normaliser les données
           const prospect = {
             nom_entreprise: data.nom_entreprise,
             nom_contact: null, // Pages Jaunes ne fournit généralement pas le nom du contact
             email: this.normalizeEmail(data.email),
             telephone: this.normalizePhone(data.telephone),
-            adresse: data.adresse,
+            adresse: addressComponents.adresse_rue || data.adresse, // Adresse sans code postal/ville
+            ville: addressComponents.ville,
+            code_postal: addressComponents.code_postal,
             url_site: this.normalizeWebsite(data.url_site),
             source_scraping: "Pages Jaunes"
           };

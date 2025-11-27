@@ -70,6 +70,7 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
 
     const { source = 'Pages Jaunes', maxPages = 1, maxResults = 10 } = options;
     let prospects = [];
+    let scrapingResult = null; // Stocker le résultat complet du scraping
 
     // Choisir le scraper approprié selon la source
     if (source === 'Google Maps') {
@@ -107,7 +108,7 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
       // Pages Jaunes (par défaut)
       const scraper = new PagesJaunesScraper();
 
-      const result = await scraper.scrape(keyword, location, {
+      scrapingResult = await scraper.scrape(keyword, location, {
         maxPages,
         maxResults,
         onProgress: (progress, data) => {
@@ -115,7 +116,7 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
         },
       });
 
-      prospects = result.prospects;
+      prospects = scrapingResult.prospects;
     }
 
     // Sauvegarder les prospects en base de données
@@ -138,8 +139,8 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
       taskResult.success = true;
     } else {
       // Pages Jaunes
-      taskResult.pages_scraped = result?.pages_scraped || 1;
-      taskResult.success = result?.success || false;
+      taskResult.pages_scraped = scrapingResult?.pages_scraped || 1;
+      taskResult.success = scrapingResult?.success || false;
     }
 
     // Marquer la tâche comme terminée
