@@ -195,12 +195,11 @@ async function saveProspects(prospects, keyword) {
 
         // Champs à enrichir uniquement si null/vide (données stables)
         const fieldsToEnrichIfNull = [
-          'nom_contact', 'email', 'adresse', 'note',
-          'latitude', 'longitude', 'ville', 'code_postal', 'url_maps', 'url_linkedin'
+          'adresse', 'latitude', 'longitude', 'ville', 'code_postal', 'url_maps', 'url_linkedin'
         ];
 
         // Champs à toujours mettre à jour si différents (données qui peuvent changer)
-        const fieldsToAlwaysUpdate = ['telephone', 'url_site'];
+        const fieldsToAlwaysUpdate = ['nom_contact', 'email', 'telephone', 'url_site', 'note'];
 
         // 1. Enrichir les champs null/vides
         fieldsToEnrichIfNull.forEach(field => {
