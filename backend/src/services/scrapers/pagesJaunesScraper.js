@@ -322,6 +322,8 @@ class PagesJaunesScraper {
     const {
       maxPages = 1,
       maxResults = 50,
+      excludeDuplicates = false,
+      isDuplicate = null, // Callback pour vérifier si un prospect est un doublon
       onProgress = null // Callback pour le feedback en temps réel
     } = options;
 
@@ -342,8 +344,13 @@ class PagesJaunesScraper {
 
     console.log(`[PagesJaunesScraper] Démarrage du scraping: "${normalizedQuoiqui}" à "${normalizedOu}"`);
     console.log(`[PagesJaunesScraper] Max pages: ${maxPages}, Max résultats: ${maxResults}`);
+    if (excludeDuplicates) {
+      console.log(`[PagesJaunesScraper] Mode excludeDuplicates activé: scraper jusqu'à ${maxResults} NOUVEAUX prospects`);
+    }
 
     const allProspects = [];
+    const newProspects = []; // Prospects non-doublons
+    let duplicatesCount = 0;
     let pageNum = 0;
 
     try {
@@ -357,10 +364,30 @@ class PagesJaunesScraper {
         console.log(`\n[PagesJaunesScraper] === Page ${pageNum}/${maxPages} ===`);
 
         const prospects = await this.scrapePage(page, normalizedQuoiqui, normalizedOu, pageNum);
-        allProspects.push(...prospects);
 
+        // Si excludeDuplicates est activé, filtrer les doublons
+        if (excludeDuplicates && isDuplicate) {
+          for (const prospect of prospects) {
+            const isdup = await isDuplicate(prospect);
+            if (isdup) {
+              duplicatesCount++;
+              console.log(`[PagesJaunesScraper] ⏭️  Doublon ignoré: ${prospect.nom_entreprise}`);
+            } else {
+              newProspects.push(prospect);
+              allProspects.push(prospect);
+              console.log(`[PagesJaunesScraper] ✅ Nouveau prospect: ${prospect.nom_entreprise}`);
+            }
+          }
+        } else {
+          allProspects.push(...prospects);
+        }
+
+        const targetCount = excludeDuplicates ? newProspects.length : allProspects.length;
         console.log(`[PagesJaunesScraper] ${prospects.length} prospects extraits de la page ${pageNum}`);
-        console.log(`[PagesJaunesScraper] Total cumulé: ${allProspects.length} prospects`);
+        if (excludeDuplicates) {
+          console.log(`[PagesJaunesScraper] Nouveaux: ${newProspects.length}, Doublons: ${duplicatesCount}`);
+        }
+        console.log(`[PagesJaunesScraper] Total cumulé: ${targetCount} prospects`);
 
         // Callback de progression
         if (onProgress) {
@@ -373,8 +400,9 @@ class PagesJaunesScraper {
         }
 
         // Arrêter si on a atteint le maximum
-        if (allProspects.length >= maxResults) {
-          console.log(`[PagesJaunesScraper] Limite de ${maxResults} résultats atteinte`);
+        // En mode excludeDuplicates, on compte les nouveaux prospects uniquement
+        if (targetCount >= maxResults) {
+          console.log(`[PagesJaunesScraper] Limite de ${maxResults} ${excludeDuplicates ? 'nouveaux ' : ''}résultats atteinte`);
           break;
         }
 
@@ -388,14 +416,23 @@ class PagesJaunesScraper {
       await this.playwrightService.closeContext(context);
 
       // Limiter au nombre max de résultats
-      const finalProspects = allProspects.slice(0, maxResults);
+      // En mode excludeDuplicates, on retourne uniquement les nouveaux prospects
+      const finalProspects = excludeDuplicates
+        ? newProspects.slice(0, maxResults)
+        : allProspects.slice(0, maxResults);
 
       console.log(`\n[PagesJaunesScraper] ✅ Scraping terminé: ${finalProspects.length} prospects récupérés`);
+      if (excludeDuplicates) {
+        console.log(`[PagesJaunesScraper] 📊 Doublons ignorés: ${duplicatesCount}`);
+        console.log(`[PagesJaunesScraper] 📊 Total scrapé (avec doublons): ${allProspects.length + duplicatesCount}`);
+      }
 
       return {
         success: true,
         prospects: finalProspects,
         total: finalProspects.length,
+        duplicates_skipped: excludeDuplicates ? duplicatesCount : 0,
+        total_scraped: excludeDuplicates ? (allProspects.length + duplicatesCount) : finalProspects.length,
         pages_scraped: Math.min(pageNum, maxPages),
         search: { quoiqui, ou }
       };

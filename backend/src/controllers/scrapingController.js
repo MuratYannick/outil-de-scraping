@@ -68,9 +68,29 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
     // Mettre à jour le statut à "in_progress"
     taskManager.updateTaskStatus(taskId, 'in_progress');
 
-    const { source = 'Pages Jaunes', maxPages = 1, maxResults = 10 } = options;
+    const { source = 'Pages Jaunes', maxPages = 1, maxResults = 10, excludeDuplicates = false } = options;
     let prospects = [];
     let scrapingResult = null; // Stocker le résultat complet du scraping
+
+    // Créer une fonction de vérification de doublons en temps réel
+    const isDuplicate = excludeDuplicates ? async (prospectData) => {
+      const existing = await Prospect.findOne({
+        where: {
+          [Op.or]: [
+            // Doublon si même nom ET même adresse
+            prospectData.nom_entreprise && prospectData.adresse ? {
+              nom_entreprise: prospectData.nom_entreprise,
+              adresse: prospectData.adresse
+            } : null,
+            // Ou même email
+            prospectData.email ? { email: prospectData.email } : null,
+            // Ou même URL
+            prospectData.url_site ? { url_site: prospectData.url_site } : null,
+          ].filter(Boolean),
+        },
+      });
+      return !!existing;
+    } : null;
 
     // Choisir le scraper approprié selon la source
     if (source === 'Google Maps') {
@@ -108,9 +128,13 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
       // Pages Jaunes (par défaut)
       const scraper = new PagesJaunesScraper();
 
+      console.log(`[ScrapingController] Mode excludeDuplicates: ${excludeDuplicates ? 'OUI' : 'NON'}`);
+
       scrapingResult = await scraper.scrape(keyword, location, {
         maxPages,
         maxResults,
+        excludeDuplicates,
+        isDuplicate, // Callback pour vérifier les doublons en temps réel
         onProgress: (progress, data) => {
           taskManager.updateTaskProgress(taskId, progress, data);
         },

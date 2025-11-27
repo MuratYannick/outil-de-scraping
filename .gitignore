@@ -64,5 +64,8 @@ page*.json
 *-dom.html
 backend/pages-jaunes-dom.html
 
+# Test scripts (keep in repo)
+# backend/scripts/test-*.js
+
 # Ignore Claude files
 .claude/
