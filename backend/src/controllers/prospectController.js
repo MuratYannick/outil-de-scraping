@@ -1,5 +1,5 @@
-import { Prospect, Tag } from "../models/index.js";
-import { Op } from "sequelize";
+import { Prospect, Tag, sequelize } from "../models/index.js";
+import { Op, QueryTypes } from "sequelize";
 
 /**
  * @route   GET /api/prospects
@@ -16,31 +16,89 @@ export const getAllProspects = async (req, res) => {
       where.source_scraping = source;
     }
 
-    // Configuration de la requête
-    const queryOptions = {
-      where,
-      include: [
+    // Si on filtre par tag, on doit joindre la table prospect_tags
+    let includeForCount = [];
+    if (tag) {
+      includeForCount = [
         {
           model: Tag,
           as: "tags",
+          where: { nom: tag },
           through: { attributes: [] },
-          ...(tag && {
-            where: { nom: tag },
-          }),
+          attributes: [],
         },
-      ],
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-      order: [["date_ajout", "DESC"]],
-      distinct: true,
-      subQuery: false,
-    };
+      ];
+    }
 
-    const prospects = await Prospect.findAndCountAll(queryOptions);
+    // Étape 1: Compter le total de prospects (distincts)
+    const count = await Prospect.count({
+      where,
+      include: includeForCount,
+      distinct: true,
+      col: 'id',
+    });
+
+    // Étape 2: Récupérer les IDs avec pagination via une sous-requête
+    // Cela évite le problème de GROUP BY + ORDER BY + LIMIT
+    let idQuery;
+    let replacements = { limit: parseInt(limit), offset: parseInt(offset) };
+
+    if (tag) {
+      // Avec filtre par tag
+      idQuery = `
+        SELECT DISTINCT p.id
+        FROM prospects p
+        INNER JOIN prospects_tags pt ON p.id = pt.prospect_id
+        INNER JOIN tags t ON pt.tag_id = t.id
+        WHERE t.nom = :tagName
+        ${source ? 'AND p.source_scraping = :source' : ''}
+        ORDER BY p.date_ajout DESC, p.id DESC
+        LIMIT :limit OFFSET :offset
+      `;
+      replacements.tagName = tag;
+      if (source) replacements.source = source;
+    } else {
+      // Sans filtre par tag
+      idQuery = `
+        SELECT id
+        FROM prospects
+        ${source ? 'WHERE source_scraping = :source' : ''}
+        ORDER BY date_ajout DESC, id DESC
+        LIMIT :limit OFFSET :offset
+      `;
+      if (source) replacements.source = source;
+    }
+
+    const idRows = await sequelize.query(idQuery, {
+      replacements,
+      type: QueryTypes.SELECT,
+    });
+
+    // Étape 3: Récupérer les prospects complets avec leurs tags
+    const prospectIds = idRows.map(row => row.id);
+
+    let prospects = [];
+    if (prospectIds.length > 0) {
+      prospects = await Prospect.findAll({
+        where: {
+          id: {
+            [Op.in]: prospectIds,
+          },
+        },
+        include: [
+          {
+            model: Tag,
+            as: "tags",
+            through: { attributes: [] },
+          },
+        ],
+        order: [["date_ajout", "DESC"], ["id", "DESC"]],
+      });
+    }
 
     res.json({
-      data: prospects.rows,
-      total: prospects.count,
+      data: prospects,
+      total: count,
       limit: parseInt(limit),
       offset: parseInt(offset),
     });
