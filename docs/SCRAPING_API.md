@@ -18,6 +18,10 @@ Ce document décrit l'API de scraping asynchrone qui permet de lancer, suivre et
 - Méthode `extractAddressComponents()` pour parser les adresses françaises
 - Séparation automatique : adresse / code postal / ville
 - Normalisation des téléphones au format français
+- **Option `excludeDuplicates`** : Scraper jusqu'à N nouveaux prospects (hors doublons)
+  - Vérification en temps réel contre la base de données
+  - Continue jusqu'à obtenir le nombre demandé de NOUVEAUX prospects
+  - Métriques détaillées : `duplicates_skipped`, `total_scraped`
 
 ✅ **Correction de bugs** :
 - Fix `ReferenceError: result is not defined` dans scrapingController
@@ -112,11 +116,26 @@ Lance une nouvelle tâche de scraping.
 {
   "keyword": "plombier",
   "location": "Lyon",
-  "source": "Pages Jaunes",  // Optionnel, défaut: "Pages Jaunes"
-  "maxPages": 1,             // Optionnel, défaut: 1
-  "maxResults": 10           // Optionnel, défaut: 10
+  "source": "Pages Jaunes",      // Optionnel, défaut: "Pages Jaunes"
+  "maxPages": 1,                 // Optionnel, défaut: 1
+  "maxResults": 10,              // Optionnel, défaut: 10
+  "excludeDuplicates": false     // Optionnel, défaut: false (voir ci-dessous)
 }
 ```
+
+**⚙️ Paramètre `excludeDuplicates`** :
+
+- `false` (défaut) : Le scraper s'arrête après avoir scrapé `maxResults` prospects (peut inclure des doublons)
+- `true` : Le scraper continue jusqu'à trouver `maxResults` NOUVEAUX prospects (exclut les doublons déjà en DB)
+
+**Exemple d'utilisation** :
+
+Si vous avez déjà 20 restaurants à Cannes en base de données et que vous lancez un scraping avec `maxResults: 10` et `excludeDuplicates: true`, le scraper va :
+1. Vérifier chaque prospect contre la base de données en temps réel
+2. Ignorer les doublons et continuer à scraper
+3. S'arrêter uniquement quand 10 NOUVEAUX restaurants ont été trouvés
+
+Sans `excludeDuplicates`, le scraper s'arrêterait après avoir scrapé 10 prospects au total (même si tous sont des doublons).
 
 **Response** (202 Accepted) :
 ```json
@@ -153,7 +172,9 @@ Récupère le statut et la progression d'une tâche.
   "results": {
     "total": 5,
     "pages_scraped": 1,
-    "errors": []
+    "errors": [],
+    "duplicates_skipped": 3,      // Si excludeDuplicates=true
+    "total_scraped": 8            // Si excludeDuplicates=true (total + duplicates)
   },
   "createdAt": "2025-11-17T10:30:00Z",
   "startedAt": "2025-11-17T10:30:05Z",
