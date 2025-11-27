@@ -33,6 +33,7 @@ export const getAllProspects = async (req, res) => {
       offset: parseInt(offset),
       order: [["date_ajout", "DESC"]],
       distinct: true,
+      subQuery: false,
     };
 
     const prospects = await Prospect.findAndCountAll(queryOptions);
