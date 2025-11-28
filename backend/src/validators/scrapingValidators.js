@@ -33,10 +33,10 @@ export const lancerScrapingSchema = {
       'number.min': 'Le nombre de pages doit être au moins 1',
       'number.max': 'Le nombre de pages ne peut pas dépasser 100',
     }),
-    maxResults: Joi.number().integer().min(1).max(100).default(10).messages({
+    maxResults: Joi.number().integer().min(1).max(1000).default(10).messages({
       'number.base': 'Le nombre de résultats doit être un nombre',
       'number.min': 'Le nombre de résultats doit être au moins 1',
-      'number.max': 'Le nombre de résultats ne peut pas dépasser 100',
+      'number.max': 'Le nombre de résultats ne peut pas dépasser 1000',
     }),
     excludeDuplicates: Joi.boolean().default(false).messages({
       'boolean.base': 'Le paramètre excludeDuplicates doit être un booléen',

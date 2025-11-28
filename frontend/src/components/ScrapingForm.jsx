@@ -59,8 +59,8 @@ export default function ScrapingForm({ onScrapingStarted }) {
       newErrors.maxPages = 'Entre 1 et 100 pages maximum';
     }
 
-    if (formData.maxResults < 1 || formData.maxResults > 100) {
-      newErrors.maxResults = 'Entre 1 et 100 résultats maximum';
+    if (formData.maxResults < 1 || formData.maxResults > 1000) {
+      newErrors.maxResults = 'Entre 1 et 1000 résultats maximum';
     }
 
     setErrors(newErrors);
@@ -292,7 +292,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
               value={formData.maxResults}
               onChange={handleChange}
               min="1"
-              max="100"
+              max="1000"
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.maxResults ? 'border-red-500' : 'border-gray-300'
               }`}
