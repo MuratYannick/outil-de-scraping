@@ -23,10 +23,10 @@ export const lancerScrapingSchema = {
       .messages({
         'any.only': 'La source doit être "Pages Jaunes", "Google Maps" ou "LinkedIn"',
       }),
-    startPage: Joi.number().integer().min(1).max(100).default(1).messages({
+    startPage: Joi.number().integer().min(1).max(10000).default(1).messages({
       'number.base': 'La page de départ doit être un nombre',
       'number.min': 'La page de départ doit être au moins 1',
-      'number.max': 'La page de départ ne peut pas dépasser 100',
+      'number.max': 'La page de départ ne peut pas dépasser 10000',
     }),
     maxPages: Joi.number().integer().min(1).max(100).default(1).messages({
       'number.base': 'Le nombre de pages doit être un nombre',

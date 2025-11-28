@@ -51,8 +51,8 @@ export default function ScrapingForm({ onScrapingStarted }) {
       newErrors.location = 'La localisation est requise';
     }
 
-    if (formData.startPage < 1 || formData.startPage > 100) {
-      newErrors.startPage = 'La page de départ doit être entre 1 et 100';
+    if (formData.startPage < 1 || formData.startPage > 10000) {
+      newErrors.startPage = 'La page de départ doit être entre 1 et 10000';
     }
 
     if (formData.maxPages < 1 || formData.maxPages > 100) {
@@ -246,7 +246,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
               value={formData.startPage}
               onChange={handleChange}
               min="1"
-              max="100"
+              max="10000"
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.startPage ? 'border-red-500' : 'border-gray-300'
               }`}
