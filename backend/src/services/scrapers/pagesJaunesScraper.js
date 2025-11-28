@@ -15,22 +15,40 @@ class PagesJaunesScraper {
 
   /**
    * Construit l'URL de recherche
+   * Utilise deux formats différents selon si on démarre depuis la page 1 ou non:
+   * - Page 1: Format classique de recherche (plus robuste aux changements)
+   * - Page > 1: Format annuaire avec pagination (permet de démarrer sur n'importe quelle page)
+   *
    * @param {string} quoiqui - Activité ou nom de l'entreprise
    * @param {string} ou - Localisation
    * @param {number} page - Numéro de page (optionnel)
+   * @param {boolean} useDirectoryFormat - Forcer le format annuaire (pour startPage > 1)
    */
-  buildSearchUrl(quoiqui, ou, page = 1) {
-    const params = new URLSearchParams({
-      quoiqui,
-      ou,
-      univers: "pagesjaunes"
-    });
+  buildSearchUrl(quoiqui, ou, page = 1, useDirectoryFormat = false) {
+    // Si on démarre depuis la page 1 et qu'on ne force pas le format annuaire,
+    // utiliser le format de recherche classique (plus robuste)
+    if (page === 1 && !useDirectoryFormat) {
+      const params = new URLSearchParams({
+        quoiqui,
+        ou,
+        univers: "pagesjaunes"
+      });
 
-    if (page > 1) {
-      params.append("page", page.toString());
+      return `${this.baseUrl}/annuaire/chercherlespros?${params.toString()}`;
     }
 
-    return `${this.baseUrl}/annuaire/chercherlespros?${params.toString()}`;
+    // Sinon, utiliser le format annuaire qui supporte la pagination directe
+    // Format: /annuaire/{location}/{keyword}?page={page}
+    const locationSlug = ou.toLowerCase().trim().replace(/\s+/g, '-');
+    const keywordSlug = quoiqui.toLowerCase().trim().replace(/\s+/g, '-');
+
+    let url = `${this.baseUrl}/annuaire/${locationSlug}/${keywordSlug}`;
+
+    if (page > 1) {
+      url += `?page=${page}`;
+    }
+
+    return url;
   }
 
   /**
