@@ -267,6 +267,15 @@ class PagesJaunesScraper {
     // Attendre que les résultats se chargent (JavaScript dynamique)
     await this.playwrightService.delay(5000);
 
+    // Vérifier si on a atteint une page sans résultats (message "Oups…")
+    const noResultsMessage = await page.$('h1.wording-no-responses');
+    if (noResultsMessage) {
+      const messageText = await noResultsMessage.textContent();
+      console.warn(`[PagesJaunesScraper] ⚠️  Page ${pageNum}: ${messageText.trim()}`);
+      console.warn(`[PagesJaunesScraper] ⚠️  Dernière page atteinte, arrêt du scraping`);
+      return null; // Retourner null pour signaler la fin des résultats
+    }
+
     // Chercher les résultats - Pages Jaunes utilise une liste ul.bi-list > li
     const resultSelectors = [
       '.bi-list > li',            // Sélecteur principal (2024)
@@ -389,6 +398,13 @@ class PagesJaunesScraper {
         console.log(`\n[PagesJaunesScraper] === Page ${pageNum} (${pagesScraped}/${maxPages}) ===`);
 
         const prospects = await this.scrapePage(page, normalizedQuoiqui, normalizedOu, pageNum);
+
+        // Si scrapePage retourne null, c'est qu'on a dépassé la dernière page
+        if (prospects === null) {
+          console.log(`[PagesJaunesScraper] 🛑 Arrêt du scraping: dernière page atteinte`);
+          pagesScraped--; // Ne pas compter cette page vide
+          break;
+        }
 
         // Si excludeDuplicates est activé, filtrer les doublons
         if (excludeDuplicates && isDuplicate) {
