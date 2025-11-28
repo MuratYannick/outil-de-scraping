@@ -51,12 +51,12 @@ export default function ScrapingForm({ onScrapingStarted }) {
       newErrors.location = 'La localisation est requise';
     }
 
-    if (formData.startPage < 1) {
-      newErrors.startPage = 'La page de départ doit être >= 1';
+    if (formData.startPage < 1 || formData.startPage > 100) {
+      newErrors.startPage = 'La page de départ doit être entre 1 et 100';
     }
 
-    if (formData.maxPages < 1 || formData.maxPages > 10) {
-      newErrors.maxPages = 'Entre 1 et 10 pages maximum';
+    if (formData.maxPages < 1 || formData.maxPages > 100) {
+      newErrors.maxPages = 'Entre 1 et 100 pages maximum';
     }
 
     if (formData.maxResults < 1 || formData.maxResults > 100) {
@@ -246,6 +246,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
               value={formData.startPage}
               onChange={handleChange}
               min="1"
+              max="100"
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.startPage ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -268,7 +269,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
               value={formData.maxPages}
               onChange={handleChange}
               min="1"
-              max="10"
+              max="100"
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.maxPages ? 'border-red-500' : 'border-gray-300'
               }`}

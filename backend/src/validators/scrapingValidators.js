@@ -23,15 +23,23 @@ export const lancerScrapingSchema = {
       .messages({
         'any.only': 'La source doit être "Pages Jaunes", "Google Maps" ou "LinkedIn"',
       }),
-    maxPages: Joi.number().integer().min(1).max(10).default(1).messages({
+    startPage: Joi.number().integer().min(1).max(100).default(1).messages({
+      'number.base': 'La page de départ doit être un nombre',
+      'number.min': 'La page de départ doit être au moins 1',
+      'number.max': 'La page de départ ne peut pas dépasser 100',
+    }),
+    maxPages: Joi.number().integer().min(1).max(100).default(1).messages({
       'number.base': 'Le nombre de pages doit être un nombre',
       'number.min': 'Le nombre de pages doit être au moins 1',
-      'number.max': 'Le nombre de pages ne peut pas dépasser 10',
+      'number.max': 'Le nombre de pages ne peut pas dépasser 100',
     }),
     maxResults: Joi.number().integer().min(1).max(100).default(10).messages({
       'number.base': 'Le nombre de résultats doit être un nombre',
       'number.min': 'Le nombre de résultats doit être au moins 1',
       'number.max': 'Le nombre de résultats ne peut pas dépasser 100',
+    }),
+    excludeDuplicates: Joi.boolean().default(false).messages({
+      'boolean.base': 'Le paramètre excludeDuplicates doit être un booléen',
     }),
   }),
 };
