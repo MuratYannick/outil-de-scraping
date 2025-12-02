@@ -344,7 +344,7 @@ async function testEnhancedScraperEndToEnd() {
   }
 
   // Vérifier que la source est correcte
-  if (firstProspect.source_scraping !== 'Google Maps Scraper (Enhanced)') {
+  if (firstProspect.source_scraping !== 'Google Maps') {
     throw new Error(`Unexpected source: ${firstProspect.source_scraping}`);
   }
 

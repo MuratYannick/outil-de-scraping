@@ -910,7 +910,7 @@ async _extractProspectDetails(page) {
     }
 
     // Source
-    details.source_scraping = 'Google Maps Scraper (Enhanced)';
+    details.source_scraping = 'Google Maps';
     details.email = null;
 
     return details;
@@ -1100,7 +1100,7 @@ Le code a été validé manuellement en:
   latitude: 48.857920,
   longitude: 2.341725,
   note: 4.5,
-  source_scraping: "Google Maps Scraper (Enhanced)"
+  source_scraping: "Google Maps"
 }
 ```
 

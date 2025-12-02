@@ -329,7 +329,7 @@
 - [x] **Modèle Database** :
   - [x] Ajouter champs GPS (latitude, longitude) DECIMAL(10,7)
   - [x] Ajouter champ note/avis DECIMAL(2,1)
-  - [x] Source mise à jour : "Google Maps Scraper (Enhanced)"
+  - [x] Source mise à jour : "Google Maps"
 - [x] **Amélioration Complétude Données** :
   - [x] Téléphone: +70% (30% → 100%)
   - [x] Site web: +60% (40% → 100%)

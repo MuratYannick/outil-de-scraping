@@ -16,7 +16,7 @@ async function testGoogleMapsWithGeocoding() {
     console.log('1️⃣ Nettoyage des prospects de test...');
     await Prospect.destroy({
       where: {
-        source_scraping: 'Google Maps Scraper (Enhanced)'
+        source_scraping: 'Google Maps'
       }
     });
     console.log('✅ Prospects de test supprimés\n');

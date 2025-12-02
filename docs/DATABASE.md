@@ -123,7 +123,7 @@ VALUES
     '04 78 12 34 56',
     '123 Rue de la Paix',
     'https://plomberie-martin.fr',
-    'Google Maps Scraper (Enhanced)',
+    'Google Maps',
     45.7640,
     4.8357,
     4.5,

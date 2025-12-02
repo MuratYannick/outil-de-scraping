@@ -601,7 +601,7 @@ class GoogleMapsService {
 
         // Formater et ajouter les champs manquants
         prospect.email = null; // Jamais visible dans la liste
-        prospect.source_scraping = 'Google Maps Scraper (Enhanced)';
+        prospect.source_scraping = 'Google Maps';
 
         // Enrichissement avec geocoding inversé (ville + code postal depuis GPS)
         if (prospect.latitude && prospect.longitude) {
@@ -736,7 +736,7 @@ class GoogleMapsService {
       }
 
       // Ajouter la source
-      details.source_scraping = 'Google Maps Scraper (Enhanced)';
+      details.source_scraping = 'Google Maps';
       details.email = null; // Google Maps ne fournit généralement pas d'email
 
       return details;
