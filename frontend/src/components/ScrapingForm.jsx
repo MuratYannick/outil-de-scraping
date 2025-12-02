@@ -38,6 +38,43 @@ export default function ScrapingForm({ onScrapingStarted }) {
   };
 
   /**
+   * Gérer l'incrémentation/décrémentation avec les flèches cliquables et le clavier
+   */
+  const handleNumericChange = (e, fieldName, min, max) => {
+    const { value } = e.target;
+    const currentValue = parseInt(formData[fieldName]) || min;
+    const newValue = parseInt(value) || min;
+
+    // Si la différence est exactement 1 ou -1, c'est probablement les boutons spinner
+    // On multiplie par 10
+    const diff = newValue - currentValue;
+    let finalValue = newValue;
+
+    if (diff === 1 || diff === -1) {
+      // C'est un clic sur les flèches spinner
+      finalValue = currentValue + (diff * 10);
+      if (finalValue > max) finalValue = max;
+      if (finalValue < min) finalValue = min;
+    } else {
+      // C'est une saisie manuelle
+      finalValue = newValue;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: finalValue,
+    }));
+
+    // Effacer l'erreur du champ modifié
+    if (errors[fieldName]) {
+      setErrors(prev => ({
+        ...prev,
+        [fieldName]: null,
+      }));
+    }
+  };
+
+  /**
    * Valider le formulaire
    */
   const validate = () => {
@@ -233,52 +270,56 @@ export default function ScrapingForm({ onScrapingStarted }) {
         )}
 
         {/* Options avancées */}
-        <div className="grid grid-cols-3 gap-4">
-          {/* Start Page */}
-          <div>
-            <label htmlFor="startPage" className="block text-sm font-medium text-gray-700 mb-1">
-              Page de départ
-            </label>
-            <input
-              type="number"
-              id="startPage"
-              name="startPage"
-              value={formData.startPage}
-              onChange={handleChange}
-              min="1"
-              max="10000"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.startPage ? 'border-red-500' : 'border-gray-300'
-              }`}
-              disabled={isSubmitting}
-            />
-            {errors.startPage && (
-              <p className="mt-1 text-sm text-red-600">{errors.startPage}</p>
-            )}
-          </div>
+        <div className={`grid ${formData.source === 'Google Maps' ? 'grid-cols-1' : 'grid-cols-3'} gap-4`}>
+          {/* Start Page - Masqué pour Google Maps */}
+          {formData.source !== 'Google Maps' && (
+            <div>
+              <label htmlFor="startPage" className="block text-sm font-medium text-gray-700 mb-1">
+                Page de départ
+              </label>
+              <input
+                type="number"
+                id="startPage"
+                name="startPage"
+                value={formData.startPage}
+                onChange={(e) => handleNumericChange(e, 'startPage', 1, 10000)}
+                min="1"
+                max="10000"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.startPage ? 'border-red-500' : 'border-gray-300'
+                }`}
+                disabled={isSubmitting}
+              />
+              {errors.startPage && (
+                <p className="mt-1 text-sm text-red-600">{errors.startPage}</p>
+              )}
+            </div>
+          )}
 
-          {/* Max Pages */}
-          <div>
-            <label htmlFor="maxPages" className="block text-sm font-medium text-gray-700 mb-1">
-              Nombre de pages
-            </label>
-            <input
-              type="number"
-              id="maxPages"
-              name="maxPages"
-              value={formData.maxPages}
-              onChange={handleChange}
-              min="1"
-              max="100"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.maxPages ? 'border-red-500' : 'border-gray-300'
-              }`}
-              disabled={isSubmitting}
-            />
-            {errors.maxPages && (
-              <p className="mt-1 text-sm text-red-600">{errors.maxPages}</p>
-            )}
-          </div>
+          {/* Max Pages - Masqué pour Google Maps */}
+          {formData.source !== 'Google Maps' && (
+            <div>
+              <label htmlFor="maxPages" className="block text-sm font-medium text-gray-700 mb-1">
+                Nombre de pages
+              </label>
+              <input
+                type="number"
+                id="maxPages"
+                name="maxPages"
+                value={formData.maxPages}
+                onChange={(e) => handleNumericChange(e, 'maxPages', 1, 100)}
+                min="1"
+                max="100"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.maxPages ? 'border-red-500' : 'border-gray-300'
+                }`}
+                disabled={isSubmitting}
+              />
+              {errors.maxPages && (
+                <p className="mt-1 text-sm text-red-600">{errors.maxPages}</p>
+              )}
+            </div>
+          )}
 
           {/* Max Results */}
           <div>
@@ -290,7 +331,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
               id="maxResults"
               name="maxResults"
               value={formData.maxResults}
-              onChange={handleChange}
+              onChange={(e) => handleNumericChange(e, 'maxResults', 1, 1000)}
               min="1"
               max="1000"
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -304,10 +345,12 @@ export default function ScrapingForm({ onScrapingStarted }) {
           </div>
         </div>
 
-        {/* Info sur la plage de pages */}
-        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-          <strong>Pages à scraper :</strong> de la page <strong>{formData.startPage}</strong> à la page <strong>{parseInt(formData.startPage) + parseInt(formData.maxPages) - 1}</strong>
-        </div>
+        {/* Info sur la plage de pages - Masqué pour Google Maps */}
+        {formData.source !== 'Google Maps' && (
+          <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+            <strong>Pages à scraper :</strong> de la page <strong>{formData.startPage}</strong> à la page <strong>{parseInt(formData.startPage) + parseInt(formData.maxPages) - 1}</strong>
+          </div>
+        )}
 
         {/* Exclure les doublons */}
         <div className="flex items-start">
@@ -326,9 +369,11 @@ export default function ScrapingForm({ onScrapingStarted }) {
             <label htmlFor="excludeDuplicates" className="font-medium text-gray-700">
               Exclure les doublons du décompte
             </label>
-            <p className="text-sm text-gray-500">
-              Continue à scraper jusqu'à obtenir <strong>{formData.maxResults} nouveaux prospects</strong> (hors doublons déjà en base)
-            </p>
+            {formData.excludeDuplicates && (
+              <p className="text-sm text-gray-500">
+                Continue à scraper jusqu'à obtenir <strong>{formData.maxResults} nouveaux prospects</strong> (hors doublons déjà en base)
+              </p>
+            )}
           </div>
         </div>
 
