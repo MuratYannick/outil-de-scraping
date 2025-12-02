@@ -8,7 +8,7 @@ import { Op, QueryTypes } from "sequelize";
  */
 export const getAllProspects = async (req, res) => {
   try {
-    const { limit = 20, offset = 0, source, tag, search } = req.query;
+    const { limit = 20, offset = 0, source, tag, search, sortBy, sortOrder } = req.query;
 
     // Construire les conditions de filtrage
     const where = {};
@@ -73,9 +73,28 @@ export const getAllProspects = async (req, res) => {
       return conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     };
 
+    // Construire la clause ORDER BY
+    const buildOrderByClause = () => {
+      const allowedSortFields = {
+        'nom_entreprise': 'p.nom_entreprise',
+        'ville': 'p.ville',
+        'code_postal': 'p.code_postal'
+      };
+
+      const allowedSortOrders = ['ASC', 'DESC'];
+
+      if (sortBy && allowedSortFields[sortBy] && sortOrder && allowedSortOrders.includes(sortOrder.toUpperCase())) {
+        return `ORDER BY ${allowedSortFields[sortBy]} ${sortOrder.toUpperCase()}, p.id ${sortOrder.toUpperCase()}`;
+      }
+
+      // Ordre par défaut : date d'ajout décroissante
+      return 'ORDER BY p.date_ajout DESC, p.id DESC';
+    };
+
+    const orderByClause = buildOrderByClause();
+
     if (tag) {
       // Avec filtre par tag
-      const whereClause = buildWhereConditions();
       idQuery = `
         SELECT DISTINCT p.id
         FROM prospects p
@@ -91,7 +110,7 @@ export const getAllProspects = async (req, res) => {
           p.ville LIKE :search OR
           p.code_postal LIKE :search
         )` : ''}
-        ORDER BY p.date_ajout DESC, p.id DESC
+        ${orderByClause}
         LIMIT :limit OFFSET :offset
       `;
       replacements.tagName = tag;
@@ -104,7 +123,7 @@ export const getAllProspects = async (req, res) => {
         SELECT id
         FROM prospects p
         ${whereClause}
-        ORDER BY date_ajout DESC, id DESC
+        ${orderByClause}
         LIMIT :limit OFFSET :offset
       `;
       if (source) replacements.source = source;

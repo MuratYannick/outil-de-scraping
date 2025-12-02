@@ -36,6 +36,10 @@ export default function App() {
     search: '',
   });
   const [viewMode, setViewMode] = useState('table'); // 'table' ou 'grid'
+  const [sorting, setSorting] = useState({
+    sortBy: null,
+    sortOrder: null,
+  });
 
   // Vérifier le statut de l'API au chargement
   useEffect(() => {
@@ -75,6 +79,10 @@ export default function App() {
         if (filters.tag) params.tag = filters.tag;
         if (filters.search) params.search = filters.search;
 
+        // Ajouter le tri s'il est défini
+        if (sorting.sortBy) params.sortBy = sorting.sortBy;
+        if (sorting.sortOrder) params.sortOrder = sorting.sortOrder;
+
         const data = await getProspects(params);
 
         setProspects(data.data || []);
@@ -94,7 +102,7 @@ export default function App() {
     };
 
     loadProspects();
-  }, [pagination.limit, pagination.offset, filters.source, filters.tag, filters.search]);
+  }, [pagination.limit, pagination.offset, filters.source, filters.tag, filters.search, sorting.sortBy, sorting.sortOrder]);
 
   // Fonction pour recharger les prospects
   const handleRefresh = async () => {
@@ -110,6 +118,10 @@ export default function App() {
       if (filters.source) params.source = filters.source;
       if (filters.tag) params.tag = filters.tag;
       if (filters.search) params.search = filters.search;
+
+      // Ajouter le tri s'il est défini
+      if (sorting.sortBy) params.sortBy = sorting.sortBy;
+      if (sorting.sortOrder) params.sortOrder = sorting.sortOrder;
 
       const data = await getProspects(params);
 
@@ -134,6 +146,16 @@ export default function App() {
   const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters);
     // Réinitialiser à la première page quand on change les filtres
+    setPagination(prev => ({
+      ...prev,
+      offset: 0,
+    }));
+  }, []);
+
+  // Gérer le changement de tri
+  const handleSortChange = useCallback((sortBy, sortOrder) => {
+    setSorting({ sortBy, sortOrder });
+    // Réinitialiser à la première page quand on change le tri
     setPagination(prev => ({
       ...prev,
       offset: 0,
@@ -366,6 +388,9 @@ export default function App() {
               error={error}
               viewMode={viewMode}
               onProspectUpdated={handleRefresh}
+              sortBy={sorting.sortBy}
+              sortOrder={sorting.sortOrder}
+              onSortChange={handleSortChange}
             />
 
             {/* Pagination */}

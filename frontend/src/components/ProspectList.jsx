@@ -7,7 +7,7 @@ import TagBadge from "./TagBadge";
  * Composant pour afficher la liste des prospects
  * Supporte deux modes d'affichage : tableau et grille
  */
-export default function ProspectList({ prospects, loading, error, viewMode = 'table', onProspectUpdated }) {
+export default function ProspectList({ prospects, loading, error, viewMode = 'table', onProspectUpdated, sortBy, sortOrder, onSortChange }) {
   const [selectedProspect, setSelectedProspect] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -19,6 +19,51 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedProspect(null);
+  };
+
+  // Gérer le clic sur un en-tête de colonne pour trier
+  const handleSort = (field) => {
+    if (!onSortChange) return;
+
+    let newSortOrder = 'ASC';
+
+    // Si on clique sur la même colonne
+    if (sortBy === field) {
+      if (sortOrder === 'ASC') {
+        newSortOrder = 'DESC';
+      } else if (sortOrder === 'DESC') {
+        // Reset (aucun tri)
+        onSortChange(null, null);
+        return;
+      }
+    }
+
+    onSortChange(field, newSortOrder);
+  };
+
+  // Composant pour l'icône de tri
+  const SortIcon = ({ field }) => {
+    if (sortBy !== field) {
+      return (
+        <svg className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" />
+        </svg>
+      );
+    }
+
+    if (sortOrder === 'ASC') {
+      return (
+        <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+        </svg>
+      );
+    }
+
+    return (
+      <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+      </svg>
+    );
   };
 
   if (loading) {
@@ -73,17 +118,35 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Nom de l'entreprise
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group"
+                onClick={() => handleSort('nom_entreprise')}
+              >
+                <div className="flex items-center gap-1">
+                  <span>Nom de l'entreprise</span>
+                  <SortIcon field="nom_entreprise" />
+                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Adresse
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Code postal
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group"
+                onClick={() => handleSort('code_postal')}
+              >
+                <div className="flex items-center gap-1">
+                  <span>Code postal</span>
+                  <SortIcon field="code_postal" />
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ville
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group"
+                onClick={() => handleSort('ville')}
+              >
+                <div className="flex items-center gap-1">
+                  <span>Ville</span>
+                  <SortIcon field="ville" />
+                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Téléphone
