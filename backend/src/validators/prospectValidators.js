@@ -123,6 +123,12 @@ export const getAllProspectsSchema = {
     search: Joi.string().max(255).allow('').messages({
       'string.max': 'La recherche ne peut pas dépasser 255 caractères',
     }),
+    sortBy: Joi.string().valid('nom_entreprise', 'ville', 'code_postal').allow('').messages({
+      'any.only': 'Le tri doit être sur nom_entreprise, ville ou code_postal',
+    }),
+    sortOrder: Joi.string().valid('ASC', 'DESC').allow('').messages({
+      'any.only': 'L\'ordre de tri doit être ASC ou DESC',
+    }),
   }),
 };
 

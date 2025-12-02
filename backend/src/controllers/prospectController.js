@@ -140,7 +140,7 @@ export const getAllProspects = async (req, res) => {
 
     let prospects = [];
     if (prospectIds.length > 0) {
-      prospects = await Prospect.findAll({
+      const prospectsUnordered = await Prospect.findAll({
         where: {
           id: {
             [Op.in]: prospectIds,
@@ -153,8 +153,14 @@ export const getAllProspects = async (req, res) => {
             through: { attributes: [] },
           },
         ],
-        order: [["date_ajout", "DESC"], ["id", "DESC"]],
       });
+
+      // Préserver l'ordre de la sous-requête SQL
+      // Créer un map pour accès rapide par ID
+      const prospectMap = new Map(prospectsUnordered.map(p => [p.id, p]));
+
+      // Réordonner selon l'ordre des IDs de la sous-requête
+      prospects = prospectIds.map(id => prospectMap.get(id)).filter(Boolean);
     }
 
     res.json({
