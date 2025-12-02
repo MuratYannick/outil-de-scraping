@@ -38,54 +38,16 @@ export default function ScrapingForm({ onScrapingStarted }) {
   };
 
   /**
-   * Gérer l'incrémentation/décrémentation avec les flèches cliquables et le clavier
+   * Gérer les changements des champs numériques
+   * Accepte toute saisie, la validation se fait à la soumission
    */
-  const handleNumericChange = (e, fieldName, min, max) => {
+  const handleNumericChange = (e, fieldName) => {
     const { value } = e.target;
 
-    // Permettre un champ vide temporairement (pendant la saisie)
-    if (value === '') {
-      setFormData(prev => ({
-        ...prev,
-        [fieldName]: '',
-      }));
-
-      // Effacer l'erreur du champ modifié
-      if (errors[fieldName]) {
-        setErrors(prev => ({
-          ...prev,
-          [fieldName]: null,
-        }));
-      }
-      return;
-    }
-
-    const currentValue = parseInt(formData[fieldName]) || min;
-    const newValue = parseInt(value);
-
-    // Si la valeur n'est pas un nombre valide, ignorer
-    if (isNaN(newValue)) {
-      return;
-    }
-
-    // Si la différence est exactement 1 ou -1, c'est probablement les boutons spinner
-    // On multiplie par 10
-    const diff = newValue - currentValue;
-    let finalValue = newValue;
-
-    if (diff === 1 || diff === -1) {
-      // C'est un clic sur les flèches spinner
-      finalValue = currentValue + (diff * 10);
-      if (finalValue > max) finalValue = max;
-      if (finalValue < min) finalValue = min;
-    } else {
-      // C'est une saisie manuelle - ne pas contraindre pendant la saisie
-      finalValue = newValue;
-    }
-
+    // Accepter n'importe quelle valeur (y compris vide)
     setFormData(prev => ({
       ...prev,
-      [fieldName]: finalValue,
+      [fieldName]: value,
     }));
 
     // Effacer l'erreur du champ modifié
@@ -95,33 +57,6 @@ export default function ScrapingForm({ onScrapingStarted }) {
         [fieldName]: null,
       }));
     }
-  };
-
-  /**
-   * Gérer le blur (perte de focus) des champs numériques
-   * Applique les contraintes min/max
-   */
-  const handleNumericBlur = (fieldName, min, max) => {
-    const value = formData[fieldName];
-
-    // Si le champ est vide, mettre la valeur minimale
-    if (value === '' || isNaN(parseInt(value))) {
-      setFormData(prev => ({
-        ...prev,
-        [fieldName]: min,
-      }));
-      return;
-    }
-
-    // Contraindre la valeur entre min et max
-    let numValue = parseInt(value);
-    if (numValue < min) numValue = min;
-    if (numValue > max) numValue = max;
-
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: numValue,
-    }));
   };
 
   /**
@@ -332,8 +267,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
                 id="startPage"
                 name="startPage"
                 value={formData.startPage}
-                onChange={(e) => handleNumericChange(e, 'startPage', 1, 10000)}
-                onBlur={() => handleNumericBlur('startPage', 1, 10000)}
+                onChange={(e) => handleNumericChange(e, 'startPage')}
                 min="1"
                 max="10000"
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -358,8 +292,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
                 id="maxPages"
                 name="maxPages"
                 value={formData.maxPages}
-                onChange={(e) => handleNumericChange(e, 'maxPages', 1, 100)}
-                onBlur={() => handleNumericBlur('maxPages', 1, 100)}
+                onChange={(e) => handleNumericChange(e, 'maxPages')}
                 min="1"
                 max="100"
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -383,8 +316,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
               id="maxResults"
               name="maxResults"
               value={formData.maxResults}
-              onChange={(e) => handleNumericChange(e, 'maxResults', 1, 1000)}
-              onBlur={() => handleNumericBlur('maxResults', 1, 1000)}
+              onChange={(e) => handleNumericChange(e, 'maxResults')}
               min="1"
               max="1000"
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
