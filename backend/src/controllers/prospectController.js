@@ -8,12 +8,24 @@ import { Op, QueryTypes } from "sequelize";
  */
 export const getAllProspects = async (req, res) => {
   try {
-    const { limit = 20, offset = 0, source, tag } = req.query;
+    const { limit = 20, offset = 0, source, tag, search } = req.query;
 
     // Construire les conditions de filtrage
     const where = {};
     if (source) {
       where.source_scraping = source;
+    }
+
+    // Ajouter le filtre de recherche sur plusieurs champs
+    if (search) {
+      where[Op.or] = [
+        { nom_entreprise: { [Op.like]: `%${search}%` } },
+        { telephone: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+        { adresse: { [Op.like]: `%${search}%` } },
+        { ville: { [Op.like]: `%${search}%` } },
+        { code_postal: { [Op.like]: `%${search}%` } },
+      ];
     }
 
     // Si on filtre par tag, on doit joindre la table prospect_tags
@@ -43,8 +55,27 @@ export const getAllProspects = async (req, res) => {
     let idQuery;
     let replacements = { limit: parseInt(limit), offset: parseInt(offset) };
 
+    // Construire les conditions WHERE pour la recherche
+    const buildWhereConditions = () => {
+      const conditions = [];
+      if (source) conditions.push('p.source_scraping = :source');
+      if (search) {
+        conditions.push(`(
+          p.nom_entreprise LIKE :search OR
+          p.telephone LIKE :search OR
+          p.email LIKE :search OR
+          p.adresse LIKE :search OR
+          p.ville LIKE :search OR
+          p.code_postal LIKE :search
+        )`);
+        replacements.search = `%${search}%`;
+      }
+      return conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    };
+
     if (tag) {
       // Avec filtre par tag
+      const whereClause = buildWhereConditions();
       idQuery = `
         SELECT DISTINCT p.id
         FROM prospects p
@@ -52,21 +83,32 @@ export const getAllProspects = async (req, res) => {
         INNER JOIN tags t ON pt.tag_id = t.id
         WHERE t.nom = :tagName
         ${source ? 'AND p.source_scraping = :source' : ''}
+        ${search ? `AND (
+          p.nom_entreprise LIKE :search OR
+          p.telephone LIKE :search OR
+          p.email LIKE :search OR
+          p.adresse LIKE :search OR
+          p.ville LIKE :search OR
+          p.code_postal LIKE :search
+        )` : ''}
         ORDER BY p.date_ajout DESC, p.id DESC
         LIMIT :limit OFFSET :offset
       `;
       replacements.tagName = tag;
       if (source) replacements.source = source;
+      if (search) replacements.search = `%${search}%`;
     } else {
       // Sans filtre par tag
+      const whereClause = buildWhereConditions();
       idQuery = `
         SELECT id
-        FROM prospects
-        ${source ? 'WHERE source_scraping = :source' : ''}
+        FROM prospects p
+        ${whereClause}
         ORDER BY date_ajout DESC, id DESC
         LIMIT :limit OFFSET :offset
       `;
       if (source) replacements.source = source;
+      if (search) replacements.search = `%${search}%`;
     }
 
     const idRows = await sequelize.query(idQuery, {

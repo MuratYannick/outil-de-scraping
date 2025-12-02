@@ -73,7 +73,7 @@ export default function App() {
         // Ajouter les filtres s'ils sont définis
         if (filters.source) params.source = filters.source;
         if (filters.tag) params.tag = filters.tag;
-        // Note: le filtre "search" nécessiterait une modification backend pour rechercher dans plusieurs champs
+        if (filters.search) params.search = filters.search;
 
         const data = await getProspects(params);
 
@@ -94,7 +94,7 @@ export default function App() {
     };
 
     loadProspects();
-  }, [pagination.limit, pagination.offset, filters.source, filters.tag]);
+  }, [pagination.limit, pagination.offset, filters.source, filters.tag, filters.search]);
 
   // Fonction pour recharger les prospects
   const handleRefresh = async () => {
@@ -109,6 +109,7 @@ export default function App() {
 
       if (filters.source) params.source = filters.source;
       if (filters.tag) params.tag = filters.tag;
+      if (filters.search) params.search = filters.search;
 
       const data = await getProspects(params);
 
