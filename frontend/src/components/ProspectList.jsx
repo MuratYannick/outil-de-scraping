@@ -119,7 +119,7 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
           <thead className="bg-gray-50">
             <tr>
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group w-64"
                 onClick={() => handleSort('nom_entreprise')}
               >
                 <div className="flex items-center gap-1">
@@ -127,7 +127,7 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
                   <SortIcon field="nom_entreprise" />
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-80">
                 Adresse
               </th>
               <th
@@ -159,16 +159,16 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
           <tbody className="bg-white divide-y divide-gray-200">
             {prospects.map((prospect) => (
               <tr key={prospect.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 max-w-64">
                   <button
                     onClick={() => handleProspectClick(prospect)}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left"
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left break-words"
                   >
                     {prospect.nom_entreprise}
                   </button>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900 max-w-xs truncate" title={prospect.adresse}>
+                <td className="px-6 py-4 max-w-80">
+                  <div className="text-sm text-gray-900 break-words">
                     {prospect.adresse || "-"}
                   </div>
                 </td>

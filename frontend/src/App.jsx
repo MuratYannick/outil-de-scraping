@@ -368,7 +368,12 @@ export default function App() {
                 </div>
 
                 {/* Menu Export */}
-                <ExportMenu prospects={prospects} />
+                <ExportMenu
+                  prospects={prospects}
+                  totalCount={pagination.total}
+                  filters={filters}
+                  sorting={sorting}
+                />
 
                 {/* Bouton actualiser */}
                 <button
