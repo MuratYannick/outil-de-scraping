@@ -13,7 +13,7 @@ export const exportToCSV = (data, filename = 'prospects.csv') => {
     return;
   }
 
-  // Headers CSV
+  // Headers CSV - tous les champs du modèle Prospect
   const headers = [
     'ID',
     'Entreprise',
@@ -21,10 +21,16 @@ export const exportToCSV = (data, filename = 'prospects.csv') => {
     'Email',
     'Téléphone',
     'Adresse',
+    'Ville',
+    'Code Postal',
     'Site Web',
+    'Latitude',
+    'Longitude',
+    'Note',
     'Source',
     'Tags',
     'Date Ajout',
+    'Date Modification',
   ];
 
   // Convertir les données en lignes CSV
@@ -35,10 +41,16 @@ export const exportToCSV = (data, filename = 'prospects.csv') => {
     prospect.email || '',
     prospect.telephone || '',
     prospect.adresse || '',
+    prospect.ville || '',
+    prospect.code_postal || '',
     prospect.url_site || '',
+    prospect.latitude || '',
+    prospect.longitude || '',
+    prospect.note || '',
     prospect.source_scraping || '',
     prospect.tags ? prospect.tags.map(tag => tag.nom).join('; ') : '',
     prospect.date_ajout ? new Date(prospect.date_ajout).toLocaleDateString('fr-FR') : '',
+    prospect.date_modification ? new Date(prospect.date_modification).toLocaleDateString('fr-FR') : '',
   ]);
 
   // Construire le CSV
