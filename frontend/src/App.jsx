@@ -11,6 +11,8 @@ import ProspectFilters from "./components/ProspectFilters";
 import Pagination from "./components/Pagination";
 import ExportMenu from "./components/ExportMenu";
 import TagManager from "./components/TagManager";
+import DuplicateCleanerButton from "./components/DuplicateCleanerButton";
+import BulkDeleteButton from "./components/BulkDeleteButton";
 import { getProspects, checkHealth } from "./services/api";
 
 export default function App() {
@@ -325,19 +327,21 @@ export default function App() {
             {/* Filtres */}
             <ProspectFilters onFilterChange={handleFilterChange} />
 
-            {/* Barre d'actions */}
-            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Liste des Prospects
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  {pagination.total > 0
-                    ? `${pagination.total} prospect${pagination.total > 1 ? "s" : ""} au total`
-                    : "Aucun prospect"}
-                </p>
-              </div>
+            {/* En-tête avec titre */}
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Liste des Prospects
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {pagination.total > 0
+                  ? `${pagination.total} prospect${pagination.total > 1 ? "s" : ""} au total`
+                  : "Aucun prospect"}
+              </p>
+            </div>
 
+            {/* Barre d'actions */}
+            <div className="mb-6 flex flex-wrap gap-2 justify-between items-center">
+              {/* Gauche : Affichage, Export, Actualiser */}
               <div className="flex gap-2">
                 {/* Toggle vue tableau/grille */}
                 <div className="inline-flex rounded-md shadow-sm" role="group">
@@ -383,6 +387,20 @@ export default function App() {
                 >
                   {loading ? "Chargement..." : "Actualiser"}
                 </button>
+              </div>
+
+              {/* Droite : Nettoyage et Suppression */}
+              <div className="flex gap-2">
+                {/* Bouton nettoyage des doublons */}
+                <DuplicateCleanerButton onCleanComplete={handleRefresh} />
+
+                {/* Bouton suppression en masse */}
+                <BulkDeleteButton
+                  filters={filters}
+                  sorting={sorting}
+                  totalCount={pagination.total}
+                  onDeleteComplete={handleRefresh}
+                />
               </div>
             </div>
 

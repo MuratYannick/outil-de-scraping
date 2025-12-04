@@ -1,5 +1,343 @@
 # Changelog - Outil de Scraping
 
+## [Non versionnée] - 3 Décembre 2025
+
+### ✨ Nouvelle Fonctionnalité : Interface de Nettoyage des Doublons
+**Date** : 3 décembre 2025 (nuit - suite)
+
+**Objectif** : Permettre à l'utilisateur de nettoyer les doublons directement depuis l'interface web.
+
+**Fonctionnalités ajoutées** :
+
+1. **API Backend** :
+   - Route `GET /api/prospects/duplicates/detect` - Détecte les doublons
+   - Route `POST /api/prospects/duplicates/clean` - Fusionne les doublons
+   - Service `duplicateCleanerService.js` - Logique réutilisable extraite du script CLI
+
+2. **Interface Frontend** :
+   - Composant `DuplicateCleanerButton.jsx` - Bouton avec modal de confirmation
+   - Modal d'affichage des doublons détectés avec comparaison visuelle
+   - Intégration dans la barre d'actions de la page Prospects
+   - Rafraîchissement automatique après nettoyage
+
+3. **Fonctionnement** :
+   - Clic sur "Nettoyer les doublons" → Détection en cours
+   - Affichage d'un modal listant tous les doublons avec détails
+   - Confirmation requise avant fusion
+   - Fusion avec indicateur de progression
+   - Message de succès avec statistiques
+
+**Fichiers créés** :
+- `backend/src/services/duplicateCleanerService.js` - Service de détection et fusion
+- `frontend/src/components/DuplicateCleanerButton.jsx` - Composant React du bouton
+
+**Fichiers modifiés** :
+- `backend/src/controllers/prospectController.js` - Ajout des contrôleurs d'API
+- `backend/src/routes/prospectRoutes.js` - Ajout des routes
+- `frontend/src/services/api.js` - Ajout des appels API
+- `frontend/src/App.jsx` - Intégration du bouton
+
+**Avantages** :
+- Plus besoin d'utiliser le terminal pour nettoyer les doublons
+- Interface visuelle pour voir exactement ce qui sera fusionné
+- Confirmation interactive avant toute modification
+- Retour immédiat avec statistiques détaillées
+
+---
+
+### 🔧 Amélioration : Détection de Doublons Plus Stricte
+**Date** : 3 décembre 2025 (nuit)
+
+**Objectif** : Affiner la logique de détection pour éviter les faux positifs.
+
+**Modifications apportées** :
+1. **Changement du critère obligatoire** : Code postal au lieu de ville
+   - Rationale : Plusieurs villes peuvent avoir le même nom
+   - Empêche les fusions erronées entre villes homonymes
+
+2. **Logique combinée (AND au lieu de OR)** :
+   - **Chemin A** (avec adresses) : Requiert adresse similaire **ET** nom similaire (≥85%)
+   - **Chemin B** (sans adresse) : Requiert nom similaire (≥85%) **ET** au moins un contact identique
+   - Empêche la fusion de différentes entreprises dans le même immeuble
+   - Empêche la fusion de plusieurs agences d'une même entreprise
+
+3. **Amélioration de l'algorithme de similarité des noms** :
+   - Implémentation complète de l'algorithme de Levenshtein (matrice)
+   - Normalisation avancée : suppression accents, apostrophes, tirets
+   - Détection des noms contenus dans d'autres (ex: "L'Entr Potes" ⊂ "L'ENTR'potes - Restaurant")
+   - Comparaison basée sur les mots (ordre différent acceptable)
+   - Similarité par intersection de mots (≥65% de mots en commun)
+
+4. **Fichiers modifiés** :
+   - `backend/scripts/clean-merge-duplicates.js` - Logique de détection affinée
+   - `CLEAN_MERGE.md` - Documentation mise à jour avec exemples de non-doublons
+   - `backend/scripts/test-duplicate-detection-logic.js` - Suite de tests complète (10 tests)
+
+**Résultats des tests** :
+- ✅ 10/10 tests passent (100%)
+- Détecte correctement le cas "L'Entr Potes"
+- Évite les faux positifs (entreprises différentes, agences multiples)
+
+---
+
+### ✨ Nouvelle Fonctionnalité : Nettoyage et Fusion des Doublons
+**Date** : 3 décembre 2025 (soir)
+
+**Objectif** : Nettoyer la base de données en détectant et fusionnant intelligemment les prospects en doublon.
+
+**Problématique résolue** :
+- Un même prospect peut être enregistré plusieurs fois avec des variations de nom ou d'adresse
+- Exemple : "L'Entr Potes" (Pages Jaunes) vs "L'ENTR'potes - Restaurant - Hyères" (Google Maps)
+- Données fragmentées entre plusieurs enregistrements
+
+**Critères de détection (logique initiale, affinée ensuite - voir ci-dessus)** :
+1. **Obligatoire** : Même code postal (modifié de "ville" vers "code postal")
+2. **Chemin A** (avec adresses) : Adresse similaire **ET** nom similaire
+3. **Chemin B** (sans adresse) : Nom similaire **ET** contact identique
+
+**Stratégie de fusion** :
+- Conserve le prospect avec le plus de champs remplis
+- Fusionne tous les tags des deux prospects
+- Fusionne toutes les sources des deux prospects
+- Enrichit avec les données manquantes
+- Supprime le doublon
+
+**Fichiers créés** :
+- `backend/scripts/clean-merge-duplicates.js` - Script principal de nettoyage
+- `backend/scripts/test-clean-merge.js` - Script de test avec exemple
+- `CLEAN_MERGE.md` - Documentation complète (500+ lignes)
+
+**Commande** :
+```bash
+npm run db:clean-merge
+```
+
+**Fonctionnalités** :
+- Groupement par ville pour optimisation
+- Algorithme de similarité de Levenshtein pour les noms
+- Utilisation de l'addressNormalizer pour les adresses
+- Transaction atomique par fusion (rollback en cas d'erreur)
+- Confirmation interactive avant fusion
+- Rapport détaillé des doublons détectés
+- Statistiques finales
+
+**Exemple de résultat** :
+- Avant : 2 prospects ("L'Entr Potes" + "L'ENTR'potes - Restaurant - Hyères")
+- Après : 1 prospect avec toutes les données fusionnées (téléphone + GPS + note + 2 tags + 2 sources)
+
+**Documentation** : Voir [CLEAN_MERGE.md](CLEAN_MERGE.md)
+
+---
+
+### 🐛 Correction : Extraction URL site web Pages Jaunes
+**Date** : 3 décembre 2025 (soir)
+
+**Problème** : Le scraper Pages Jaunes n'extrayait pas l'URL du site web des entreprises lorsqu'elle était disponible.
+
+**Exemple** : Pour "Caron Plomberie" à Hyères, l'URL `http://www.caronplomberie.fr` n'était pas récupérée.
+
+**Cause** : Le sélecteur cherchait `.bi-website a` alors que la structure HTML utilise `a.bi-website` (le lien a directement la classe).
+
+**Fichier corrigé** :
+- `backend/src/services/scrapers/pagesJaunesScraper.js` :
+  - Ajout de `a.bi-website` en premier sélecteur (priorité)
+  - Ajout de `.bi-address a.bi-website` comme alternative
+  - Ajout d'un filtre pour exclure les liens internes Pages Jaunes
+  - Vérification que l'URL ne contient pas 'pagesjaunes.fr' et ne commence pas par '#'
+
+**Test** :
+- Création de `backend/scripts/test-pages-jaunes-website-url.js`
+- Test avec l'HTML réel de la carte Caron Plomberie
+- ✅ Test passé : URL correctement extraite
+
+**Résultat** : Les URLs des sites web des entreprises sont maintenant correctement récupérées depuis Pages Jaunes.
+
+---
+
+### 🐛 Correction : Scripts db:drop et db:clear
+**Date** : 3 décembre 2025 (après-midi)
+
+**Problème** : Les scripts `npm run db:drop` et `npm run db:clear` ne supprimaient pas les nouvelles tables `prospects_sources` et `sources_scraping`.
+
+**Fichiers corrigés** :
+- `backend/scripts/drop.js` :
+  - Ajout de la suppression de `prospects_sources`
+  - Ajout de la suppression de `sources_scraping`
+  - Mise à jour des messages de confirmation
+- `backend/scripts/clear.js` :
+  - Import de `SourceScraping`
+  - Ajout du comptage des sources
+  - Ajout du vidage de `prospects_sources`
+  - Ajout du vidage de `sources_scraping`
+
+**Résultat** : Les commandes `db:drop` et `db:clear` nettoient maintenant correctement toutes les tables du système.
+
+---
+
+### 🔥 Amélioration Critique : Normalisation d'Adresses
+**Date** : 3 décembre 2025 (après-midi)
+
+**Objectif** : Améliorer la détection des doublons en normalisant les adresses avant comparaison.
+
+**Problématique résolue** :
+- Pages Jaunes utilise des adresses complètes : "84 boulevard Picaud"
+- Google Maps utilise des abréviations : "84 bd Picaud"
+- Avec/sans compléments : "2 rue felix faure" vs "les allées 2 rue felix faure"
+- → Sans normalisation, ces adresses créaient des prospects en double
+
+**Solution implémentée** :
+- Nouveau fichier utilitaire : `backend/src/utils/addressNormalizer.js`
+- Fonction `normalizeAddress()` : 8 étapes de normalisation
+- Fonction `addressesMatch()` : Comparaison fuzzy avec 70% de similarité
+- Intégration dans `scrapingController.js` pour la détection de doublons
+
+**Traitements de normalisation** :
+1. Conversion en minuscules
+2. Suppression des accents (NFD normalization)
+3. Suppression de la ponctuation (`,`, `.`, `;`, `-`)
+4. Remplacement des mots par abréviations :
+   - `boulevard` → `bd`, `avenue` → `av`, `rue` → `r`
+   - `place` → `pl`, `cours` → `crs`, `allée` → `all`
+   - `saint` → `st`, `général` → `gal`, etc.
+   - 67 abréviations dans le dictionnaire
+5. Suppression des compléments (batiment, residence, appartement, etc.)
+6. Suppression des articles (`les`, `le`, `la`, `l'`)
+7. Nettoyage des espaces multiples
+8. Filtrage des mots courts non essentiels
+
+**Fichiers créés** :
+- `backend/src/utils/addressNormalizer.js` - Utilitaire de normalisation
+- `backend/scripts/test-address-normalization.js` - Tests (12 cas, 100% réussis)
+
+**Fichiers modifiés** :
+- `backend/src/controllers/scrapingController.js` :
+  - Import de `addressesMatch()`
+  - Fonction `isDuplicate` : Utilise normalisation pour vérification en temps réel
+  - Fonction `saveProspects()` : Détection en 2 étapes (exact + normalisé)
+  - Logs détaillés quand doublon détecté via normalisation
+
+**Tests** :
+```bash
+node backend/scripts/test-address-normalization.js
+# ✅ 12/12 tests passés (100%)
+```
+
+**Exemples de doublons maintenant détectés** :
+- ✅ "84 boulevard Picaud" ≈ "84 bd Picaud"
+- ✅ "2 rue felix faure" ≈ "les allées 2 rue felix faure"
+- ✅ "15 Avenue des Champs Elysées" ≈ "15 av des Champs Elysées"
+- ✅ "10 Place Saint-Michel, Batiment A" ≈ "10 pl St Michel"
+
+**Documentation mise à jour** :
+- `SOURCES_MULTIPLES.md` : Nouvelle section "Normalisation d'adresses"
+
+---
+
+### 🎯 Fonctionnalité Majeure : Système de Sources Multiples
+
+#### Implémentation : Gestion des sources multiples pour les prospects
+**Date** : 3 décembre 2025
+
+**Objectif** : Permettre à un prospect d'avoir plusieurs sources de scraping et tracer l'origine complète des données.
+
+**Problématique résolue** :
+- Avant : Un prospect ne pouvait avoir qu'une seule source. Si trouvé sur plusieurs sources, seule la dernière était conservée.
+- Après : Un prospect peut avoir plusieurs sources simultanément. Lors d'un doublon, la nouvelle source est automatiquement ajoutée sans perdre les sources existantes.
+
+**Architecture Base de Données** :
+
+1. **Nouvelle table `sources_scraping`** :
+   - `id` (PK, AUTO_INCREMENT)
+   - `nom` (VARCHAR 100, UNIQUE) - Ex: "Pages Jaunes", "Google Maps"
+   - `description` (TEXT)
+   - `couleur` (VARCHAR 7) - Code hex pour badges colorés
+   - `actif` (BOOLEAN)
+   - `date_creation` (DATETIME)
+   - Sources par défaut créées : Pages Jaunes (#FFD700), Google Maps (#4285F4), LinkedIn (#0077B5), Manual (#6B7280)
+
+2. **Table de liaison `prospects_sources`** (Many-to-Many) :
+   - `prospect_id` (FK → prospects.id)
+   - `source_id` (FK → sources_scraping.id)
+   - `created_at` (DATETIME) - Date d'association
+   - `updated_at` (DATETIME)
+   - Clé primaire composite : (prospect_id, source_id)
+
+3. **Modification table `prospects`** :
+   - Suppression de la colonne `source_scraping`
+
+**Backend** :
+
+1. **Nouveau modèle Sequelize** :
+   - `backend/src/models/SourceScraping.js` (nouveau)
+   - Associations many-to-many configurées dans `models/index.js`
+
+2. **Controllers mis à jour** :
+   - `scrapingController.js` :
+     - Fonction `saveProspects()` réécrite pour gérer sources multiples
+     - Détection doublons par : nom+adresse, nom+GPS, email, URL
+     - Ajout automatique de sources lors de doublons
+     - Enrichissement automatique des données
+   - `prospectController.js` :
+     - Inclusion des sources dans toutes les réponses API
+     - Requêtes SQL optimisées pour filtrage par source
+     - Support filtre source + tag simultanément
+
+**Frontend** :
+
+1. **Nouveau composant** :
+   - `frontend/src/components/SourceBadge.jsx` :
+     - Affiche badges colorés des sources
+     - Tooltip avec date d'association
+     - Adaptatif selon nombre de sources
+
+2. **Composants modifiés** :
+   - `ProspectList.jsx` : Nouvelle colonne "Sources" dans tableau
+   - `ProspectCard.jsx` : Badges sources dans vue grille
+   - `ProspectDetailsModal.jsx` : Section sources dans modal détails
+
+**Migration & Tests** :
+
+1. **Script de migration** :
+   - `backend/scripts/migrate-sources-scraping.js`
+   - Idempotent, peut être relancé sans risque
+   - Migre automatiquement les données existantes
+
+2. **Script de test** :
+   - `backend/scripts/test-sources-multiples.js`
+   - **6/6 tests passent** ✅
+   - Teste création, doublon, sources multiples, filtrage
+
+**Fichiers créés** :
+- `backend/src/models/SourceScraping.js` (39 lignes)
+- `backend/scripts/migrate-sources-scraping.js` (200 lignes)
+- `backend/scripts/test-sources-multiples.js` (180 lignes)
+- `frontend/src/components/SourceBadge.jsx` (24 lignes)
+- `SOURCES_MULTIPLES.md` (documentation complète, 450 lignes)
+
+**Fichiers modifiés** :
+- `backend/src/models/Prospect.js` (-8 lignes)
+- `backend/src/models/index.js` (+18 lignes)
+- `backend/src/controllers/scrapingController.js` (+142 lignes)
+- `backend/src/controllers/prospectController.js` (+95 lignes)
+- `frontend/src/components/ProspectList.jsx` (+4 lignes)
+- `frontend/src/components/ProspectCard.jsx` (+3 lignes)
+- `frontend/src/components/ProspectDetailsModal.jsx` (+8 lignes)
+
+**Bénéfices utilisateur** :
+- ✅ Traçabilité complète de toutes les sources d'un prospect
+- ✅ Enrichissement progressif des données (chaque source apporte de nouvelles infos)
+- ✅ Aucune perte d'information lors de doublons
+- ✅ Filtrage par source fonctionnel
+- ✅ Interface visuelle claire avec badges colorés
+- ✅ Performance optimisée avec requêtes SQL indexées
+
+**Documentation** :
+- Guide complet dans `SOURCES_MULTIPLES.md`
+- Exemples de requêtes SQL pour statistiques
+- Workflow détaillé du scraping avec sources multiples
+
+---
+
 ## [Non versionnée] - 26 Novembre 2025
 
 ### ✨ Améliorations UX

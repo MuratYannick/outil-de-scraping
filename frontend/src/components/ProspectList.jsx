@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import ProspectCard from "./ProspectCard";
 import ProspectDetailsModal from "./ProspectDetailsModal";
 import TagBadge from "./TagBadge";
+import SourceBadge from "./SourceBadge";
+import { deleteProspect } from "../services/api";
 
 /**
  * Composant pour afficher la liste des prospects
@@ -10,6 +12,7 @@ import TagBadge from "./TagBadge";
 export default function ProspectList({ prospects, loading, error, viewMode = 'table', onProspectUpdated, sortBy, sortOrder, onSortChange }) {
   const [selectedProspect, setSelectedProspect] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const handleProspectClick = (prospect) => {
     setSelectedProspect(prospect);
@@ -19,6 +22,28 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedProspect(null);
+  };
+
+  const handleDelete = async (prospect, e) => {
+    e.stopPropagation();
+
+    if (!confirm(`Voulez-vous vraiment supprimer le prospect "${prospect.nom_entreprise}" ?\n\nCette action est irréversible.`)) {
+      return;
+    }
+
+    setDeletingId(prospect.id);
+    try {
+      await deleteProspect(prospect.id);
+
+      if (onProspectUpdated) {
+        onProspectUpdated();
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+      alert("Erreur lors de la suppression: " + (error.response?.data?.message || error.message));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   // Gérer le clic sur un en-tête de colonne pour trier
@@ -152,7 +177,13 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
                 Téléphone
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Sources
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Tags
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
               </th>
             </tr>
           </thead>
@@ -196,7 +227,29 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
                   )}
                 </td>
                 <td className="px-6 py-4">
+                  <SourceBadge prospect={prospect} />
+                </td>
+                <td className="px-6 py-4">
                   <TagBadge prospect={prospect} onTagsUpdated={onProspectUpdated} />
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <button
+                    onClick={(e) => handleDelete(prospect, e)}
+                    disabled={deletingId === prospect.id}
+                    className="text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                    title="Supprimer ce prospect"
+                  >
+                    {deletingId === prospect.id ? (
+                      <svg className="animate-spin h-5 w-5 inline" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    )}
+                  </button>
                 </td>
               </tr>
             ))}

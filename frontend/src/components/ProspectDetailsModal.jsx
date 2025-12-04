@@ -1,5 +1,6 @@
 import React from 'react';
 import TagBadge from './TagBadge';
+import SourceBadge from './SourceBadge';
 
 /**
  * Modal pour afficher les détails complets d'un prospect
@@ -27,12 +28,13 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
 
         {/* Content */}
         <div className="px-6 py-4 space-y-6">
-          {/* Source et Date */}
-          <div className="flex gap-4">
-            <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
-              {prospect.source_scraping}
-            </span>
-            <span className="text-sm text-gray-500">
+          {/* Sources et Date */}
+          <div className="flex gap-4 items-center flex-wrap">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Sources</label>
+              <SourceBadge prospect={prospect} />
+            </div>
+            <span className="text-sm text-gray-500 self-end">
               Ajouté le {new Date(prospect.date_ajout).toLocaleDateString('fr-FR', {
                 day: '2-digit',
                 month: 'long',

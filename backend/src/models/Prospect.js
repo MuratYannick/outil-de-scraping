@@ -44,11 +44,6 @@ export default (sequelize) => {
           isUrl: true,
         },
       },
-      source_scraping: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-        defaultValue: "Manual",
-      },
       latitude: {
         type: DataTypes.DECIMAL(10, 7),
         allowNull: true,

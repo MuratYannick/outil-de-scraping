@@ -1,6 +1,6 @@
 # 📊 Progression du Projet Outil de Scraping
 
-**Dernière mise à jour** : 26 novembre 2025 (Jour 24: Geocoding inversé - ✅ COMPLÉTÉ)
+**Dernière mise à jour** : 4 décembre 2025 (Jour 26: Gestion doublons & interface suppression - ✅ COMPLÉTÉ)
 
 ## 🎯 Objectif Phase 1 (MVP)
 
@@ -9,10 +9,11 @@
   - Établir un flux récurrent de 10 prospects/semaine
   - Stocker et visualiser les données collectées
 
-**Durée prévue** : 5,5 semaines (26 jours de développement)
+**Durée prévue** : 6 semaines (29 jours de développement)
 **Note** :
 - Durée ajustée de 20 → 22 jours suite aux optimisations Playwright (Phases 1-3)
 - Durée ajustée de 22 → 26 jours suite aux corrections sauvegarde données (Jour 23) et ajout geocoding inversé (Jour 24)
+- Durée ajustée de 26 → 29 jours suite à l'ajout de gestion doublons/suppression (Jour 26) et enrichissement données (Jour 27)
 
 ---
 
@@ -790,7 +791,184 @@ antiBotConfig.scrapers = {
 - ✅ 5/5 prospects extraits avec toutes les données
 - ✅ Commits : 3 (sélecteurs DOM, téléphones, code postal/ville)
 
-#### Jour 26 : Nettoyage et finalisation du code (📋 À FAIRE)
+#### Jour 26 : Gestion des Doublons & Interface de Suppression (✅ COMPLÉTÉ le 4 décembre 2025)
+
+**Objectif** : Permettre aux utilisateurs de gérer les doublons et supprimer les prospects depuis l'interface web.
+
+- [x] **Nettoyage des doublons depuis l'interface** :
+  - [x] Créer service backend `duplicateCleanerService.js` (456 lignes)
+    - Extraire logique de détection depuis script CLI vers service réutilisable
+    - Implémenter `detectDuplicates()` avec critères stricts (code postal + adresse/nom OU nom+contact)
+    - Implémenter `cleanAndMergeDuplicates()` pour fusion automatique de tous les doublons
+    - Implémenter `cleanSelectedDuplicates()` pour fusion sélective
+  - [x] Ajouter routes API backend (`/api/prospects/duplicates/*`)
+    - GET `/duplicates/detect` : Détecter les doublons
+    - POST `/duplicates/clean` : Nettoyer tous les doublons
+    - POST `/duplicates/clean-selected` : Nettoyer doublons sélectionnés
+  - [x] Créer composant `DuplicateCleanerButton.jsx` (290 lignes)
+    - Bouton "Nettoyer les doublons" dans la page Prospects
+    - Modal interactif avec liste des doublons détectés
+    - Checkbox pour sélection/désélection de chaque doublon
+    - Boutons "Tout sélectionner" / "Tout désélectionner"
+    - Comparaison côte à côte des prospects (ID, nom, adresse, téléphone, sources)
+    - Confirmation avant fusion avec statistiques
+    - Tous les doublons sélectionnés par défaut pour faciliter le nettoyage
+
+- [x] **Suppression en masse par filtres** :
+  - [x] Créer composant `BulkDeleteButton.jsx` (152 lignes)
+    - Bouton "Supprimer en masse" qui utilise les filtres actifs
+    - Modal de confirmation montrant les critères (source, tag, recherche)
+    - Affichage du nombre de prospects qui seront supprimés
+    - Avertissement sur caractère irréversible
+  - [x] Ajouter controller backend `bulkDeleteProspects()`
+    - Support filtres : source, tag, recherche textuelle
+    - Suppression en une seule requête SQL avec `Op.in`
+    - Retour du nombre de prospects supprimés
+  - [x] Ajouter route `DELETE /api/prospects/bulk` (avant `/:id` pour éviter conflit)
+
+- [x] **Suppression individuelle** :
+  - [x] Modifier `ProspectList.jsx` (vue tableau)
+    - Ajouter colonne "Actions" avec bouton de suppression
+    - Confirmation avant suppression avec message personnalisé
+    - État `deletingId` pour loading spinner spécifique
+    - Rafraîchissement automatique de la liste après suppression
+  - [x] Modifier `ProspectCard.jsx` (vue grille)
+    - Bouton de suppression en haut à droite de chaque carte
+    - Icône poubelle avec loading spinner
+    - Confirmation avant suppression
+    - État `isDeleting` pour désactiver le bouton pendant l'opération
+
+- [x] **Réorganisation de l'interface** :
+  - [x] Modifier `App.jsx` pour organiser les boutons en une seule ligne
+    - **Gauche** : Toggle vue (tableau/grille), Export, Actualiser
+    - **Droite** : Nettoyer les doublons, Suppression en masse
+    - Suppression des labels "Actions :" et "Affichage :"
+    - Layout responsive avec `justify-between`
+
+- [x] **Documentation** :
+  - [x] Mettre à jour `CLEAN_MERGE.md` avec section "Utilisation via l'Interface Web"
+  - [x] Documenter les nouvelles routes API
+  - [x] Documenter les composants frontend (props, états, comportements)
+
+**Résultat** :
+- ✅ Gestion complète des doublons depuis l'interface (détection, sélection, fusion)
+- ✅ Suppression en masse selon filtres actifs (source, tag, recherche)
+- ✅ Suppression individuelle dans les deux modes d'affichage (tableau et grille)
+- ✅ Interface utilisateur réorganisée et cohérente
+- ✅ Toutes les actions avec confirmation et feedback utilisateur
+
+**Fichiers créés** :
+- Backend : `backend/src/services/duplicateCleanerService.js` (456 lignes)
+- Frontend : `frontend/src/components/DuplicateCleanerButton.jsx` (290 lignes)
+- Frontend : `frontend/src/components/BulkDeleteButton.jsx` (152 lignes)
+
+**Fichiers modifiés** :
+- Backend : `backend/src/controllers/prospectController.js`, `backend/src/routes/prospectRoutes.js`
+- Frontend : `frontend/src/components/ProspectList.jsx`, `frontend/src/components/ProspectCard.jsx`, `frontend/src/App.jsx`
+- Frontend : `frontend/src/services/api.js`
+- Documentation : `CLEAN_MERGE.md`
+- Total : 10 fichiers, ~1200 lignes ajoutées
+
+**Commit** : feat(prospects): ajouter gestion doublons et suppression depuis interface web
+
+#### Jour 27 : Enrichissement des Données Existantes (📋 À FAIRE)
+
+**Objectif** : Permettre l'enrichissement automatique des prospects existants en complétant les données manquantes via scraping multi-sources.
+
+- [ ] **Backend - Service d'enrichissement** :
+  - [ ] Créer `enrichmentService.js` avec logiques :
+    - Identifier prospects avec données manquantes (téléphone, GPS, URL site)
+    - Construire requêtes de recherche depuis données existantes (nom + adresse/ville)
+    - Prioriser sources non encore scrapées pour chaque prospect
+    - Fallback sur sources déjà scrapées (données peuvent avoir été mises à jour)
+    - Détecter correspondance prospect existant ↔ résultat scraping (logique doublon)
+    - Mettre à jour uniquement les champs manquants (pas d'écrasement)
+  - [ ] Implémenter `findProspectsToEnrich(filters)` :
+    - Paramètres : keyword (optionnel), tag (optionnel), location (optionnel)
+    - Filtres SQL : `WHERE (telephone IS NULL OR latitude IS NULL OR url_site IS NULL)`
+    - Support filtrage par tag si spécifié
+    - Support filtrage par localité (ville/code postal) si spécifié
+    - Retourner liste de prospects avec sources déjà scrapées
+  - [ ] Implémenter `enrichProspect(prospect, sources)` :
+    - Pour chaque source dans l'ordre de priorité (non-scrapées d'abord)
+    - Construire query de recherche : `"${nom_entreprise}" ${ville || code_postal}`
+    - Lancer scraping avec limite 1-3 résultats
+    - Comparer résultats avec prospect existant (similarité nom + adresse)
+    - Si match trouvé : mettre à jour champs manquants uniquement
+    - Ajouter nouvelle source à la liste des sources du prospect
+    - Logger résultats (champs enrichis, source utilisée)
+  - [ ] Implémenter `enrichMultipleProspects(prospectIds, options)` :
+    - Boucle sur liste de prospects à enrichir
+    - Gestion progression temps réel (via TaskManager)
+    - Rate limiting entre prospects (éviter surcharge)
+    - Statistiques finales (prospects enrichis, champs ajoutés, sources utilisées)
+
+- [ ] **Backend - Routes API** :
+  - [ ] `GET /api/prospects/enrichment/candidates` : Lister prospects enrichissables
+    - Query params : keyword, tag, location
+    - Retourner : liste prospects + champs manquants + sources existantes
+  - [ ] `POST /api/prospects/enrichment/start` : Lancer enrichissement
+    - Body : prospectIds (array), sources (array optionnel, par défaut toutes)
+    - Retourner : taskId pour suivi progression
+  - [ ] `GET /api/prospects/enrichment/status/:taskId` : Statut enrichissement
+    - Retourner : progression, prospects traités, champs enrichis, erreurs
+
+- [ ] **Frontend - Sélection mode enrichissement** :
+  - [ ] Modifier `ScrapingForm.jsx` :
+    - Ajouter option "Enrichissement (Sources Multiples)" dans sélecteur de source
+    - Afficher encart explicatif quand mode enrichissement sélectionné :
+      - "Mode spécial : enrichit les prospects existants avec données manquantes"
+      - "Recherche sur toutes les sources pour compléter téléphone, GPS, URL site"
+      - "Si keyword/tag spécifié : enrichit uniquement les prospects correspondants"
+    - Désactiver champ "Nombre de résultats" en mode enrichissement
+    - Modifier label localité : "Localité (optionnel - filtre les prospects)"
+    - Modifier label keyword : "Mot-clé (optionnel - filtre par tag correspondant)"
+  - [ ] Adapter `scrapingController.js` pour détecter mode enrichissement :
+    - Si source === "enrichment" : router vers `enrichmentService`
+    - Sinon : router vers scraper classique (Pages Jaunes, Google Maps, LinkedIn)
+
+- [ ] **Frontend - Interface d'enrichissement dédiée (optionnel)** :
+  - [ ] Créer onglet "🔄 Enrichissement" dans App.jsx (si temps)
+  - [ ] Créer composant `EnrichmentPanel.jsx` :
+    - Afficher statistiques : X prospects avec données manquantes
+    - Filtres : keyword, tag, localité
+    - Liste des prospects candidats à l'enrichissement
+    - Sélection multiple avec checkboxes
+    - Bouton "Enrichir X prospect(s) sélectionné(s)"
+    - Progression en temps réel
+    - Résultats : champs enrichis par prospect
+
+- [ ] **Tests et validation** :
+  - [ ] Créer `test-enrichment-service.js`
+    - Test identification prospects avec données manquantes
+    - Test construction requête de recherche
+    - Test détection correspondance (similarité nom+adresse)
+    - Test mise à jour champs manquants uniquement
+    - Test ajout nouvelle source
+  - [ ] Tester enrichissement complet via interface
+    - Créer prospects incomplets manuellement
+    - Lancer enrichissement
+    - Vérifier que seuls les champs manquants sont remplis
+    - Vérifier que sources multiples sont bien enregistrées
+
+- [ ] **Documentation** :
+  - [ ] Créer `docs/ENRICHMENT.md` :
+    - Expliquer concept d'enrichissement multi-sources
+    - Documenter algorithme de priorisation des sources
+    - Documenter détection de correspondance
+    - Exemples d'utilisation (via formulaire ou API)
+    - Statistiques et métriques
+  - [ ] Mettre à jour `PROGRESS.md` avec Jour 27
+
+**Résultat attendu** :
+- ✅ Enrichissement automatique des prospects incomplets
+- ✅ Priorisation intelligente des sources (non-scrapées d'abord)
+- ✅ Pas d'écrasement de données existantes
+- ✅ Sources multiples tracées correctement
+- ✅ Filtrage par keyword et localité
+- ✅ Interface intuitive depuis formulaire de scraping
+
+#### Jour 28 : Nettoyage et finalisation du code (📋 À FAIRE)
 - [ ] **Refactoring Backend** :
   - [ ] Refactoring du code backend (services, controllers)
   - [ ] Ajouter les commentaires JSDoc
@@ -814,7 +992,7 @@ antiBotConfig.scrapers = {
   - [ ] Créer/mettre à jour les tests unitaires
   - [ ] Ajouter tests d'intégration si temps
 
-#### Jour 27 : Déploiement MVP & démo (📋 À FAIRE)
+#### Jour 29 : Déploiement MVP & démo (📋 À FAIRE)
 - [ ] **Préparation Déploiement** :
   - [ ] Préparer l'environnement de production (serveur, credentials)
   - [ ] Configurer les variables d'environnement prod (.env.production)
@@ -937,7 +1115,7 @@ antiBotConfig.scrapers = {
 - [x] Implémenter la gestion des tags (CRUD interface)
 - [x] Association/dissociation de tags aux prospects
 
-### Semaines 4-6 — Optimisations, Corrections & Finalisation (🔄 EN COURS - 85%)
+### Semaines 4-6 — Optimisations, Corrections & Finalisation (🔄 EN COURS - 92%)
 - [x] Jour 16: Google Maps dual-strategy (100%)
 - [x] Jour 17-18: Optimisations Playwright Phases 1-3 (100%)
   - [x] Phase 1: Quick Wins (HYBRID, RateLimiter, SessionManager) - 6/6 tests
@@ -949,9 +1127,12 @@ antiBotConfig.scrapers = {
 - [x] Jour 21: Améliorations UX config anti-bot (100%)
 - [x] Jour 22: Refonte extraction Google Maps - scoring passif (100%)
 - [x] Jour 23: Corrections sauvegarde données + normalisation accents (100%)
-- [ ] Jour 24: Geocoding inversé ville/code postal (📋 À FAIRE)
-- [ ] Jour 25: Nettoyage et finalisation (📋 À FAIRE)
-- [ ] Jour 26: Déploiement MVP & démo (📋 À FAIRE)
+- [x] Jour 24: Geocoding inversé ville/code postal (100%)
+- [x] Jour 25: Optimisation Pages Jaunes & corrections (100%)
+- [x] Jour 26: Gestion doublons & interface suppression (100%)
+- [ ] Jour 27: Enrichissement des données existantes (📋 À FAIRE)
+- [ ] Jour 28: Nettoyage et finalisation (📋 À FAIRE)
+- [ ] Jour 29: Déploiement MVP & démo (📋 À FAIRE)
 
 ### Sécurité & Qualité (✅ COMPLÉTÉE)
 - [x] Ajouter validation Joi sur toutes les routes
@@ -987,4 +1168,4 @@ antiBotConfig.scrapers = {
 
 ---
 
-**Dernière mise à jour** : 26 novembre 2025 (Jour 23: Corrections sauvegarde données + normalisation accents - Planification Jour 24: Geocoding inversé)
+**Dernière mise à jour** : 4 décembre 2025 (Jour 26: Gestion doublons & interface suppression - Planification Jour 27: Enrichissement des données existantes)

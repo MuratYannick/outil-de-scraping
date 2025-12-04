@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import readline from "readline";
-import { sequelize, Prospect, Tag } from "../src/models/index.js";
+import { sequelize, Prospect, Tag, SourceScraping } from "../src/models/index.js";
 
 dotenv.config();
 
@@ -28,11 +28,14 @@ function askQuestion(query) {
     // Compter les enregistrements avant suppression
     const prospectCount = await Prospect.count();
     const tagCount = await Tag.count();
+    const sourceCount = await SourceScraping.count();
 
     console.log("📊 Données actuelles:");
     console.log(`   - ${prospectCount} prospect(s)`);
     console.log(`   - ${tagCount} tag(s)`);
-    console.log(`   - Associations dans prospects_tags\n`);
+    console.log(`   - ${sourceCount} source(s) de scraping`);
+    console.log(`   - Associations dans prospects_tags`);
+    console.log(`   - Associations dans prospects_sources\n`);
 
     // Demander confirmation
     const answer = await askQuestion("⚠️  Êtes-vous sûr de vouloir VIDER toutes les tables ? (oui/non): ");
@@ -49,10 +52,14 @@ function askQuestion(query) {
     // Désactiver les contraintes de clés étrangères temporairement
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
 
-    // Vider la table de liaison prospects_tags
+    // Vider les tables de liaison en premier
     console.log("🗑️  Vidage de prospects_tags...");
     await sequelize.query("DELETE FROM prospects_tags");
     console.log("✓ prospects_tags vidée");
+
+    console.log("🗑️  Vidage de prospects_sources...");
+    await sequelize.query("DELETE FROM prospects_sources");
+    console.log("✓ prospects_sources vidée");
 
     // Vider la table prospects
     console.log("🗑️  Vidage de prospects...");
@@ -63,6 +70,11 @@ function askQuestion(query) {
     console.log("🗑️  Vidage de tags...");
     await Tag.destroy({ where: {}, truncate: false });
     console.log("✓ tags vidée");
+
+    // Vider la table sources_scraping
+    console.log("🗑️  Vidage de sources_scraping...");
+    await SourceScraping.destroy({ where: {}, truncate: false });
+    console.log("✓ sources_scraping vidée");
 
     // Réactiver les contraintes de clés étrangères
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");

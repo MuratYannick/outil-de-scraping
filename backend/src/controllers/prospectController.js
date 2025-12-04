@@ -1,5 +1,6 @@
-import { Prospect, Tag, sequelize } from "../models/index.js";
+import { Prospect, Tag, SourceScraping, sequelize } from "../models/index.js";
 import { Op, QueryTypes } from "sequelize";
+import { detectDuplicates, cleanAndMergeDuplicates, cleanSelectedDuplicates } from "../services/duplicateCleanerService.js";
 
 /**
  * @route   GET /api/prospects
@@ -12,9 +13,6 @@ export const getAllProspects = async (req, res) => {
 
     // Construire les conditions de filtrage
     const where = {};
-    if (source) {
-      where.source_scraping = source;
-    }
 
     // Ajouter le filtre de recherche sur plusieurs champs
     if (search) {
@@ -28,18 +26,25 @@ export const getAllProspects = async (req, res) => {
       ];
     }
 
-    // Si on filtre par tag, on doit joindre la table prospect_tags
+    // Si on filtre par tag ou source, on doit joindre les tables associées
     let includeForCount = [];
     if (tag) {
-      includeForCount = [
-        {
-          model: Tag,
-          as: "tags",
-          where: { nom: tag },
-          through: { attributes: [] },
-          attributes: [],
-        },
-      ];
+      includeForCount.push({
+        model: Tag,
+        as: "tags",
+        where: { nom: tag },
+        through: { attributes: [] },
+        attributes: [],
+      });
+    }
+    if (source) {
+      includeForCount.push({
+        model: SourceScraping,
+        as: "sources",
+        where: { nom: source },
+        through: { attributes: [] },
+        attributes: [],
+      });
     }
 
     // Étape 1: Compter le total de prospects (distincts)
@@ -58,7 +63,6 @@ export const getAllProspects = async (req, res) => {
     // Construire les conditions WHERE pour la recherche
     const buildWhereConditions = () => {
       const conditions = [];
-      if (source) conditions.push('p.source_scraping = :source');
       if (search) {
         conditions.push(`(
           p.nom_entreprise LIKE :search OR
@@ -93,15 +97,17 @@ export const getAllProspects = async (req, res) => {
 
     const orderByClause = buildOrderByClause();
 
-    if (tag) {
-      // Avec filtre par tag
+    // Construire la requête selon les filtres actifs
+    if (tag && source) {
+      // Avec filtre par tag ET source
       idQuery = `
         SELECT DISTINCT p.id
         FROM prospects p
         INNER JOIN prospects_tags pt ON p.id = pt.prospect_id
         INNER JOIN tags t ON pt.tag_id = t.id
-        WHERE t.nom = :tagName
-        ${source ? 'AND p.source_scraping = :source' : ''}
+        INNER JOIN prospects_sources ps ON p.id = ps.prospect_id
+        INNER JOIN sources_scraping ss ON ps.source_id = ss.id
+        WHERE t.nom = :tagName AND ss.nom = :sourceName
         ${search ? `AND (
           p.nom_entreprise LIKE :search OR
           p.telephone LIKE :search OR
@@ -114,10 +120,52 @@ export const getAllProspects = async (req, res) => {
         LIMIT :limit OFFSET :offset
       `;
       replacements.tagName = tag;
-      if (source) replacements.source = source;
+      replacements.sourceName = source;
+      if (search) replacements.search = `%${search}%`;
+    } else if (tag) {
+      // Avec filtre par tag uniquement
+      idQuery = `
+        SELECT DISTINCT p.id
+        FROM prospects p
+        INNER JOIN prospects_tags pt ON p.id = pt.prospect_id
+        INNER JOIN tags t ON pt.tag_id = t.id
+        WHERE t.nom = :tagName
+        ${search ? `AND (
+          p.nom_entreprise LIKE :search OR
+          p.telephone LIKE :search OR
+          p.email LIKE :search OR
+          p.adresse LIKE :search OR
+          p.ville LIKE :search OR
+          p.code_postal LIKE :search
+        )` : ''}
+        ${orderByClause}
+        LIMIT :limit OFFSET :offset
+      `;
+      replacements.tagName = tag;
+      if (search) replacements.search = `%${search}%`;
+    } else if (source) {
+      // Avec filtre par source uniquement
+      idQuery = `
+        SELECT DISTINCT p.id
+        FROM prospects p
+        INNER JOIN prospects_sources ps ON p.id = ps.prospect_id
+        INNER JOIN sources_scraping ss ON ps.source_id = ss.id
+        WHERE ss.nom = :sourceName
+        ${search ? `AND (
+          p.nom_entreprise LIKE :search OR
+          p.telephone LIKE :search OR
+          p.email LIKE :search OR
+          p.adresse LIKE :search OR
+          p.ville LIKE :search OR
+          p.code_postal LIKE :search
+        )` : ''}
+        ${orderByClause}
+        LIMIT :limit OFFSET :offset
+      `;
+      replacements.sourceName = source;
       if (search) replacements.search = `%${search}%`;
     } else {
-      // Sans filtre par tag
+      // Sans filtre par tag ni source
       const whereClause = buildWhereConditions();
       idQuery = `
         SELECT id
@@ -126,7 +174,6 @@ export const getAllProspects = async (req, res) => {
         ${orderByClause}
         LIMIT :limit OFFSET :offset
       `;
-      if (source) replacements.source = source;
       if (search) replacements.search = `%${search}%`;
     }
 
@@ -151,6 +198,13 @@ export const getAllProspects = async (req, res) => {
             model: Tag,
             as: "tags",
             through: { attributes: [] },
+          },
+          {
+            model: SourceScraping,
+            as: "sources",
+            through: {
+              attributes: ['createdAt'], // Inclure la date d'association
+            },
           },
         ],
       });
@@ -193,6 +247,13 @@ export const getProspectById = async (req, res) => {
           model: Tag,
           as: "tags",
           through: { attributes: [] },
+        },
+        {
+          model: SourceScraping,
+          as: "sources",
+          through: {
+            attributes: ['createdAt'],
+          },
         },
       ],
     });
@@ -517,6 +578,187 @@ export const removeTagFromProspect = async (req, res) => {
     res.json(updatedProspect);
   } catch (error) {
     console.error("Error removing tag from prospect:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * @route   GET /api/prospects/duplicates/detect
+ * @desc    Détecter les doublons dans la base de données
+ * @access  Public
+ */
+export const detectProspectDuplicates = async (req, res) => {
+  try {
+    const duplicatePairs = await detectDuplicates();
+
+    // Formater les résultats pour l'API
+    const formattedPairs = duplicatePairs.map(pair => ({
+      prospect1: {
+        id: pair.p1.id,
+        nom_entreprise: pair.p1.nom_entreprise,
+        adresse: pair.p1.adresse,
+        ville: pair.p1.ville,
+        code_postal: pair.p1.code_postal,
+        telephone: pair.p1.telephone,
+        tags: pair.p1.tags.map(t => t.nom),
+        sources: pair.p1.sources.map(s => s.nom)
+      },
+      prospect2: {
+        id: pair.p2.id,
+        nom_entreprise: pair.p2.nom_entreprise,
+        adresse: pair.p2.adresse,
+        ville: pair.p2.ville,
+        code_postal: pair.p2.code_postal,
+        telephone: pair.p2.telephone,
+        tags: pair.p2.tags.map(t => t.nom),
+        sources: pair.p2.sources.map(s => s.nom)
+      },
+      reason: pair.reason,
+      similarity: pair.similarity
+    }));
+
+    res.json({
+      success: true,
+      duplicatesFound: duplicatePairs.length,
+      duplicates: formattedPairs
+    });
+  } catch (error) {
+    console.error("Error detecting duplicates:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/prospects/duplicates/clean
+ * @desc    Nettoyer et fusionner les doublons détectés
+ * @access  Public
+ */
+export const cleanProspectDuplicates = async (req, res) => {
+  try {
+    const result = await cleanAndMergeDuplicates();
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error cleaning duplicates:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/prospects/duplicates/clean-selected
+ * @desc    Nettoyer et fusionner une sélection de doublons
+ * @access  Public
+ */
+export const cleanSelectedProspectDuplicates = async (req, res) => {
+  try {
+    const { pairs } = req.body;
+
+    if (!pairs || !Array.isArray(pairs)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "pairs array is required",
+      });
+    }
+
+    const result = await cleanSelectedDuplicates(pairs);
+    res.json(result);
+  } catch (error) {
+    console.error("Error cleaning selected duplicates:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * @route   DELETE /api/prospects/bulk
+ * @desc    Supprimer en masse les prospects selon les filtres
+ * @access  Public
+ */
+export const bulkDeleteProspects = async (req, res) => {
+  try {
+    const { source, tag, search } = req.query;
+
+    // Construire les conditions de filtrage
+    const where = {};
+
+    // Ajouter le filtre de recherche sur plusieurs champs
+    if (search) {
+      where[Op.or] = [
+        { nom_entreprise: { [Op.like]: `%${search}%` } },
+        { telephone: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+        { adresse: { [Op.like]: `%${search}%` } },
+        { ville: { [Op.like]: `%${search}%` } },
+        { code_postal: { [Op.like]: `%${search}%` } },
+      ];
+    }
+
+    // Si on filtre par tag ou source, on doit joindre les tables associées
+    let include = [];
+    if (tag) {
+      include.push({
+        model: Tag,
+        as: "tags",
+        where: { nom: tag },
+        through: { attributes: [] },
+        attributes: [],
+      });
+    }
+    if (source) {
+      include.push({
+        model: SourceScraping,
+        as: "sources",
+        where: { nom: source },
+        through: { attributes: [] },
+        attributes: [],
+      });
+    }
+
+    // Trouver les IDs des prospects à supprimer
+    const prospectsToDelete = await Prospect.findAll({
+      where,
+      include,
+      attributes: ['id'],
+      group: ['Prospect.id'],
+    });
+
+    const prospectIds = prospectsToDelete.map(p => p.id);
+
+    if (prospectIds.length === 0) {
+      return res.json({
+        success: true,
+        deletedCount: 0,
+        message: "Aucun prospect à supprimer avec les filtres spécifiés",
+      });
+    }
+
+    // Supprimer les prospects
+    const deletedCount = await Prospect.destroy({
+      where: {
+        id: {
+          [Op.in]: prospectIds
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      deletedCount,
+      message: `${deletedCount} prospect(s) supprimé(s) avec succès`,
+    });
+  } catch (error) {
+    console.error("Error bulk deleting prospects:", error);
     res.status(500).json({
       error: "Internal Server Error",
       message: error.message,

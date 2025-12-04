@@ -21,7 +21,10 @@ Récupérer la liste de tous les prospects.
 - `limit` (optional, default: 20) - Nombre de résultats
 - `offset` (optional, default: 0) - Décalage pour pagination
 - `tag` (optional) - Filtrer par tag
-- `source` (optional) - Filtrer par source de scraping
+- `source` (optional) - Filtrer par source de scraping (ex: "Google Maps") 🎯 Mis à jour
+- `search` (optional) - Recherche textuelle sur nom, email, téléphone, adresse
+- `sortBy` (optional) - Champ de tri (nom_entreprise, ville, code_postal)
+- `sortOrder` (optional) - Ordre de tri (ASC ou DESC)
 
 **Response:**
 
@@ -34,11 +37,51 @@ Récupérer la liste de tous les prospects.
       "nom_contact": "Jean Dupont",
       "email": "jean@acme.com",
       "telephone": "01 23 45 67 89",
-      "adresse": "123 Rue de la Paix, 75000 Paris",
+      "adresse": "123 Rue de la Paix",
+      "ville": "Paris",
+      "code_postal": "75000",
       "url_site": "https://acme.com",
-      "source_scraping": "Google Maps",
+      "latitude": 48.8566,
+      "longitude": 2.3522,
+      "note": 4.5,
       "date_ajout": "2025-11-13T10:30:00Z",
-      "tags": ["Restauration", "Non-Contacté"]
+      "date_modification": "2025-11-13T10:30:00Z",
+      "tags": [
+        {
+          "id": 1,
+          "nom": "Restauration"
+        },
+        {
+          "id": 2,
+          "nom": "Non-Contacté"
+        }
+      ],
+      "sources": [
+        {
+          "id": 2,
+          "nom": "Google Maps",
+          "description": "Service de cartographie Google",
+          "couleur": "#4285F4",
+          "actif": true,
+          "date_creation": "2025-12-03T09:00:00Z",
+          "prospects_sources": {
+            "createdAt": "2025-12-03T10:15:00Z",
+            "updatedAt": "2025-12-03T10:15:00Z"
+          }
+        },
+        {
+          "id": 1,
+          "nom": "Pages Jaunes",
+          "description": "Annuaire professionnel français",
+          "couleur": "#FFD700",
+          "actif": true,
+          "date_creation": "2025-12-03T09:00:00Z",
+          "prospects_sources": {
+            "createdAt": "2025-12-03T11:20:00Z",
+            "updatedAt": "2025-12-03T11:20:00Z"
+          }
+        }
+      ]
     }
   ],
   "total": 150,
@@ -46,6 +89,8 @@ Récupérer la liste de tous les prospects.
   "offset": 0
 }
 ```
+
+> 🎯 **Nouveauté (3 déc 2025)** : Le champ `source_scraping` a été remplacé par un tableau `sources` contenant toutes les sources de scraping du prospect. Chaque source inclut la date d'association (`prospects_sources.createdAt`).
 
 #### POST /api/prospects
 
@@ -59,11 +104,17 @@ Créer un nouveau prospect.
   "nom_contact": "Marie Martin",
   "email": "marie@entreprise.com",
   "telephone": "01 23 45 67 89",
-  "adresse": "456 Avenue des Champs, 75008 Paris",
+  "adresse": "456 Avenue des Champs",
+  "ville": "Paris",
+  "code_postal": "75008",
   "url_site": "https://entreprise.com",
-  "source_scraping": "Pages Jaunes"
+  "latitude": 48.8738,
+  "longitude": 2.2950,
+  "note": 4.2
 }
 ```
+
+> 🎯 **Nouveauté (3 déc 2025)** : Le champ `source_scraping` n'est plus requis. Les sources sont gérées via la relation many-to-many dans la table `prospects_sources`.
 
 #### GET /api/prospects/:id
 
@@ -76,6 +127,49 @@ Mettre à jour un prospect.
 #### DELETE /api/prospects/:id
 
 Supprimer un prospect.
+
+---
+
+### Sources de Scraping 🎯 NOUVEAU
+
+#### GET /api/sources
+
+Récupérer toutes les sources de scraping disponibles.
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "nom": "Pages Jaunes",
+      "description": "Annuaire professionnel français",
+      "couleur": "#FFD700",
+      "actif": true,
+      "date_creation": "2025-12-03T09:00:00Z"
+    },
+    {
+      "id": 2,
+      "nom": "Google Maps",
+      "description": "Service de cartographie Google",
+      "couleur": "#4285F4",
+      "actif": true,
+      "date_creation": "2025-12-03T09:00:00Z"
+    },
+    {
+      "id": 3,
+      "nom": "LinkedIn",
+      "description": "Réseau social professionnel",
+      "couleur": "#0077B5",
+      "actif": true,
+      "date_creation": "2025-12-03T09:00:00Z"
+    }
+  ]
+}
+```
+
+> **Note** : Cette route peut être implémentée si besoin. Actuellement, les sources sont gérées automatiquement lors du scraping via `findOrCreate`.
 
 ---
 

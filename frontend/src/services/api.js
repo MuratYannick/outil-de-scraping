@@ -352,4 +352,46 @@ export const getApiInfo = async () => {
   return response.data;
 };
 
+// ============================================================================
+// Services Duplicate Cleaner
+// ============================================================================
+
+/**
+ * Détecter les doublons dans la base de données
+ * @returns {Promise}
+ */
+export const detectDuplicates = async () => {
+  const response = await api.get("/prospects/duplicates/detect");
+  return response.data;
+};
+
+/**
+ * Nettoyer et fusionner les doublons détectés
+ * @returns {Promise}
+ */
+export const cleanDuplicates = async () => {
+  const response = await api.post("/prospects/duplicates/clean");
+  return response.data;
+};
+
+/**
+ * Nettoyer et fusionner une sélection de doublons
+ * @param {Array} selectedPairs - Tableau des paires de doublons à fusionner
+ * @returns {Promise}
+ */
+export const cleanSelectedDuplicates = async (selectedPairs) => {
+  const response = await api.post("/prospects/duplicates/clean-selected", { pairs: selectedPairs });
+  return response.data;
+};
+
+/**
+ * Supprimer en masse les prospects selon les filtres
+ * @param {Object} params - Paramètres de filtrage { source?, tag?, search? }
+ * @returns {Promise}
+ */
+export const bulkDeleteProspects = async (params = {}) => {
+  const response = await api.delete("/prospects/bulk", { params });
+  return response.data;
+};
+
 export default api;

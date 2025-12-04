@@ -13,6 +13,7 @@
     "db:clear": "node scripts/clear.js",
     "db:drop": "node scripts/drop.js",
     "db:clean-duplicates": "node scripts/clean-duplicates.js",
+    "db:clean-merge": "node scripts/clean-merge-duplicates.js",
     "db:add-unique-index": "node scripts/migrate-add-unique-index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -38,7 +39,8 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "eslint": "^8.55.0"
+    "eslint": "^8.55.0",
+    "jsdom": "^27.2.0"
   },
   "engines": {
     "node": "22.19.0",

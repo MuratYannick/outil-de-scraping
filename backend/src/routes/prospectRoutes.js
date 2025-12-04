@@ -7,6 +7,10 @@ import {
   deleteProspect,
   addTagToProspect,
   removeTagFromProspect,
+  detectProspectDuplicates,
+  cleanProspectDuplicates,
+  cleanSelectedProspectDuplicates,
+  bulkDeleteProspects,
 } from "../controllers/prospectController.js";
 import validate from "../middlewares/validate.js";
 import {
@@ -27,6 +31,18 @@ const router = express.Router();
  * @query   limit, offset, source, tag
  */
 router.get("/", validate(getAllProspectsSchema), getAllProspects);
+
+/**
+ * @route   GET /api/prospects/duplicates/detect
+ * @desc    Détecter les doublons dans la base de données
+ */
+router.get("/duplicates/detect", detectProspectDuplicates);
+
+/**
+ * @route   DELETE /api/prospects/bulk
+ * @desc    Supprimer en masse les prospects selon les filtres
+ */
+router.delete("/bulk", bulkDeleteProspects);
 
 /**
  * @route   GET /api/prospects/:id
@@ -63,5 +79,17 @@ router.post("/:id/tags", validate(addTagToProspectSchema), addTagToProspect);
  * @desc    Retirer un tag d'un prospect
  */
 router.delete("/:id/tags/:tag_id", validate(removeTagFromProspectSchema), removeTagFromProspect);
+
+/**
+ * @route   POST /api/prospects/duplicates/clean
+ * @desc    Nettoyer et fusionner les doublons détectés
+ */
+router.post("/duplicates/clean", cleanProspectDuplicates);
+
+/**
+ * @route   POST /api/prospects/duplicates/clean-selected
+ * @desc    Nettoyer et fusionner une sélection de doublons
+ */
+router.post("/duplicates/clean-selected", cleanSelectedProspectDuplicates);
 
 export default router;

@@ -219,6 +219,8 @@ class PagesJaunesScraper {
 
         // Site web
         const websiteSelectors = [
+          'a.bi-website',              // Format 2024: lien direct avec classe bi-website
+          '.bi-address a.bi-website',  // Alternative: dans le bloc adresse
           'a[data-pjlid]',
           'a[class*="website"]',
           'a[class*="site-internet"]',
@@ -227,8 +229,12 @@ class PagesJaunesScraper {
         for (const selector of websiteSelectors) {
           const webEl = el.querySelector(selector);
           if (webEl && webEl.getAttribute("href")) {
-            result.url_site = webEl.getAttribute("href");
-            break;
+            const href = webEl.getAttribute("href");
+            // Vérifier que ce n'est pas un lien interne Pages Jaunes
+            if (href && !href.includes('pagesjaunes.fr') && !href.startsWith('#')) {
+              result.url_site = href;
+              break;
+            }
           }
         }
 

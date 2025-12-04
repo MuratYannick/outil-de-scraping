@@ -2,8 +2,9 @@ import taskManager from '../services/taskManager.js';
 import { PagesJaunesScraper } from '../services/scrapers/pagesJaunesScraper.js';
 import { getGoogleMapsService } from '../services/googleMapsService.js';
 import { getLinkedInScraper } from '../services/scrapers/linkedInScraper.js';
-import { Prospect, Tag } from '../models/index.js';
+import { Prospect, Tag, SourceScraping } from '../models/index.js';
 import { Op } from 'sequelize';
+import { addressesMatch } from '../utils/addressNormalizer.js';
 
 /**
  * @route   POST /api/scraping/lancer
@@ -76,22 +77,35 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
 
     // Créer une fonction de vérification de doublons en temps réel
     const isDuplicate = excludeDuplicates ? async (prospectData) => {
-      const existing = await Prospect.findOne({
+      // Vérifier d'abord par email ou URL (exact match)
+      const existingExact = await Prospect.findOne({
         where: {
           [Op.or]: [
-            // Doublon si même nom ET même adresse
-            prospectData.nom_entreprise && prospectData.adresse ? {
-              nom_entreprise: prospectData.nom_entreprise,
-              adresse: prospectData.adresse
-            } : null,
-            // Ou même email
             prospectData.email ? { email: prospectData.email } : null,
-            // Ou même URL
             prospectData.url_site ? { url_site: prospectData.url_site } : null,
           ].filter(Boolean),
         },
       });
-      return !!existing;
+
+      if (existingExact) return true;
+
+      // Vérifier par nom + adresse avec normalisation
+      if (prospectData.nom_entreprise && prospectData.adresse) {
+        const potentialDuplicates = await Prospect.findAll({
+          where: {
+            nom_entreprise: prospectData.nom_entreprise
+          }
+        });
+
+        // Comparer les adresses normalisées
+        for (const candidate of potentialDuplicates) {
+          if (candidate.adresse && addressesMatch(prospectData.adresse, candidate.adresse)) {
+            return true;
+          }
+        }
+      }
+
+      return false;
     } : null;
 
     // Choisir le scraper approprié selon la source
@@ -146,8 +160,8 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
       prospects = scrapingResult.prospects;
     }
 
-    // Sauvegarder les prospects en base de données
-    const savedProspects = await saveProspects(prospects, keyword);
+    // Sauvegarder les prospects en base de données avec leur source
+    const savedProspects = await saveProspects(prospects, keyword, source);
 
     // Préparer les données de résultat selon la source
     let taskResult = {
@@ -181,13 +195,14 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
 }
 
 /**
- * Sauvegarder les prospects en base de données
- * Gère les doublons automatiquement
+ * Sauvegarder les prospects en base de données avec gestion des sources multiples
+ * Gère les doublons et l'enrichissement automatique
  * @param {Array} prospects - Liste des prospects à sauvegarder
  * @param {string} keyword - Mot-clé pour créer un tag
+ * @param {string} sourceName - Nom de la source de scraping (ex: 'Google Maps', 'Pages Jaunes')
  * @returns {Array} Prospects sauvegardés
  */
-async function saveProspects(prospects, keyword) {
+async function saveProspects(prospects, keyword, sourceName) {
   const savedProspects = [];
 
   // Créer ou récupérer le tag basé sur le keyword
@@ -195,27 +210,74 @@ async function saveProspects(prospects, keyword) {
     where: { nom: keyword.charAt(0).toUpperCase() + keyword.slice(1) },
   });
 
+  // Récupérer ou créer la source de scraping
+  const [source] = await SourceScraping.findOrCreate({
+    where: { nom: sourceName },
+    defaults: {
+      description: `Source de scraping: ${sourceName}`,
+      actif: true,
+    }
+  });
+
+  console.log(`[ScrapingController] 📌 Source utilisée: ${source.nom} (ID: ${source.id})`);
+
   for (const prospectData of prospects) {
     try {
-      // Vérifier les doublons par (nom_entreprise + adresse) OU email OU URL
-      const existingProspect = await Prospect.findOne({
+      // Étape 1 : Vérifier d'abord les doublons exacts (email, URL, GPS)
+      let existingProspect = await Prospect.findOne({
         where: {
           [Op.or]: [
-            // Doublon si même nom ET même adresse
-            prospectData.nom_entreprise && prospectData.adresse ? {
-              nom_entreprise: prospectData.nom_entreprise,
-              adresse: prospectData.adresse
-            } : null,
-            // Ou même email
+            // Même email
             prospectData.email ? { email: prospectData.email } : null,
-            // Ou même URL
+            // Même URL
             prospectData.url_site ? { url_site: prospectData.url_site } : null,
+            // Même nom ET mêmes coordonnées GPS
+            prospectData.nom_entreprise && prospectData.latitude && prospectData.longitude ? {
+              nom_entreprise: prospectData.nom_entreprise,
+              latitude: prospectData.latitude,
+              longitude: prospectData.longitude
+            } : null,
           ].filter(Boolean),
         },
+        include: [
+          { model: Tag, as: 'tags' },
+          { model: SourceScraping, as: 'sources' }
+        ]
       });
+
+      // Étape 2 : Si pas trouvé, vérifier par nom + adresse normalisée
+      if (!existingProspect && prospectData.nom_entreprise && prospectData.adresse) {
+        const potentialDuplicates = await Prospect.findAll({
+          where: { nom_entreprise: prospectData.nom_entreprise },
+          include: [
+            { model: Tag, as: 'tags' },
+            { model: SourceScraping, as: 'sources' }
+          ]
+        });
+
+        // Comparer les adresses normalisées
+        for (const candidate of potentialDuplicates) {
+          if (candidate.adresse && addressesMatch(prospectData.adresse, candidate.adresse)) {
+            existingProspect = candidate;
+            console.log(`[ScrapingController] 🔍 Doublon détecté via normalisation d'adresse:`);
+            console.log(`   - Base: "${candidate.adresse}"`);
+            console.log(`   - Nouveau: "${prospectData.adresse}"`);
+            break;
+          }
+        }
+      }
 
       if (existingProspect) {
         console.log(`[ScrapingController] ⚠️  Doublon détecté: ${prospectData.nom_entreprise} (${prospectData.adresse || 'pas d\'adresse'})`);
+
+        // Vérifier si cette source est déjà associée
+        const hasSource = existingProspect.sources.some(s => s.id === source.id);
+        if (!hasSource) {
+          await existingProspect.addSource(source);
+          console.log(`[ScrapingController] ✅ Source "${source.nom}" ajoutée au prospect existant`);
+        } else {
+          console.log(`[ScrapingController] ℹ️  Source "${source.nom}" déjà associée à ce prospect`);
+        }
 
         // Enrichir les données existantes au lieu de skip
         const updatedFields = {};
@@ -223,7 +285,7 @@ async function saveProspects(prospects, keyword) {
 
         // Champs à enrichir uniquement si null/vide (données stables)
         const fieldsToEnrichIfNull = [
-          'adresse', 'latitude', 'longitude', 'ville', 'code_postal', 'url_maps', 'url_linkedin'
+          'adresse', 'latitude', 'longitude', 'ville', 'code_postal'
         ];
 
         // Champs à toujours mettre à jour si différents (données qui peuvent changer)
@@ -260,24 +322,30 @@ async function saveProspects(prospects, keyword) {
         if (hasUpdates) {
           await existingProspect.update(updatedFields);
           console.log(`[ScrapingController] ✅ Données enrichies: ${Object.keys(updatedFields).join(', ')}`);
-
-          // Ajouter le tag si pas déjà présent
-          const existingTags = await existingProspect.getTags();
-          const hasTag = existingTags.some(t => t.id === tag.id);
-          if (!hasTag) {
-            await existingProspect.addTag(tag);
-            console.log(`[ScrapingController] ✅ Tag "${tag.nom}" ajouté au prospect existant`);
-          }
-
-          savedProspects.push(existingProspect);
         } else {
           console.log(`[ScrapingController] ℹ️  Aucune nouvelle donnée à enrichir`);
         }
 
+        // Ajouter le tag si pas déjà présent
+        const hasTag = existingProspect.tags.some(t => t.id === tag.id);
+        if (!hasTag) {
+          await existingProspect.addTag(tag);
+          console.log(`[ScrapingController] ✅ Tag "${tag.nom}" ajouté au prospect existant`);
+        }
+
+        // Recharger avec les relations pour le retour
+        await existingProspect.reload({
+          include: [
+            { model: Tag, as: 'tags' },
+            { model: SourceScraping, as: 'sources' }
+          ],
+        });
+
+        savedProspects.push(existingProspect);
         continue; // Passer au prospect suivant
       }
 
-      // Créer le prospect
+      // Créer le nouveau prospect (sans source_scraping dans les champs)
       const prospect = await Prospect.create({
         nom_entreprise: prospectData.nom_entreprise,
         nom_contact: prospectData.nom_contact || null,
@@ -285,7 +353,6 @@ async function saveProspects(prospects, keyword) {
         telephone: prospectData.telephone || null,
         adresse: prospectData.adresse || null,
         url_site: prospectData.url_site || null,
-        source_scraping: prospectData.source_scraping || 'Pages Jaunes',
         latitude: prospectData.latitude || null,
         longitude: prospectData.longitude || null,
         note: prospectData.note || null,
@@ -293,18 +360,25 @@ async function saveProspects(prospects, keyword) {
         code_postal: prospectData.code_postal || null,
       });
 
+      // Associer la source de scraping
+      await prospect.addSource(source);
+      console.log(`[ScrapingController] ✅ Source "${source.nom}" associée au nouveau prospect`);
+
       // Associer le tag
       await prospect.addTag(tag);
 
-      // Recharger avec les tags pour le retour
+      // Recharger avec les relations pour le retour
       await prospect.reload({
-        include: [{ model: Tag, as: 'tags' }],
+        include: [
+          { model: Tag, as: 'tags' },
+          { model: SourceScraping, as: 'sources' }
+        ],
       });
 
       savedProspects.push(prospect);
-      console.log(`[ScrapingController] Prospect sauvegardé: ${prospect.nom_entreprise}`);
+      console.log(`[ScrapingController] ✅ Nouveau prospect sauvegardé: ${prospect.nom_entreprise}`);
     } catch (error) {
-      console.error(`[ScrapingController] Erreur sauvegarde prospect:`, error);
+      console.error(`[ScrapingController] ❌ Erreur sauvegarde prospect:`, error);
     }
   }
 

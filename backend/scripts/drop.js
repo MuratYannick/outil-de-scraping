@@ -22,7 +22,9 @@ function askQuestion(query) {
     console.log("Les tables suivantes seront supprimées:");
     console.log("   - prospects");
     console.log("   - tags");
+    console.log("   - sources_scraping");
     console.log("   - prospects_tags");
+    console.log("   - prospects_sources");
     console.log("\n⚠️  Toutes les données seront DÉFINITIVEMENT perdues !\n");
 
     // Authentifier la connexion
@@ -55,10 +57,14 @@ function askQuestion(query) {
     // Désactiver les contraintes de clés étrangères
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
 
-    // Supprimer la table de liaison en premier
+    // Supprimer les tables de liaison en premier
     console.log("💥 Suppression de prospects_tags...");
     await sequelize.query("DROP TABLE IF EXISTS prospects_tags");
     console.log("✓ prospects_tags détruite");
+
+    console.log("💥 Suppression de prospects_sources...");
+    await sequelize.query("DROP TABLE IF EXISTS prospects_sources");
+    console.log("✓ prospects_sources détruite");
 
     // Supprimer la table prospects
     console.log("💥 Suppression de prospects...");
@@ -69,6 +75,11 @@ function askQuestion(query) {
     console.log("💥 Suppression de tags...");
     await sequelize.query("DROP TABLE IF EXISTS tags");
     console.log("✓ tags détruite");
+
+    // Supprimer la table sources_scraping
+    console.log("💥 Suppression de sources_scraping...");
+    await sequelize.query("DROP TABLE IF EXISTS sources_scraping");
+    console.log("✓ sources_scraping détruite");
 
     // Réactiver les contraintes de clés étrangères
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
