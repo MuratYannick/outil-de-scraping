@@ -25,13 +25,10 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
         telephone_3: prospect.telephone_3 || '',
         email: prospect.email || '',
         url_site: prospect.url_site || '',
-        url_linkedin: prospect.url_linkedin || '',
         nom_contact: prospect.nom_contact || '',
-        poste: prospect.poste || '',
         note: prospect.note || '',
         latitude: prospect.latitude || '',
         longitude: prospect.longitude || '',
-        notes: prospect.notes || '',
       });
     }
   }, [prospect]);
@@ -147,13 +144,10 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
       telephone_3: prospect.telephone_3 || '',
       email: prospect.email || '',
       url_site: prospect.url_site || '',
-      url_linkedin: prospect.url_linkedin || '',
       nom_contact: prospect.nom_contact || '',
-      poste: prospect.poste || '',
       note: prospect.note || '',
       latitude: prospect.latitude || '',
       longitude: prospect.longitude || '',
-      notes: prospect.notes || '',
     });
     setIsEditing(false);
     setErrors({});
@@ -366,21 +360,8 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
                   />
                 </div>
 
-                {/* LinkedIn */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
-                  <input
-                    type="url"
-                    name="url_linkedin"
-                    value={formData.url_linkedin}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="https://linkedin.com/company/..."
-                  />
-                </div>
-
                 {/* Nom contact */}
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nom du contact</label>
                   <input
                     type="text"
@@ -389,19 +370,6 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Jean Dupont"
-                  />
-                </div>
-
-                {/* Poste */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Poste</label>
-                  <input
-                    type="text"
-                    name="poste"
-                    value={formData.poste}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Directeur"
                   />
                 </div>
 
@@ -463,19 +431,6 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
                     <p className="text-red-500 text-xs mt-1">{errors.longitude}</p>
                   )}
                 </div>
-              </div>
-
-              {/* Notes (textarea pleine largeur) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <textarea
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleInputChange}
-                  rows="4"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Ajoutez vos notes ici..."
-                />
               </div>
             </div>
           ) : (
@@ -582,14 +537,6 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
                   </div>
                 )}
 
-                {/* Poste */}
-                {prospect.poste && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Poste</label>
-                    <p className="text-sm text-gray-900">{prospect.poste}</p>
-                  </div>
-                )}
-
                 {/* Site web */}
                 {prospect.url_site && (
                   <div>
@@ -605,26 +552,6 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
                         className="text-sm text-blue-600 hover:underline truncate"
                       >
                         {prospect.url_site}
-                      </a>
-                    </div>
-                  </div>
-                )}
-
-                {/* URL LinkedIn */}
-                {prospect.url_linkedin && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">LinkedIn</label>
-                    <div className="flex items-center">
-                      <svg className="w-5 h-5 mr-2 text-blue-700" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z" clipRule="evenodd" />
-                      </svg>
-                      <a
-                        href={prospect.url_linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline truncate"
-                      >
-                        Voir le profil
                       </a>
                     </div>
                   </div>
@@ -671,14 +598,6 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
             <h3 className="text-lg font-semibold text-gray-900 border-b pb-2 mb-3">Tags</h3>
             <TagBadge prospect={prospect} onTagsUpdated={onProspectUpdated} />
           </div>
-
-          {/* Notes */}
-          {prospect.notes && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2 mb-3">Notes</h3>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{prospect.notes}</p>
-            </div>
-          )}
         </div>
 
         {/* Footer */}
