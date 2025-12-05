@@ -143,6 +143,8 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
       code_postal: prospect.code_postal || '',
       ville: prospect.ville || '',
       telephone: prospect.telephone || '',
+      telephone_2: prospect.telephone_2 || '',
+      telephone_3: prospect.telephone_3 || '',
       email: prospect.email || '',
       url_site: prospect.url_site || '',
       url_linkedin: prospect.url_linkedin || '',
