@@ -21,6 +21,8 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
         code_postal: prospect.code_postal || '',
         ville: prospect.ville || '',
         telephone: prospect.telephone || '',
+        telephone_2: prospect.telephone_2 || '',
+        telephone_3: prospect.telephone_3 || '',
         email: prospect.email || '',
         url_site: prospect.url_site || '',
         url_linkedin: prospect.url_linkedin || '',
@@ -67,8 +69,15 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
     }
 
     // Validation téléphone français si renseigné
-    if (formData.telephone && !/^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/.test(formData.telephone)) {
+    const phoneRegex = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/;
+    if (formData.telephone && !phoneRegex.test(formData.telephone)) {
       newErrors.telephone = 'Format de téléphone invalide (ex: 01 23 45 67 89)';
+    }
+    if (formData.telephone_2 && !phoneRegex.test(formData.telephone_2)) {
+      newErrors.telephone_2 = 'Format de téléphone invalide (ex: 01 23 45 67 89)';
+    }
+    if (formData.telephone_3 && !phoneRegex.test(formData.telephone_3)) {
+      newErrors.telephone_3 = 'Format de téléphone invalide (ex: 01 23 45 67 89)';
     }
 
     // Validation note (entre 0 et 5)
@@ -272,7 +281,7 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
 
                 {/* Téléphone */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone 1</label>
                   <input
                     type="tel"
                     name="telephone"
@@ -285,6 +294,42 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
                   />
                   {errors.telephone && (
                     <p className="text-red-500 text-xs mt-1">{errors.telephone}</p>
+                  )}
+                </div>
+
+                {/* Téléphone 2 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone 2</label>
+                  <input
+                    type="tel"
+                    name="telephone_2"
+                    value={formData.telephone_2}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.telephone_2 ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="01 23 45 67 89"
+                  />
+                  {errors.telephone_2 && (
+                    <p className="text-red-500 text-xs mt-1">{errors.telephone_2}</p>
+                  )}
+                </div>
+
+                {/* Téléphone 3 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone 3</label>
+                  <input
+                    type="tel"
+                    name="telephone_3"
+                    value={formData.telephone_3}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.telephone_3 ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="01 23 45 67 89"
+                  />
+                  {errors.telephone_3 && (
+                    <p className="text-red-500 text-xs mt-1">{errors.telephone_3}</p>
                   )}
                 </div>
 
@@ -467,17 +512,41 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
                   )}
                 </div>
 
-                {/* Téléphone */}
-                {prospect.telephone && (
+                {/* Téléphones */}
+                {(prospect.telephone || prospect.telephone_2 || prospect.telephone_3) && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Téléphone</label>
-                    <div className="flex items-center">
-                      <svg className="w-5 h-5 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                      </svg>
-                      <a href={`tel:${prospect.telephone}`} className="text-sm text-blue-600 hover:underline">
-                        {prospect.telephone}
-                      </a>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Téléphone{(prospect.telephone_2 || prospect.telephone_3) && 's'}</label>
+                    <div className="space-y-2">
+                      {prospect.telephone && (
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                          </svg>
+                          <a href={`tel:${prospect.telephone}`} className="text-sm text-blue-600 hover:underline">
+                            {prospect.telephone}
+                          </a>
+                        </div>
+                      )}
+                      {prospect.telephone_2 && (
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                          </svg>
+                          <a href={`tel:${prospect.telephone_2}`} className="text-sm text-blue-600 hover:underline">
+                            {prospect.telephone_2}
+                          </a>
+                        </div>
+                      )}
+                      {prospect.telephone_3 && (
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                          </svg>
+                          <a href={`tel:${prospect.telephone_3}`} className="text-sm text-blue-600 hover:underline">
+                            {prospect.telephone_3}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

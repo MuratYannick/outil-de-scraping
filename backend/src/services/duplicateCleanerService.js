@@ -216,6 +216,67 @@ function decideMergeStrategy(p1, p2) {
 }
 
 /**
+ * Fusionne intelligemment les numéros de téléphone de deux prospects
+ * Conserve jusqu'à 3 numéros uniques, en priorisant les numéros du prospect le plus récent
+ * @param {Object} keepProspect - Prospect à conserver
+ * @param {Object} deleteProspect - Prospect à supprimer
+ * @returns {Object} Objet contenant telephone, telephone_2, telephone_3
+ */
+function mergePhoneNumbers(keepProspect, deleteProspect) {
+  // Déterminer quel prospect est le plus récent
+  const keepIsNewer = new Date(keepProspect.date_ajout) >= new Date(deleteProspect.date_ajout);
+
+  // Collecter tous les numéros existants (en filtrant les nulls/empty)
+  const keepPhones = [
+    keepProspect.telephone,
+    keepProspect.telephone_2,
+    keepProspect.telephone_3
+  ].filter(p => p && p.trim());
+
+  const deletePhones = [
+    deleteProspect.telephone,
+    deleteProspect.telephone_2,
+    deleteProspect.telephone_3
+  ].filter(p => p && p.trim());
+
+  // Normaliser les numéros pour la comparaison (enlever espaces, tirets, etc.)
+  const normalizePhone = (phone) => phone.replace(/[\s.-]/g, '');
+
+  // Set pour éviter les doublons
+  const uniquePhones = new Set();
+  const phonesArray = [];
+
+  // Prioriser selon quel prospect est le plus récent
+  const primaryPhones = keepIsNewer ? keepPhones : deletePhones;
+  const secondaryPhones = keepIsNewer ? deletePhones : keepPhones;
+
+  // Ajouter d'abord les numéros du prospect prioritaire
+  for (const phone of primaryPhones) {
+    const normalized = normalizePhone(phone);
+    if (!uniquePhones.has(normalized) && phonesArray.length < 3) {
+      uniquePhones.add(normalized);
+      phonesArray.push(phone);
+    }
+  }
+
+  // Compléter avec les numéros du second prospect si on n'a pas encore 3 numéros
+  for (const phone of secondaryPhones) {
+    const normalized = normalizePhone(phone);
+    if (!uniquePhones.has(normalized) && phonesArray.length < 3) {
+      uniquePhones.add(normalized);
+      phonesArray.push(phone);
+    }
+  }
+
+  // Retourner un objet avec les 3 emplacements (null si pas de valeur)
+  return {
+    telephone: phonesArray[0] || null,
+    telephone_2: phonesArray[1] || null,
+    telephone_3: phonesArray[2] || null
+  };
+}
+
+/**
  * Fusionne deux prospects dans la base de données
  */
 async function mergeProspects(keepId, deleteId, mergedData) {
@@ -238,9 +299,13 @@ async function mergeProspects(keepId, deleteId, mergedData) {
       transaction: t
     });
 
+    // Fusionner les numéros de téléphone intelligemment
+    const mergedPhones = mergePhoneNumbers(keepProspect, deleteProspect);
+    const finalMergedData = { ...mergedData, ...mergedPhones };
+
     // Mettre à jour les données
-    if (Object.keys(mergedData).length > 0) {
-      await keepProspect.update(mergedData, { transaction: t });
+    if (Object.keys(finalMergedData).length > 0) {
+      await keepProspect.update(finalMergedData, { transaction: t });
     }
 
     // Fusionner les tags
