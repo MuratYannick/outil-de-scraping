@@ -27,10 +27,47 @@ export const createProspectSchema = {
         'string.pattern.base': 'Le numéro de téléphone contient des caractères invalides',
         'string.max': 'Le téléphone ne peut pas dépasser 50 caractères',
       }),
+    telephone_2: Joi.string()
+      .max(50)
+      .pattern(/^[\d\s\-\+\(\)\.]+$/)
+      .allow(null, '')
+      .messages({
+        'string.pattern.base': 'Le numéro de téléphone 2 contient des caractères invalides',
+        'string.max': 'Le téléphone 2 ne peut pas dépasser 50 caractères',
+      }),
+    telephone_3: Joi.string()
+      .max(50)
+      .pattern(/^[\d\s\-\+\(\)\.]+$/)
+      .allow(null, '')
+      .messages({
+        'string.pattern.base': 'Le numéro de téléphone 3 contient des caractères invalides',
+        'string.max': 'Le téléphone 3 ne peut pas dépasser 50 caractères',
+      }),
     adresse: Joi.string().allow(null, '').messages({}),
+    code_postal: Joi.string().max(20).allow(null, '').messages({
+      'string.max': 'Le code postal ne peut pas dépasser 20 caractères',
+    }),
+    ville: Joi.string().max(100).allow(null, '').messages({
+      'string.max': 'La ville ne peut pas dépasser 100 caractères',
+    }),
     url_site: Joi.string().uri().max(255).allow(null, '').messages({
       'string.uri': 'L\'URL du site doit être valide',
       'string.max': 'L\'URL ne peut pas dépasser 255 caractères',
+    }),
+    note: Joi.number().min(0).max(5).allow(null).messages({
+      'number.base': 'La note doit être un nombre',
+      'number.min': 'La note doit être au minimum 0',
+      'number.max': 'La note doit être au maximum 5',
+    }),
+    latitude: Joi.number().min(-90).max(90).allow(null).messages({
+      'number.base': 'La latitude doit être un nombre',
+      'number.min': 'La latitude doit être au minimum -90',
+      'number.max': 'La latitude doit être au maximum 90',
+    }),
+    longitude: Joi.number().min(-180).max(180).allow(null).messages({
+      'number.base': 'La longitude doit être un nombre',
+      'number.min': 'La longitude doit être au minimum -180',
+      'number.max': 'La longitude doit être au maximum 180',
     }),
     source_scraping: Joi.string().max(100).required().messages({
       'string.empty': 'La source de scraping est requise',
@@ -69,10 +106,47 @@ export const updateProspectSchema = {
         'string.pattern.base': 'Le numéro de téléphone contient des caractères invalides',
         'string.max': 'Le téléphone ne peut pas dépasser 50 caractères',
       }),
+    telephone_2: Joi.string()
+      .max(50)
+      .pattern(/^[\d\s\-\+\(\)\.]+$/)
+      .allow(null, '')
+      .messages({
+        'string.pattern.base': 'Le numéro de téléphone 2 contient des caractères invalides',
+        'string.max': 'Le téléphone 2 ne peut pas dépasser 50 caractères',
+      }),
+    telephone_3: Joi.string()
+      .max(50)
+      .pattern(/^[\d\s\-\+\(\)\.]+$/)
+      .allow(null, '')
+      .messages({
+        'string.pattern.base': 'Le numéro de téléphone 3 contient des caractères invalides',
+        'string.max': 'Le téléphone 3 ne peut pas dépasser 50 caractères',
+      }),
     adresse: Joi.string().allow(null, '').messages({}),
+    code_postal: Joi.string().max(20).allow(null, '').messages({
+      'string.max': 'Le code postal ne peut pas dépasser 20 caractères',
+    }),
+    ville: Joi.string().max(100).allow(null, '').messages({
+      'string.max': 'La ville ne peut pas dépasser 100 caractères',
+    }),
     url_site: Joi.string().uri().max(255).allow(null, '').messages({
       'string.uri': 'L\'URL du site doit être valide',
       'string.max': 'L\'URL ne peut pas dépasser 255 caractères',
+    }),
+    note: Joi.number().min(0).max(5).allow(null).messages({
+      'number.base': 'La note doit être un nombre',
+      'number.min': 'La note doit être au minimum 0',
+      'number.max': 'La note doit être au maximum 5',
+    }),
+    latitude: Joi.number().min(-90).max(90).allow(null).messages({
+      'number.base': 'La latitude doit être un nombre',
+      'number.min': 'La latitude doit être au minimum -90',
+      'number.max': 'La latitude doit être au maximum 90',
+    }),
+    longitude: Joi.number().min(-180).max(180).allow(null).messages({
+      'number.base': 'La longitude doit être un nombre',
+      'number.min': 'La longitude doit être au minimum -180',
+      'number.max': 'La longitude doit être au maximum 180',
     }),
     source_scraping: Joi.string().max(100).messages({
       'string.max': 'La source ne peut pas dépasser 100 caractères',
