@@ -118,8 +118,10 @@ export default function ProspectDetailsModal({ prospect, isOpen, onClose, onPros
       await updateProspect(prospect.id, dataToUpdate);
 
       // Notifier le parent que le prospect a été mis à jour
+      // IMPORTANT: Attendre que le callback se termine (recharge des données depuis l'API)
+      // AVANT de passer en mode view pour afficher les nouvelles données
       if (onProspectUpdated) {
-        onProspectUpdated();
+        await onProspectUpdated();
       }
 
       setIsEditing(false);
