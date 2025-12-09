@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { exportToCSV, exportToJSON, copyToClipboard } from '../utils/export';
 import { getProspects } from '../services/api';
+import { buildFilterParams } from '../utils/filterParams';
 
 /**
  * Composant menu d'export de données
@@ -24,19 +25,11 @@ export default function ExportMenu({ prospects, totalCount, filters, sorting }) 
 
       // Si on exporte tous les prospects filtrés, récupérer toutes les données de l'API
       if (scope === 'all') {
-        const params = {
-          limit: totalCount || 10000, // Récupérer tous les prospects
-          offset: 0,
-        };
-
-        // Ajouter les filtres
-        if (filters.source) params.source = filters.source;
-        if (filters.tag) params.tag = filters.tag;
-        if (filters.search) params.search = filters.search;
-
-        // Ajouter le tri
-        if (sorting.sortBy) params.sortBy = sorting.sortBy;
-        if (sorting.sortOrder) params.sortOrder = sorting.sortOrder;
+        const params = buildFilterParams({
+          filters,
+          sorting,
+          pagination: { limit: totalCount || 10000, offset: 0 },
+        });
 
         const response = await getProspects(params);
         dataToExport = response.data || [];

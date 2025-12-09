@@ -3,7 +3,8 @@ import ProspectCard from "./ProspectCard";
 import ProspectDetailsModal from "./ProspectDetailsModal";
 import TagBadge from "./TagBadge";
 import SourceBadge from "./SourceBadge";
-import { deleteProspect, getProspectById } from "../services/api";
+import { getProspectById } from "../services/api";
+import { useDeleteProspect } from "../hooks/useDeleteProspect";
 
 /**
  * Composant pour afficher la liste des prospects
@@ -12,7 +13,14 @@ import { deleteProspect, getProspectById } from "../services/api";
 export default function ProspectList({ prospects, loading, error, viewMode = 'table', onProspectUpdated, sortBy, sortOrder, onSortChange }) {
   const [selectedProspect, setSelectedProspect] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
+
+  const { deletingId, handleDelete } = useDeleteProspect({
+    onDeleted: () => {
+      if (onProspectUpdated) {
+        onProspectUpdated();
+      }
+    }
+  });
 
   const handleProspectClick = (prospect) => {
     setSelectedProspect(prospect);
@@ -38,28 +46,6 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
     // Appeler aussi le callback parent pour rafraîchir la liste
     if (onProspectUpdated) {
       onProspectUpdated();
-    }
-  };
-
-  const handleDelete = async (prospect, e) => {
-    e.stopPropagation();
-
-    if (!confirm(`Voulez-vous vraiment supprimer le prospect "${prospect.nom_entreprise}" ?\n\nCette action est irréversible.`)) {
-      return;
-    }
-
-    setDeletingId(prospect.id);
-    try {
-      await deleteProspect(prospect.id);
-
-      if (onProspectUpdated) {
-        onProspectUpdated();
-      }
-    } catch (error) {
-      console.error("Erreur lors de la suppression:", error);
-      alert("Erreur lors de la suppression: " + (error.response?.data?.message || error.message));
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -251,7 +237,10 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
                 </td>
                 <td className="px-6 py-4 text-right">
                   <button
-                    onClick={(e) => handleDelete(prospect, e)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(prospect);
+                    }}
                     disabled={deletingId === prospect.id}
                     className="text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
                     title="Supprimer ce prospect"
