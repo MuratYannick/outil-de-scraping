@@ -1,6 +1,7 @@
 import { getPlaywrightService } from "../playwrightService.js";
 import { SCRAPER_IDS } from "../../config/antiBotConfig.js";
 import { normalizeKeyword, normalizeLocation } from "../../utils/stringUtils.js";
+import { formatPhoneNumber } from "../../utils/phoneFormatter.js";
 
 /**
  * Scraper pour Pages Jaunes
@@ -53,25 +54,13 @@ class PagesJaunesScraper {
 
   /**
    * Normalise un numéro de téléphone français
+   * @deprecated Utiliser formatPhoneNumber() de utils/phoneFormatter.js
    * @param {string} phone - Numéro brut
+   * @returns {string|null} Numéro formaté
+   * @private
    */
   normalizePhone(phone) {
-    if (!phone) return null;
-
-    // Enlever tous les caractères non-numériques
-    let cleaned = phone.replace(/[^\d+]/g, "");
-
-    // Si commence par 33, remplacer par 0
-    if (cleaned.startsWith("33")) {
-      cleaned = "0" + cleaned.substring(2);
-    }
-
-    // Formater en groupes de 2
-    if (cleaned.length === 10 && cleaned.startsWith("0")) {
-      return cleaned.match(/.{1,2}/g).join(" ");
-    }
-
-    return cleaned || null;
+    return formatPhoneNumber(phone);
   }
 
   /**

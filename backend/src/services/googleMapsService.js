@@ -3,6 +3,8 @@ import { getPlaywrightService } from './playwrightService.js';
 import { SCRAPER_IDS, getScraperConfig } from '../config/antiBotConfig.js';
 import { normalizeKeyword, normalizeLocation } from '../utils/stringUtils.js';
 import geocodingService from './geocodingService.js';
+import { formatPhoneNumber } from '../utils/phoneFormatter.js';
+import { delay } from '../utils/timingUtils.js';
 
 /**
  * Service principal pour Google Maps
@@ -749,33 +751,22 @@ class GoogleMapsService {
 
   /**
    * Formate un numéro de téléphone français
+   * @deprecated Utiliser formatPhoneNumber() de utils/phoneFormatter.js
    * @private
    */
   _formatPhoneNumber(phone) {
-    if (!phone) return null;
-
-    // Nettoyer le numéro
-    let cleaned = phone.replace(/[^\d+]/g, '');
-
-    // Format français: 01 23 45 67 89
-    if (cleaned.startsWith('0') && cleaned.length === 10) {
-      return cleaned.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
-    }
-
-    // Format international: +33 1 23 45 67 89
-    if (cleaned.startsWith('+33') && cleaned.length === 12) {
-      return cleaned.replace(/(\+\d{2})(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5 $6');
-    }
-
-    return phone;
+    return formatPhoneNumber(phone);
   }
 
   /**
    * Delay helper
+   * @deprecated Utiliser delay() de utils/timingUtils.js
    * @private
+   * @param {number} ms - Délai en millisecondes
+   * @returns {Promise<void>}
    */
   async _delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return delay(ms);
   }
 
   /**

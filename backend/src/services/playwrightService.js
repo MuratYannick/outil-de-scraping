@@ -4,6 +4,7 @@ import { getStealthService } from "./stealthService.js";
 import { getSessionManager } from "./sessionManager.js";
 import { getRateLimiter, RATE_LIMIT_PATTERNS } from "./rateLimiter.js";
 import { getHumanBehavior } from "./humanBehavior.js";
+import { delay, randomDelay } from "../utils/timingUtils.js";
 import {
   SCRAPER_IDS,
   ANTIBOT_STRATEGIES,
@@ -314,21 +315,23 @@ class PlaywrightService {
 
   /**
    * Delay helper
+   * @deprecated Utiliser delay() de utils/timingUtils.js
    * @param {number} ms - Millisecondes
+   * @returns {Promise<void>}
    */
   delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return delay(ms);
   }
 
   /**
    * Delay aléatoire (simulation comportement humain)
+   * @deprecated Utiliser randomDelay() de utils/timingUtils.js
    * @param {number} min - Minimum ms
    * @param {number} max - Maximum ms
+   * @returns {Promise<number>} Délai attendu en ms
    */
-  randomDelay(min = 1000, max = 3000) {
-    const delay = Math.floor(Math.random() * (max - min + 1)) + min;
-    console.log(`[PlaywrightService] ⏳ Delay aléatoire: ${delay}ms`);
-    return this.delay(delay);
+  async randomDelay(min = 1000, max = 3000) {
+    return await randomDelay(min, max, true);
   }
 
   /**
