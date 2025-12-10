@@ -253,12 +253,46 @@ L'application sera disponible sur `http://localhost:5173`
 
 ---
 
+## 🚀 Déploiement Production
+
+### MVP 1.0 - Prêt pour O2Switch
+
+L'application est prête pour le déploiement sur O2Switch avec :
+- ✅ Mode Stealth validé : **100% Pages Jaunes**, **88% Google Maps**
+- ✅ Interface simplifiée : Scraping, Prospects, Tags
+- ✅ Backend Node.js 22.x compatible O2Switch
+- ✅ MySQL 8.0+ compatible
+
+### 📚 Guides de Déploiement
+
+- [**⚡ Guide Rapide (30 min)**](./DEPLOYMENT_QUICK_START.md) - Déploiement express
+- [**📖 Guide Complet O2Switch**](./docs/DEPLOYMENT_O2SWITCH.md) - Documentation détaillée
+- [**🗄️ Schéma SQL**](./database/schema.sql) - Import base de données
+
+### 🎯 Configuration Production
+
+```bash
+# Backend
+cp backend/.env.production.example backend/.env.production
+# Éditer avec vos credentials O2Switch
+
+# Frontend
+cp frontend/.env.production.example frontend/.env.production
+# Éditer avec votre URL d'API
+
+# Build
+cd frontend && npm run build
+```
+
+---
+
 ## 🔐 Sécurité
 
 - ✅ Audit npm : 0 vulnérabilités (backend & frontend)
-- ✅ Pas de Docker pour le MVP (déploiement local)
+- ✅ SSL/TLS avec Let's Encrypt (O2Switch)
 - ✅ Validation des inputs avec Joi
 - ✅ Helmet pour sécuriser les en-têtes HTTP
+- ✅ CORS configuré pour production
 
 ---
 
