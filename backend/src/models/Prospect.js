@@ -32,6 +32,14 @@ export default (sequelize) => {
         type: DataTypes.STRING(50),
         allowNull: true,
       },
+      telephone_2: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+      },
+      telephone_3: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+      },
       adresse: {
         type: DataTypes.STRING(500),
         allowNull: true,

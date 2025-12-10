@@ -3,7 +3,7 @@ import ProspectCard from "./ProspectCard";
 import ProspectDetailsModal from "./ProspectDetailsModal";
 import TagBadge from "./TagBadge";
 import SourceBadge from "./SourceBadge";
-import { deleteProspect } from "../services/api";
+import { deleteProspect, getProspectById } from "../services/api";
 
 /**
  * Composant pour afficher la liste des prospects
@@ -22,6 +22,23 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedProspect(null);
+  };
+
+  const handleProspectUpdatedInModal = async () => {
+    // Recharger les données du prospect depuis l'API
+    if (selectedProspect) {
+      try {
+        const updatedProspect = await getProspectById(selectedProspect.id);
+        setSelectedProspect(updatedProspect);
+      } catch (error) {
+        console.error("Erreur lors du rechargement du prospect:", error);
+      }
+    }
+
+    // Appeler aussi le callback parent pour rafraîchir la liste
+    if (onProspectUpdated) {
+      onProspectUpdated();
+    }
   };
 
   const handleDelete = async (prospect, e) => {
@@ -130,7 +147,7 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
           prospect={selectedProspect}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          onProspectUpdated={onProspectUpdated}
+          onProspectUpdated={handleProspectUpdatedInModal}
         />
       </>
     );
@@ -261,7 +278,7 @@ export default function ProspectList({ prospects, loading, error, viewMode = 'ta
         prospect={selectedProspect}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onProspectUpdated={onProspectUpdated}
+        onProspectUpdated={handleProspectUpdatedInModal}
       />
     </>
   );
