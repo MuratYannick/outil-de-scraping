@@ -195,14 +195,16 @@ Stratégie sélectionnée   Toggles activés
 
 ## Stratégies Disponibles
 
-| Stratégie | Description | Complexité | Coût | Efficacité Pages Jaunes |
-|-----------|-------------|------------|------|------------------------|
-| **NONE** | Aucune protection (mode test) | ⭐ | Gratuit | ❌ Bloqué |
-| **PROXIES** | Rotation de proxies résidentiels | ⭐⭐ | 💰💰 ($75-$1000/mois) | ✅✅✅ À tester |
-| **CAPTCHA_SOLVER** | Résolution automatique CAPTCHA + Stealth | ⭐⭐⭐ | 💰 ($0.15-$3/1000p) | ✅✅ À tester ⭐ |
-| **STEALTH** | Masquage navigateur avancé | ⭐⭐ | Gratuit | ❌ Insuffisant seul |
-| **HYBRID** | Proxies + Stealth + CAPTCHA | ⭐⭐⭐⭐ | 💰💰 | ✅✅✅✅ Maximum |
-| **CUSTOM** | Configuration personnalisée (automatique) | Variable | Variable | Variable |
+| Stratégie | Description | Complexité | Coût | Efficacité Pages Jaunes | Efficacité Google Maps |
+|-----------|-------------|------------|------|------------------------|----------------------|
+| **NONE** | Aucune protection (mode test) | ⭐ | Gratuit | ❌ Bloqué | ❌ Bloqué |
+| **PROXIES** | Rotation de proxies résidentiels | ⭐⭐ | 💰💰 ($75-$1000/mois) | ✅✅✅ À tester | ✅✅✅ À tester |
+| **CAPTCHA_SOLVER** | Résolution automatique CAPTCHA + Stealth | ⭐⭐⭐ | 💰 ($0.15-$3/1000p) | ✅✅ À tester ⭐ | ✅✅ À tester |
+| **STEALTH** | Masquage navigateur avancé | ⭐⭐ | Gratuit | ❌ **0% (testé 10/12/2025)** | ⚠️ **~20-40% (estimé)** |
+| **HYBRID** | Proxies + Stealth + CAPTCHA | ⭐⭐⭐⭐ | 💰💰 | ✅✅✅✅ À tester | ✅✅✅✅ À tester |
+| **CUSTOM** | Configuration personnalisée (automatique) | Variable | Variable | Variable | Variable |
+
+**📊 Derniers tests** : 10 décembre 2025 - Voir [SUCCESS_RATE_ANALYSIS.md](./SUCCESS_RATE_ANALYSIS.md)
 
 ---
 

@@ -3,6 +3,9 @@
  * Support de configuration PAR SCRAPER
  */
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 /**
  * Types de stratégies anti-bot disponibles
  */
@@ -367,6 +370,43 @@ export function enableHybridMode(scraperId) {
   }
 
   return false;
+}
+
+/**
+ * Active la stratégie correspondant à activeStrategy
+ * @param {string} scraperId - ID du scraper
+ */
+export function enableActiveStrategy(scraperId) {
+  const scraperConfig = getScraperConfig(scraperId);
+  const activeStrategy = scraperConfig.activeStrategy;
+
+  console.log(`[AntiBotConfig:${scraperId}] Activation de la stratégie: ${activeStrategy}`);
+
+  switch (activeStrategy) {
+    case ANTIBOT_STRATEGIES.STEALTH:
+      scraperConfig.stealth.enabled = true;
+      console.log(`[AntiBotConfig:${scraperId}] ✓ Stealth mode activé`);
+      break;
+
+    case ANTIBOT_STRATEGIES.PROXIES:
+      scraperConfig.proxies.enabled = true;
+      console.log(`[AntiBotConfig:${scraperId}] ✓ Proxies activés`);
+      break;
+
+    case ANTIBOT_STRATEGIES.CAPTCHA_SOLVER:
+      scraperConfig.captchaSolver.enabled = true;
+      console.log(`[AntiBotConfig:${scraperId}] ✓ CAPTCHA Solver activé`);
+      break;
+
+    case ANTIBOT_STRATEGIES.HYBRID:
+      // Le mode HYBRID est géré par enableHybridMode()
+      break;
+
+    case ANTIBOT_STRATEGIES.NONE:
+    default:
+      console.log(`[AntiBotConfig:${scraperId}] ⚠️  Aucune stratégie anti-bot active`);
+      break;
+  }
 }
 
 /**

@@ -9,6 +9,7 @@ import {
   SCRAPER_IDS,
   ANTIBOT_STRATEGIES,
   getScraperConfig,
+  enableActiveStrategy,
   enableHybridMode,
   isStrategyActive
 } from "../config/antiBotConfig.js";
@@ -64,6 +65,9 @@ class PlaywrightService {
       console.log(`[PlaywrightService:${this.scraperId}] Initialisation du browser...`);
       console.log(`[PlaywrightService:${this.scraperId}] Stratégie anti-bot: ${scraperConfig.activeStrategy}`);
 
+      // Activer la stratégie correspondante (stealth, proxies, captcha, etc.)
+      enableActiveStrategy(this.scraperId);
+
       // Activer le mode HYBRID si nécessaire (active automatiquement les sous-stratégies)
       const isHybrid = enableHybridMode(this.scraperId);
       if (isHybrid) {
@@ -82,7 +86,7 @@ class PlaywrightService {
       if (isStrategyActive(this.scraperId, ANTIBOT_STRATEGIES.STEALTH) && scraperConfig.stealth.enabled) {
         console.log(`[PlaywrightService:${this.scraperId}] 🥷 Initialisation du service Stealth...`);
         this.stealthService = getStealthService();
-        await this.stealthService.initialize();
+        await this.stealthService.initialize(this.scraperId);
         console.log(`[PlaywrightService:${this.scraperId}] ✓ Stealth mode prêt`);
       }
 

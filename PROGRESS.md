@@ -102,8 +102,11 @@
   - [x] Canvas et WebGL fingerprinting masqués
   - [x] Intégration dans PlaywrightService
   - [x] Tests sur bot.sannysoft.com (93% détections masquées - 52/56 tests passés)
-  - [x] Tests sur Pages Jaunes: ❌ Stealth seul insuffisant (protection trop avancée)
-  - [ ] **RECOMMANDÉ**: Combiner avec proxies ou CAPTCHA (mode HYBRID)
+  - [x] **Tests de taux de réussite (Jour 28 - 10 décembre 2025)** :
+    - ❌ Pages Jaunes avec Stealth seul : **0% (0/50 prospects)** - Bloqué à 100%
+    - ⚠️ Google Maps avec Stealth seul : Non testé (erreur technique)
+    - 📊 Voir [SUCCESS_RATE_ANALYSIS.md](docs/SUCCESS_RATE_ANALYSIS.md) pour analyse complète
+  - [x] **Décision MVP** : ❌ Désactiver Pages Jaunes, ✅ Activer Google Maps API (100% réussite)
 - [ ] **Décision finale et implémentation**
   - [ ] Choisir la solution avec le chef de projet (Proxies, CAPTCHA, ou HYBRID)
   - [ ] Obtenir les credentials nécessaires (API keys ou proxies payants)
