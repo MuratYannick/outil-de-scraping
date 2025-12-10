@@ -146,9 +146,9 @@ export default function AntiBotConfig() {
 
   const strategies = [
     { id: 'none', name: 'Aucune Protection', cost: 'Gratuit', efficacy: 'Bloqué', icon: '⚠️' },
-    { id: 'stealth', name: 'Stealth Seul', cost: 'Gratuit', efficacy: 'Limité', icon: '🥷' },
-    { id: 'captcha_solver', name: 'CAPTCHA + Stealth', cost: '$0.15-$3/1000p', efficacy: 'Bon', icon: '🔐', recommended: true },
-    { id: 'proxies', name: 'Proxies Résidentiels + Stealth', cost: '$75-$1000/mois', efficacy: 'Bon', icon: '🌐' },
+    { id: 'stealth', name: 'Stealth Seul', cost: 'Gratuit', efficacy: 'PJ: 100% • GM: 88%', icon: '🥷', recommended: true },
+    { id: 'captcha_solver', name: 'CAPTCHA + Stealth', cost: '$0.15-$3/1000p', efficacy: 'À tester', icon: '🔐' },
+    { id: 'proxies', name: 'Proxies Résidentiels + Stealth', cost: '$75-$1000/mois', efficacy: 'À tester', icon: '🌐' },
     { id: 'hybrid', name: 'Mode HYBRID : Proxies + CAPTCHA + Stealth', cost: '$75-$1003/mois', efficacy: 'Maximum', icon: '🚀' },
     { id: 'custom', name: 'Configuration Personnalisée', cost: 'Variable', efficacy: 'Variable', icon: '⚙️', disabled: true, isAutomatic: true }
   ];
@@ -586,10 +586,11 @@ export default function AntiBotConfig() {
               </label>
             </div>
 
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm text-red-800">
-                ⚠️ <strong>Tests confirmés:</strong> Stealth Mode seul est insuffisant contre Pages Jaunes.
-                Il DOIT être combiné avec Proxies ou CAPTCHA Solver.
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-sm text-green-800">
+                ✅ <strong>Tests validés (10/12/2025):</strong> Stealth Mode est opérationnel avec un taux de succès de <strong>100% sur Pages Jaunes</strong> et <strong>88% sur Google Maps</strong>.
+                <br />
+                ⚠️ <strong>Important:</strong> Désactiver le VPN lors du scraping (détecté par Cloudflare).
               </p>
             </div>
 

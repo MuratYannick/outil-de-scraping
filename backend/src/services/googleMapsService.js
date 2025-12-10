@@ -238,7 +238,7 @@ class GoogleMapsService {
                 console.log('[GoogleMapsService] ✓ Clic effectué, attente de la redirection...');
 
                 // Attendre que la page Google Maps se charge après le clic
-                await page.waitForTimeout(3000);
+                await page.waitForTimeout(5000);
                 cookieHandled = true;
                 break;
               }
@@ -261,7 +261,7 @@ class GoogleMapsService {
       // Détecter le panneau de résultats (scrollable)
       console.log('[GoogleMapsService] Recherche du panneau de résultats...');
       const resultsSelector = 'div[role="feed"]';
-      await page.waitForSelector(resultsSelector, { timeout: 20000 });
+      await page.waitForSelector(resultsSelector, { timeout: 60000 });
 
       console.log('[GoogleMapsService] ✓ Panneau de résultats détecté');
 

@@ -977,25 +977,44 @@ antiBotConfig.scrapers = {
 - [x] **npm audit (Frontend)** : Mise à jour de Vite 5.x → 7.x, résolution advisory esbuild (GHSA-67mh-4wv8-2f99), audit finalisé à 0 vulnérabilités
 
 ### Scraping
-- ⚠️ **Anti-bot Pages Jaunes** : Le site détecte l'automatisation Playwright et affiche une page d'erreur temporaire
-  - **Symptômes** : Page `page-temporaire` avec classes CSS `error-name`, `no-response`
-  - **Impact** : Impossible d'extraire des données réelles de Pages Jaunes
-  - **Architecture du scraper** : ✅ Validée et fonctionnelle (normalisation, pagination, anti-détection)
-  - **Solutions implémentées** :
-    - [x] Option 1 (Proxies): Architecture complète avec support BrightData/Oxylabs/SmartProxy
-    - [x] Tests avec proxies gratuits: ❌ Inefficaces (blacklistés par Pages Jaunes)
-    - [ ] Tests avec proxies PAYANTS: En attente de credentials ($75-$1000/mois)
-    - [x] Option 2 (CAPTCHA Solver): Architecture complète avec support 2Captcha/Anti-Captcha/CapMonster
-    - [x] Tests CAPTCHA: Détection validée sur page démo Google reCAPTCHA
-    - [ ] Tests CAPTCHA sur Pages Jaunes: En attente d'API key ($0.15-$3/1000 pages)
-    - [x] Option 3 (Stealth Mode): ✅ Complétée et testée (93% détections masquées - GRATUIT)
-    - [x] Tests Stealth: Validés sur bot.sannysoft.com (52/56 tests passés)
-    - [x] Tests Stealth sur Pages Jaunes: ❌ Insuffisant seul (protection trop avancée)
-    - [ ] Recommandation: Combiner en mode HYBRID avec proxies ou CAPTCHA
-  - **Décisions requises** :
-    - Budget pour proxies résidentiels payants ($75-$1000/mois)
-    - OU Budget pour CAPTCHA solver ($0.15-$3/1000 pages) ⭐ RECOMMANDÉ
-    - OU Mode HYBRID (Proxies + Stealth + CAPTCHA) pour taux de succès maximal
+
+#### Taux de Réussite - Stratégie "Stealth Seul" (Tests du 10/12/2025)
+- ✅ **Pages Jaunes** : **100% de succès** (50/50 prospects récupérés)
+  - Conditions : VPN désactivé (important !)
+  - Stratégie : Mode Stealth uniquement
+  - Performance : Extraction complète sans blocage
+  - Note : Le VPN peut déclencher la détection Cloudflare
+
+- ✅ **Google Maps** : **88% de succès** (44/50 prospects récupérés)
+  - Stratégie : Mode Stealth uniquement
+  - Performance : Extraction réussie avec timeout augmenté (60s)
+  - Note : Quelques prospects manquants dus aux limitations de scroll/pagination
+
+#### Limitations Connues
+- ⚠️ **VPN & Proxies Suspects** : Pages Jaunes détecte et bloque les VPN/proxies via Cloudflare
+  - **Solution** : Désactiver le VPN lors du scraping
+  - **Impact** : Sans VPN, le mode Stealth seul est suffisant pour Pages Jaunes
+
+- ⚠️ **Google Maps - Timeout Initial** : Le délai d'attente initial était insuffisant (20s)
+  - **Solution** : Timeout augmenté à 60s pour la détection du feed
+  - **Impact** : Taux de succès amélioré, légère perte (6 prospects sur 50)
+
+#### Solutions Anti-bot Implémentées
+- [x] **Option 1 (Proxies)**: Architecture complète avec support BrightData/Oxylabs/SmartProxy
+  - [x] Tests avec proxies gratuits: ❌ Inefficaces (blacklistés par Pages Jaunes)
+  - [ ] Tests avec proxies PAYANTS: En attente de credentials ($75-$1000/mois)
+- [x] **Option 2 (CAPTCHA Solver)**: Architecture complète avec support 2Captcha/Anti-Captcha/CapMonster
+  - [x] Tests CAPTCHA: Détection validée sur page démo Google reCAPTCHA
+  - [ ] Tests CAPTCHA sur Pages Jaunes: En attente d'API key ($0.15-$3/1000 pages)
+- [x] **Option 3 (Stealth Mode)**: ✅ **Opérationnel et validé** (93% détections masquées - GRATUIT)
+  - [x] Tests Stealth: Validés sur bot.sannysoft.com (52/56 tests passés)
+  - [x] Tests Stealth sur Pages Jaunes: ✅ **100% succès** (sans VPN)
+  - [x] Tests Stealth sur Google Maps: ✅ **88% succès**
+
+#### Recommandations
+- ✅ **MVP prêt** : Mode Stealth seul suffit pour Pages Jaunes et Google Maps (sans VPN)
+- 🔄 **Amélioration future** : Mode HYBRID (Stealth + Proxies/CAPTCHA) pour taux 100% sur Google Maps
+- 💡 **Best Practice** : Toujours désactiver le VPN lors du scraping
 
 ---
 

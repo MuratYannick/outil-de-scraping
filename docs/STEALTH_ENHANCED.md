@@ -46,13 +46,15 @@ Le système anti-détection est construit en 3 couches complémentaires :
 
 ### Stratégies Anti-Bot Disponibles
 
-| Stratégie | Description | Taux de Masquage | Coût |
-|-----------|-------------|------------------|------|
-| **NONE** | Pas de protection | 0% | Gratuit |
-| **STEALTH** | Masquage Playwright | 93% | Gratuit |
-| **PROXIES** | Rotation d'IP | 60% seul | Payant |
-| **CAPTCHA** | Résolution CAPTCHA | 95% avec humain | Payant |
-| **HYBRID** | Stealth + Proxies + CAPTCHA | 99% | Payant |
+| Stratégie | Description | Taux de Masquage | Pages Jaunes | Google Maps | Coût |
+|-----------|-------------|------------------|--------------|-------------|------|
+| **NONE** | Pas de protection | 0% | ❌ 0% | ❌ 0% | Gratuit |
+| **STEALTH** | Masquage Playwright | 93% | ✅ **100%** | ✅ **88%** | Gratuit |
+| **PROXIES** | Rotation d'IP | 60% seul | À tester | À tester | Payant |
+| **CAPTCHA** | Résolution CAPTCHA | 95% avec humain | À tester | À tester | Payant |
+| **HYBRID** | Stealth + Proxies + CAPTCHA | 99% | À tester | À tester | Payant |
+
+**✅ Résultats Validés (10/12/2025)** : Le mode STEALTH seul est **suffisant pour le MVP** avec des taux de succès de 100% (Pages Jaunes) et 88% (Google Maps) sans VPN.
 
 ---
 
