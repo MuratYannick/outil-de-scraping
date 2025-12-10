@@ -2,9 +2,7 @@ import taskManager from '../services/taskManager.js';
 import { PagesJaunesScraper } from '../services/scrapers/pagesJaunesScraper.js';
 import { getGoogleMapsService } from '../services/googleMapsService.js';
 import { getLinkedInScraper } from '../services/scrapers/linkedInScraper.js';
-import { Prospect, Tag, SourceScraping } from '../models/index.js';
-import { Op } from 'sequelize';
-import { addressesMatch } from '../utils/addressNormalizer.js';
+import prospectSaveService from '../services/prospectSaveService.js';
 
 /**
  * @route   POST /api/scraping/lancer
@@ -202,187 +200,13 @@ async function scrapeAsync(taskId, keyword, location, options = {}) {
  * @param {string} sourceName - Nom de la source de scraping (ex: 'Google Maps', 'Pages Jaunes')
  * @returns {Array} Prospects sauvegardés
  */
+/**
+ * Sauvegarde les prospects en utilisant le service dédié
+ * @deprecated Utiliser directement prospectSaveService.saveProspects()
+ * @private
+ */
 async function saveProspects(prospects, keyword, sourceName) {
-  const savedProspects = [];
-
-  // Créer ou récupérer le tag basé sur le keyword
-  const [tag] = await Tag.findOrCreate({
-    where: { nom: keyword.charAt(0).toUpperCase() + keyword.slice(1) },
-  });
-
-  // Récupérer ou créer la source de scraping
-  const [source] = await SourceScraping.findOrCreate({
-    where: { nom: sourceName },
-    defaults: {
-      description: `Source de scraping: ${sourceName}`,
-      actif: true,
-    }
-  });
-
-  console.log(`[ScrapingController] 📌 Source utilisée: ${source.nom} (ID: ${source.id})`);
-
-  for (const prospectData of prospects) {
-    try {
-      // Étape 1 : Vérifier d'abord les doublons exacts (email, URL, GPS)
-      let existingProspect = await Prospect.findOne({
-        where: {
-          [Op.or]: [
-            // Même email
-            prospectData.email ? { email: prospectData.email } : null,
-            // Même URL
-            prospectData.url_site ? { url_site: prospectData.url_site } : null,
-            // Même nom ET mêmes coordonnées GPS
-            prospectData.nom_entreprise && prospectData.latitude && prospectData.longitude ? {
-              nom_entreprise: prospectData.nom_entreprise,
-              latitude: prospectData.latitude,
-              longitude: prospectData.longitude
-            } : null,
-          ].filter(Boolean),
-        },
-        include: [
-          { model: Tag, as: 'tags' },
-          { model: SourceScraping, as: 'sources' }
-        ]
-      });
-
-      // Étape 2 : Si pas trouvé, vérifier par nom + adresse normalisée
-      if (!existingProspect && prospectData.nom_entreprise && prospectData.adresse) {
-        const potentialDuplicates = await Prospect.findAll({
-          where: { nom_entreprise: prospectData.nom_entreprise },
-          include: [
-            { model: Tag, as: 'tags' },
-            { model: SourceScraping, as: 'sources' }
-          ]
-        });
-
-        // Comparer les adresses normalisées
-        for (const candidate of potentialDuplicates) {
-          if (candidate.adresse && addressesMatch(prospectData.adresse, candidate.adresse)) {
-            existingProspect = candidate;
-            console.log(`[ScrapingController] 🔍 Doublon détecté via normalisation d'adresse:`);
-            console.log(`   - Base: "${candidate.adresse}"`);
-            console.log(`   - Nouveau: "${prospectData.adresse}"`);
-            break;
-          }
-        }
-      }
-
-      if (existingProspect) {
-        console.log(`[ScrapingController] ⚠️  Doublon détecté: ${prospectData.nom_entreprise} (${prospectData.adresse || 'pas d\'adresse'})`);
-
-        // Vérifier si cette source est déjà associée
-        const hasSource = existingProspect.sources.some(s => s.id === source.id);
-        if (!hasSource) {
-          await existingProspect.addSource(source);
-          console.log(`[ScrapingController] ✅ Source "${source.nom}" ajoutée au prospect existant`);
-        } else {
-          console.log(`[ScrapingController] ℹ️  Source "${source.nom}" déjà associée à ce prospect`);
-        }
-
-        // Enrichir les données existantes au lieu de skip
-        const updatedFields = {};
-        let hasUpdates = false;
-
-        // Champs à enrichir uniquement si null/vide (données stables)
-        const fieldsToEnrichIfNull = [
-          'adresse', 'latitude', 'longitude', 'ville', 'code_postal'
-        ];
-
-        // Champs à toujours mettre à jour si différents (données qui peuvent changer)
-        const fieldsToAlwaysUpdate = ['nom_contact', 'email', 'telephone', 'url_site', 'note'];
-
-        // 1. Enrichir les champs null/vides
-        fieldsToEnrichIfNull.forEach(field => {
-          const existingValue = existingProspect[field];
-          const newValue = prospectData[field];
-
-          if ((existingValue === null || existingValue === undefined || existingValue === '') &&
-              newValue !== null && newValue !== undefined && newValue !== '') {
-            updatedFields[field] = newValue;
-            hasUpdates = true;
-          }
-        });
-
-        // 2. Mettre à jour les champs qui peuvent changer (si la nouvelle valeur est différente et non vide)
-        fieldsToAlwaysUpdate.forEach(field => {
-          const existingValue = existingProspect[field];
-          const newValue = prospectData[field];
-
-          // Mettre à jour si:
-          // 1. La nouvelle valeur n'est pas null/undefined/vide
-          // 2. ET la nouvelle valeur est différente de l'existante
-          if (newValue !== null && newValue !== undefined && newValue !== '' &&
-              existingValue !== newValue) {
-            updatedFields[field] = newValue;
-            hasUpdates = true;
-            console.log(`[ScrapingController] 🔄 Mise à jour de ${field}: "${existingValue}" → "${newValue}"`);
-          }
-        });
-
-        if (hasUpdates) {
-          await existingProspect.update(updatedFields);
-          console.log(`[ScrapingController] ✅ Données enrichies: ${Object.keys(updatedFields).join(', ')}`);
-        } else {
-          console.log(`[ScrapingController] ℹ️  Aucune nouvelle donnée à enrichir`);
-        }
-
-        // Ajouter le tag si pas déjà présent
-        const hasTag = existingProspect.tags.some(t => t.id === tag.id);
-        if (!hasTag) {
-          await existingProspect.addTag(tag);
-          console.log(`[ScrapingController] ✅ Tag "${tag.nom}" ajouté au prospect existant`);
-        }
-
-        // Recharger avec les relations pour le retour
-        await existingProspect.reload({
-          include: [
-            { model: Tag, as: 'tags' },
-            { model: SourceScraping, as: 'sources' }
-          ],
-        });
-
-        savedProspects.push(existingProspect);
-        continue; // Passer au prospect suivant
-      }
-
-      // Créer le nouveau prospect (sans source_scraping dans les champs)
-      const prospect = await Prospect.create({
-        nom_entreprise: prospectData.nom_entreprise,
-        nom_contact: prospectData.nom_contact || null,
-        email: prospectData.email || null,
-        telephone: prospectData.telephone || null,
-        adresse: prospectData.adresse || null,
-        url_site: prospectData.url_site || null,
-        latitude: prospectData.latitude || null,
-        longitude: prospectData.longitude || null,
-        note: prospectData.note || null,
-        ville: prospectData.ville || null,
-        code_postal: prospectData.code_postal || null,
-      });
-
-      // Associer la source de scraping
-      await prospect.addSource(source);
-      console.log(`[ScrapingController] ✅ Source "${source.nom}" associée au nouveau prospect`);
-
-      // Associer le tag
-      await prospect.addTag(tag);
-
-      // Recharger avec les relations pour le retour
-      await prospect.reload({
-        include: [
-          { model: Tag, as: 'tags' },
-          { model: SourceScraping, as: 'sources' }
-        ],
-      });
-
-      savedProspects.push(prospect);
-      console.log(`[ScrapingController] ✅ Nouveau prospect sauvegardé: ${prospect.nom_entreprise}`);
-    } catch (error) {
-      console.error(`[ScrapingController] ❌ Erreur sauvegarde prospect:`, error);
-    }
-  }
-
-  return savedProspects;
+  return await prospectSaveService.saveProspects(prospects, keyword, sourceName);
 }
 
 /**

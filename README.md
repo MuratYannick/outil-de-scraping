@@ -163,6 +163,7 @@ outil-de-scraping/
 │   ├── STEALTH_ENHANCED.md           # Guide complet anti-détection
 │   ├── TESTS_STEALTH_ENHANCED.md     # Résultats détaillés tests Phases 1-3
 │   ├── GOOGLE_MAPS_EXTRACTION.md     # Méthode de scoring extraction Google Maps
+│   ├── SUCCESS_RATE_ANALYSIS.md      # 📊 Analyse taux de réussite (Jour 28)
 │   └── TESTS_ANTIBOT_EXPECTED_RESULTS.md  # Résultats attendus tests anti-bot
 └── .gitignore
 ```

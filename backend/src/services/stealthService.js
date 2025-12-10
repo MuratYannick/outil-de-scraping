@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { antiBotConfig } from '../config/antiBotConfig.js';
+import { antiBotConfig, getScraperConfig } from '../config/antiBotConfig.js';
 
 /**
  * Service de masquage avancé (Stealth Mode)
@@ -9,7 +9,7 @@ import { antiBotConfig } from '../config/antiBotConfig.js';
 
 class StealthService {
   constructor() {
-    this.config = antiBotConfig.stealth;
+    this.config = null; // Sera initialisé avec le scraperId
     this.initialized = false;
     this.userAgents = [
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -22,12 +22,17 @@ class StealthService {
 
   /**
    * Initialise le service Stealth
+   * @param {string} scraperId - ID du scraper (optionnel pour rétrocompatibilité)
    */
-  async initialize() {
+  async initialize(scraperId = 'pagesJaunes') {
     if (this.initialized) {
       console.log('[StealthService] Déjà initialisé');
       return;
     }
+
+    // Charger la configuration du scraper spécifique
+    const scraperConfig = getScraperConfig(scraperId);
+    this.config = scraperConfig.stealth;
 
     if (!this.config.enabled) {
       console.log('[StealthService] Service désactivé');

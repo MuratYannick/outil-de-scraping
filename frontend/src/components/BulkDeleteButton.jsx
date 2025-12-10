@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { bulkDeleteProspects } from "../services/api";
+import { buildFilterParams, describeFilters } from "../utils/filterParams";
 
 /**
  * Composant bouton pour supprimer en masse les prospects selon les filtres
@@ -19,12 +20,10 @@ export default function BulkDeleteButton({ filters, sorting, totalCount, onDelet
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
-      const params = {};
-
-      // Ajouter les filtres s'ils sont définis
-      if (filters.source) params.source = filters.source;
-      if (filters.tag) params.tag = filters.tag;
-      if (filters.search) params.search = filters.search;
+      const params = buildFilterParams({
+        filters,
+        sorting,
+      });
 
       const result = await bulkDeleteProspects(params);
 
@@ -50,15 +49,7 @@ export default function BulkDeleteButton({ filters, sorting, totalCount, onDelet
 
   // Construire le message de description des filtres
   const getFilterDescription = () => {
-    const parts = [];
-    if (filters.source) parts.push(`source: ${filters.source}`);
-    if (filters.tag) parts.push(`tag: ${filters.tag}`);
-    if (filters.search) parts.push(`recherche: "${filters.search}"`);
-
-    if (parts.length === 0) {
-      return "tous les prospects";
-    }
-    return `les prospects avec ${parts.join(", ")}`;
+    return describeFilters(filters);
   };
 
   return (

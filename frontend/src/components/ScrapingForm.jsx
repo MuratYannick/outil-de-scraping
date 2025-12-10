@@ -202,12 +202,13 @@ export default function ScrapingForm({ onScrapingStarted }) {
           >
             <option value="Pages Jaunes">Pages Jaunes</option>
             <option value="Google Maps">Google Maps</option>
-            <option value="LinkedIn">LinkedIn (Mode Public)</option>
+            {/* MVP v1.0 - LinkedIn désactivé (sera ajouté dans une version ultérieure) */}
+            {/* <option value="LinkedIn">LinkedIn (Mode Public)</option> */}
           </select>
         </div>
 
-        {/* Disclaimer LinkedIn */}
-        {formData.source === 'LinkedIn' && (
+        {/* MVP v1.0 - Disclaimer LinkedIn désactivé */}
+        {/* {formData.source === 'LinkedIn' && (
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
             <div className="flex items-start">
               <div className="flex-shrink-0">
@@ -252,7 +253,7 @@ export default function ScrapingForm({ onScrapingStarted }) {
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Options avancées */}
         <div className={`grid ${formData.source === 'Google Maps' ? 'grid-cols-1' : 'grid-cols-3'} gap-4`}>

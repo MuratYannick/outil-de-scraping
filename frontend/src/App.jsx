@@ -14,6 +14,7 @@ import TagManager from "./components/TagManager";
 import DuplicateCleanerButton from "./components/DuplicateCleanerButton";
 import BulkDeleteButton from "./components/BulkDeleteButton";
 import { getProspects, checkHealth } from "./services/api";
+import { buildFilterParams } from "./utils/filterParams";
 
 export default function App() {
   const [activeView, setActiveView] = useState('scraping'); // 'prospects', 'scraping', 'config', or 'tags'
@@ -71,19 +72,11 @@ export default function App() {
         setLoading(true);
         setError(null);
 
-        const params = {
-          limit: pagination.limit,
-          offset: pagination.offset,
-        };
-
-        // Ajouter les filtres s'ils sont définis
-        if (filters.source) params.source = filters.source;
-        if (filters.tag) params.tag = filters.tag;
-        if (filters.search) params.search = filters.search;
-
-        // Ajouter le tri s'il est défini
-        if (sorting.sortBy) params.sortBy = sorting.sortBy;
-        if (sorting.sortOrder) params.sortOrder = sorting.sortOrder;
+        const params = buildFilterParams({
+          filters,
+          sorting,
+          pagination,
+        });
 
         const data = await getProspects(params);
 
@@ -112,18 +105,11 @@ export default function App() {
     setError(null);
 
     try {
-      const params = {
-        limit: pagination.limit,
-        offset: 0,
-      };
-
-      if (filters.source) params.source = filters.source;
-      if (filters.tag) params.tag = filters.tag;
-      if (filters.search) params.search = filters.search;
-
-      // Ajouter le tri s'il est défini
-      if (sorting.sortBy) params.sortBy = sorting.sortBy;
-      if (sorting.sortOrder) params.sortOrder = sorting.sortOrder;
+      const params = buildFilterParams({
+        filters,
+        sorting,
+        pagination: { ...pagination, offset: 0 },
+      });
 
       const data = await getProspects(params);
 
@@ -250,7 +236,8 @@ export default function App() {
               <span>🏷️</span>
               Tags
             </button>
-            <button
+            {/* MVP v1.0 - Google Maps Config désactivée (sera réactivée dans une version ultérieure) */}
+            {/* <button
               onClick={() => setActiveView('google-maps')}
               className={`${
                 activeView === 'google-maps'
@@ -260,8 +247,9 @@ export default function App() {
             >
               <span>🗺️</span>
               Google Maps
-            </button>
-            <button
+            </button> */}
+            {/* MVP v1.0 - Config Anti-Bot désactivée (Stealth seul suffit pour le MVP) */}
+            {/* <button
               onClick={() => setActiveView('config')}
               className={`${
                 activeView === 'config'
@@ -271,7 +259,7 @@ export default function App() {
             >
               <span>🛡️</span>
               Configuration Anti-Bot
-            </button>
+            </button> */}
           </nav>
         </div>
 
@@ -433,15 +421,15 @@ export default function App() {
           <TagManager />
         )}
 
-        {/* Google Maps Configuration View */}
-        {activeView === 'google-maps' && (
+        {/* MVP v1.0 - Google Maps Configuration View désactivée */}
+        {/* {activeView === 'google-maps' && (
           <GoogleMapsConfig />
-        )}
+        )} */}
 
-        {/* Anti-Bot Configuration View */}
-        {activeView === 'config' && (
+        {/* MVP v1.0 - Anti-Bot Configuration View désactivée */}
+        {/* {activeView === 'config' && (
           <AntiBotConfig />
-        )}
+        )} */}
 
         {/* Notification */}
         {notification && (

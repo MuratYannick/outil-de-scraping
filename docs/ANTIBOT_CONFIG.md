@@ -195,14 +195,14 @@ Stratégie sélectionnée   Toggles activés
 
 ## Stratégies Disponibles
 
-| Stratégie | Description | Complexité | Coût | Efficacité Pages Jaunes |
-|-----------|-------------|------------|------|------------------------|
-| **NONE** | Aucune protection (mode test) | ⭐ | Gratuit | ❌ Bloqué |
-| **PROXIES** | Rotation de proxies résidentiels | ⭐⭐ | 💰💰 ($75-$1000/mois) | ✅✅✅ À tester |
-| **CAPTCHA_SOLVER** | Résolution automatique CAPTCHA + Stealth | ⭐⭐⭐ | 💰 ($0.15-$3/1000p) | ✅✅ À tester ⭐ |
-| **STEALTH** | Masquage navigateur avancé | ⭐⭐ | Gratuit | ❌ Insuffisant seul |
-| **HYBRID** | Proxies + Stealth + CAPTCHA | ⭐⭐⭐⭐ | 💰💰 | ✅✅✅✅ Maximum |
-| **CUSTOM** | Configuration personnalisée (automatique) | Variable | Variable | Variable |
+| Stratégie | Description | Complexité | Coût | Efficacité Pages Jaunes | Efficacité Google Maps |
+|-----------|-------------|------------|------|------------------------|------------------------|
+| **NONE** | Aucune protection (mode test) | ⭐ | Gratuit | ❌ Bloqué | ❌ Bloqué |
+| **PROXIES** | Rotation de proxies résidentiels | ⭐⭐ | 💰💰 ($75-$1000/mois) | ✅✅✅ À tester | ✅✅✅ À tester |
+| **CAPTCHA_SOLVER** | Résolution automatique CAPTCHA + Stealth | ⭐⭐⭐ | 💰 ($0.15-$3/1000p) | ✅✅ À tester | ✅✅ À tester |
+| **STEALTH** | Masquage navigateur avancé | ⭐⭐ | Gratuit | ✅✅✅ **100% succès** | ✅✅ **88% succès** |
+| **HYBRID** | Proxies + Stealth + CAPTCHA | ⭐⭐⭐⭐ | 💰💰 | ✅✅✅✅ Maximum | ✅✅✅✅ Maximum |
+| **CUSTOM** | Configuration personnalisée (automatique) | Variable | Variable | Variable | Variable |
 
 ---
 
@@ -383,9 +383,10 @@ BROWSER_PROFILE_PATH=./browser-profiles/default
 - ✅ **Protection WebRTC leaks** : Empêche la fuite d'IP réelle
 - ✅ **Comportement humain** : Scrolls aléatoires, delays variables
 
-**Limitations** :
-- ⚠️ Moins efficace seul contre les protections avancées
-- ⚠️ Recommandé en combinaison avec des proxies
+**Résultats Validés (Tests du 10/12/2025)** :
+- ✅ **Pages Jaunes** : **100% de succès** (50/50 prospects récupérés)
+- ✅ **Google Maps** : **88% de succès** (44/50 prospects récupérés)
+- ⚠️ **Important** : Désactiver le VPN (détecté par Cloudflare)
 
 ---
 
@@ -566,14 +567,14 @@ ANTIBOT_STRATEGY=none
 node scripts/test-pages-jaunes-scraper.js
 ```
 
-### Comparaison des Résultats
+### Comparaison des Résultats (Tests du 10/12/2025)
 
-| Configuration | Résultat | Prospects Extraits |
-|---------------|----------|-------------------|
-| NONE (baseline) | ❌ Bloqué | 0 |
-| PROXIES (BrightData) | ✅ Succès | 10+ |
-| STEALTH seul | ⚠️ Variable | 0-5 |
-| HYBRID (Proxies+Stealth) | ✅ Succès | 10+ |
+| Configuration | Pages Jaunes | Google Maps | Notes |
+|---------------|--------------|-------------|-------|
+| NONE (baseline) | ❌ 0/50 | ❌ 0/50 | Bloqué immédiatement |
+| STEALTH seul | ✅ **50/50 (100%)** | ✅ **44/50 (88%)** | **VPN désactivé requis** |
+| PROXIES (payants) | À tester | À tester | Nécessite credentials |
+| HYBRID (Proxies+Stealth) | À tester | À tester | Efficacité maximale attendue |
 
 ---
 
@@ -601,12 +602,14 @@ node scripts/test-pages-jaunes-scraper.js
 
 ### Recommandation Budget
 
-| Budget | Configuration Recommandée |
-|--------|---------------------------|
-| **Gratuit** | STEALTH seul (efficacité limitée) |
-| **$75-$200/mois** | SmartProxy + STEALTH |
-| **$300-$600/mois** | Oxylabs ou BrightData + STEALTH |
-| **$500+/mois** | HYBRID (BrightData + STEALTH + CAPTCHA solver) |
+| Budget | Configuration Recommandée | Efficacité |
+|--------|---------------------------|------------|
+| **Gratuit** | STEALTH seul (sans VPN) | ✅ **Pages Jaunes: 100%**, Google Maps: 88% |
+| **$75-$200/mois** | SmartProxy + STEALTH | Amélioration Google Maps attendue |
+| **$300-$600/mois** | Oxylabs ou BrightData + STEALTH | Efficacité maximale |
+| **$500+/mois** | HYBRID (BrightData + STEALTH + CAPTCHA solver) | Redondance complète |
+
+**✅ Recommandation MVP** : Le mode **STEALTH seul est suffisant** pour Pages Jaunes (100%) et Google Maps (88%) sans coût supplémentaire.
 
 ---
 

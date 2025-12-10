@@ -1,41 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
 import TagBadge from './TagBadge';
 import SourceBadge from './SourceBadge';
-import { deleteProspect } from '../services/api';
+import { useDeleteProspect } from '../hooks/useDeleteProspect';
 
 /**
  * Composant carte pour afficher un prospect (vue grille)
  */
 export default function ProspectCard({ prospect, onProspectUpdated }) {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async (e) => {
-    e.stopPropagation();
-
-    if (!confirm(`Voulez-vous vraiment supprimer le prospect "${prospect.nom_entreprise}" ?\n\nCette action est irréversible.`)) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      await deleteProspect(prospect.id);
-
+  const { isDeleting, handleDelete } = useDeleteProspect({
+    onDeleted: () => {
       if (onProspectUpdated) {
         onProspectUpdated();
       }
-    } catch (error) {
-      console.error("Erreur lors de la suppression:", error);
-      alert("Erreur lors de la suppression: " + (error.response?.data?.message || error.message));
-    } finally {
-      setIsDeleting(false);
     }
-  };
+  });
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow relative">
       {/* Bouton de suppression */}
       <button
-        onClick={handleDelete}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDelete(prospect);
+        }}
         disabled={isDeleting}
         className="absolute top-4 right-4 text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
         title="Supprimer ce prospect"

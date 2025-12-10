@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { getTags } from '../services/api';
+import { useFilters } from '../hooks/useFilters';
 
 /**
  * Composant de filtres pour les prospects
  */
 export default function ProspectFilters({ onFilterChange }) {
-  const [filters, setFilters] = useState({
-    source: '',
-    tag: '',
-    search: '',
-  });
+  const { filters, updateFilter, resetFilters, hasFilters } = useFilters(
+    { source: '', tag: '', search: '' },
+    onFilterChange
+  );
 
   const [tags, setTags] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -27,31 +27,6 @@ export default function ProspectFilters({ onFilterChange }) {
     loadTags();
   }, []);
 
-  // Notifier le parent quand les filtres changent
-  useEffect(() => {
-    if (onFilterChange) {
-      onFilterChange(filters);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]); // Volontairement pas onFilterChange pour éviter la boucle infinie
-
-  const handleChange = (name, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleReset = () => {
-    setFilters({
-      source: '',
-      tag: '',
-      search: '',
-    });
-  };
-
-  const hasActiveFilters = filters.source || filters.tag || filters.search;
-
   return (
     <div className="bg-white rounded-lg shadow-md mb-6">
       {/* Header */}
@@ -68,7 +43,7 @@ export default function ProspectFilters({ onFilterChange }) {
             />
           </svg>
           <h3 className="text-lg font-semibold text-gray-800">Filtres</h3>
-          {hasActiveFilters && (
+          {hasFilters && (
             <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
               {Object.values(filters).filter(Boolean).length}
             </span>
@@ -100,7 +75,7 @@ export default function ProspectFilters({ onFilterChange }) {
                 type="text"
                 id="search"
                 value={filters.search}
-                onChange={(e) => handleChange('search', e.target.value)}
+                onChange={(e) => updateFilter('search', e.target.value)}
                 placeholder="Nom, email, téléphone..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -114,7 +89,7 @@ export default function ProspectFilters({ onFilterChange }) {
               <select
                 id="source"
                 value={filters.source}
-                onChange={(e) => handleChange('source', e.target.value)}
+                onChange={(e) => updateFilter('source', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Toutes les sources</option>
@@ -132,7 +107,7 @@ export default function ProspectFilters({ onFilterChange }) {
               <select
                 id="tag"
                 value={filters.tag}
-                onChange={(e) => handleChange('tag', e.target.value)}
+                onChange={(e) => updateFilter('tag', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Tous les tags</option>
@@ -148,8 +123,8 @@ export default function ProspectFilters({ onFilterChange }) {
           {/* Actions */}
           <div className="mt-4 flex justify-end">
             <button
-              onClick={handleReset}
-              disabled={!hasActiveFilters}
+              onClick={resetFilters}
+              disabled={!hasFilters}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Réinitialiser
