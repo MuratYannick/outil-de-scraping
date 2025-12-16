@@ -142,6 +142,8 @@ class PagesJaunesScraper {
           nom_entreprise: null,
           adresse: null,
           telephone: null,
+          telephone_2: null,
+          telephone_3: null,
           url_site: null,
           email: null
         };
@@ -183,7 +185,7 @@ class PagesJaunesScraper {
           }
         }
 
-        // Téléphone - 2024: caché dans .bi-fantomas .number-contact
+        // Téléphones - Récupérer TOUS les téléphones disponibles (jusqu'à 3)
         const phoneSelectors = [
           '.bi-fantomas .number-contact',  // Format 2024: numéros cachés
           'a[href^="tel:"]',
@@ -191,20 +193,36 @@ class PagesJaunesScraper {
           '[class*="phone"]',
           '[itemprop="telephone"]'
         ];
+
+        const phones = [];
         for (const selector of phoneSelectors) {
-          const phoneEl = el.querySelector(selector);
-          if (phoneEl) {
+          const phoneElements = el.querySelectorAll(selector);
+          phoneElements.forEach(phoneEl => {
             // Extraire le numéro du texte (format: "Tél : 01 23 45 67 89")
             const text = phoneEl.textContent.trim();
             const phoneMatch = text.match(/\d[\d\s]+\d/);
+            let phone = null;
+
             if (phoneMatch) {
-              result.telephone = phoneMatch[0].trim();
+              phone = phoneMatch[0].trim();
             } else {
-              result.telephone = phoneEl.getAttribute("href") || text;
+              phone = phoneEl.getAttribute("href") || text;
             }
-            break;
-          }
+
+            // Nettoyer et ajouter si non vide et pas déjà présent
+            if (phone && phone.length > 5 && !phones.includes(phone)) {
+              phones.push(phone);
+            }
+          });
+
+          // Si on a trouvé des téléphones, on arrête
+          if (phones.length > 0) break;
         }
+
+        // Assigner aux champs (jusqu'à 3 téléphones)
+        if (phones.length > 0) result.telephone = phones[0];
+        if (phones.length > 1) result.telephone_2 = phones[1];
+        if (phones.length > 2) result.telephone_3 = phones[2];
 
         // Site web
         const websiteSelectors = [
@@ -311,7 +329,9 @@ class PagesJaunesScraper {
             nom_entreprise: data.nom_entreprise,
             nom_contact: null, // Pages Jaunes ne fournit généralement pas le nom du contact
             email: this.normalizeEmail(data.email),
-            telephone: this.normalizePhone(data.telephone),
+            telephone: formatPhoneNumber(data.telephone),
+            telephone_2: formatPhoneNumber(data.telephone_2),
+            telephone_3: formatPhoneNumber(data.telephone_3),
             adresse: addressComponents.adresse_rue || data.adresse, // Adresse sans code postal/ville
             ville: addressComponents.ville,
             code_postal: addressComponents.code_postal,

@@ -262,7 +262,7 @@ class ProspectSaveService {
     const stableFields = ['adresse', 'latitude', 'longitude', 'ville', 'code_postal'];
 
     // Champs à toujours mettre à jour si différents (données qui peuvent changer)
-    const changeableFields = ['nom_contact', 'email', 'telephone', 'url_site', 'note'];
+    const changeableFields = ['nom_contact', 'email', 'telephone', 'telephone_2', 'telephone_3', 'url_site', 'note'];
 
     // 1. Enrichir les champs stables (uniquement si vides)
     this._enrichStableFields(prospect, newData, stableFields, updatedFields);
@@ -338,6 +338,8 @@ class ProspectSaveService {
       nom_contact: prospectData.nom_contact || null,
       email: prospectData.email || null,
       telephone: prospectData.telephone || null,
+      telephone_2: prospectData.telephone_2 || null,
+      telephone_3: prospectData.telephone_3 || null,
       adresse: prospectData.adresse || null,
       url_site: prospectData.url_site || null,
       latitude: prospectData.latitude || null,

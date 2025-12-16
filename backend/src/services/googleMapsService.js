@@ -308,7 +308,7 @@ class GoogleMapsService {
     let previousCount = 0;
     let currentCount = 0;
     let stableCount = 0;
-    const maxStableIterations = 3;
+    const maxStableIterations = 8; // Augmenté de 3 à 8 pour laisser plus de temps à Google Maps
 
     for (let iteration = 0; iteration < 20; iteration++) {
       // Compter les résultats actuellement chargés
@@ -345,6 +345,9 @@ class GoogleMapsService {
           feed.scrollBy(0, feed.clientHeight * 0.8);
         }
       }, resultsSelector);
+
+      // Attendre un peu pour que Google Maps charge le contenu
+      await page.waitForTimeout(1500);
 
       // Attendre le chargement avec rate limiting
       await playwrightService.waitWithRateLimit();
